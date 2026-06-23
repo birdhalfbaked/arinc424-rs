@@ -3,7 +3,7 @@
 //! rather a term I have used to describe the encoding of multiple annotations onto one field definition in the spec
 //! The first example of which is given in 5.35 - Navaid Class which describes a 5-letter code that adds annotations onto a Navaid record.
 //!
-//! The way we encode these complexes are as tuples. In the above example, the Navaid Class is encoded as a tuple of 5 enum fields. Thus,
+//! The way we encode these complexes are as tuples or nested enums. In the above example, the Navaid Class is encoded as a tuple of 5 enum fields. Thus,
 //! when parsing a VHF Navaid record in particular we represent this as the combination of:
 //!
 //! - VHFNavaidType1
@@ -12,7 +12,11 @@
 //! - VHFAdditionalInfo
 //! - Collocation
 //!
-use crate::parsers::arinc424::fields::{BLANK, FieldParseError};
+use super::numerics::{AltitudeNumeric, UintNumeric};
+use crate::parsers::arinc424::{
+    definitions::MultiUnitAltitudeNumeric,
+    fields::{BLANK, FieldParseError},
+};
 
 // VHF Navaid Class
 #[derive(Debug, PartialEq, Eq)]
@@ -496,10 +500,1188 @@ impl WaypointType {
 // 5.93 Facility Characteristics (FAC CHAR)
 // Note: This will be a best guess at layout since the table is unclear in its capture of the logic required
 
-// VHF Navaid/TACAN Only record class
+#[derive(Debug, PartialEq, Eq)]
+pub enum FacilityCharacteristicsSynchronicity {
+    Synchronous,
+    Asynchronous,
+    Unknown,
+}
+impl FacilityCharacteristicsSynchronicity {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"S" => FacilityCharacteristicsSynchronicity::Synchronous,
+            b"A" => FacilityCharacteristicsSynchronicity::Asynchronous,
+            b"U" => FacilityCharacteristicsSynchronicity::Unknown,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid VHFNavaid Facility Characteristics 1".to_string(),
+                });
+            }
+        }))
+    }
+}
 
-// NDB Navaid Class
+#[derive(Debug, PartialEq, Eq)]
+pub enum FacilityCharacteristicsVoiceIdent {
+    VoiceIdent,
+    NoVoiceIdent,
+    Undefined,
+    NotApplicable,
+}
 
-// Localizer Marker / Localizer Glideslope Class
+impl FacilityCharacteristicsVoiceIdent {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"Y" => FacilityCharacteristicsVoiceIdent::VoiceIdent,
+            b"N" => FacilityCharacteristicsVoiceIdent::NoVoiceIdent,
+            b"U" => FacilityCharacteristicsVoiceIdent::Undefined,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid VHFNavaid Facility Characteristics 2".to_string(),
+                });
+            }
+        }))
+    }
+}
 
-// MLS Class
+#[derive(Debug, PartialEq, Eq)]
+pub enum FacilityCharacteristicsEmissionType {
+    UnmodulatedCarrier,
+    CarrierKeyed,
+    ToneKeyed,
+    NotApplicable,
+}
+
+impl FacilityCharacteristicsEmissionType {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes[0] == BLANK {
+            return Ok(Some(FacilityCharacteristicsEmissionType::NotApplicable));
+        }
+        Ok(Some(match bytes {
+            b"0" => FacilityCharacteristicsEmissionType::UnmodulatedCarrier,
+            b"1" => FacilityCharacteristicsEmissionType::CarrierKeyed,
+            b"2" => FacilityCharacteristicsEmissionType::ToneKeyed,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid Facility Characteristics Emission Type".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum FacilityCharacteristicsFreqAndBackcourse {
+    Freq400Hz,
+    Freq1020Hz,
+    BackcourseUsable,
+    BackcourseUnusable,
+    BackcourseRestricted,
+    BackcourseUndefined,
+    MLSHighRateAzimuthGuidance,
+    NotApplicable,
+}
+impl FacilityCharacteristicsFreqAndBackcourse {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes[0] == BLANK {
+            return Ok(Some(
+                FacilityCharacteristicsFreqAndBackcourse::NotApplicable,
+            ));
+        }
+        Ok(Some(match bytes {
+            b"4" => FacilityCharacteristicsFreqAndBackcourse::Freq400Hz,
+            b"1" => FacilityCharacteristicsFreqAndBackcourse::Freq1020Hz,
+            b"Y" => FacilityCharacteristicsFreqAndBackcourse::BackcourseUsable,
+            b"N" => FacilityCharacteristicsFreqAndBackcourse::BackcourseUnusable,
+            b"R" => FacilityCharacteristicsFreqAndBackcourse::BackcourseRestricted,
+            b"U" => FacilityCharacteristicsFreqAndBackcourse::BackcourseUndefined,
+            b"H" => FacilityCharacteristicsFreqAndBackcourse::MLSHighRateAzimuthGuidance,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid Facility Characteristics Freq And Backcourse".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum FacilityCharacteristicsRepetitionAndCollocation {
+    CollocatedWithLocalizer,
+    CollocatedWithGlideslope,
+    CollocatedWithAzimuth,
+    CollocatedWithElevation,
+    NotCollocatedWithAzOrElev,
+    NotApplicable,
+    KnownRepetition(u8),
+}
+impl FacilityCharacteristicsRepetitionAndCollocation {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes[0] == BLANK {
+            return Ok(Some(
+                FacilityCharacteristicsRepetitionAndCollocation::NotApplicable,
+            ));
+        }
+        Ok(Some(match bytes {
+            b"0" => FacilityCharacteristicsRepetitionAndCollocation::CollocatedWithLocalizer,
+            b"1" => FacilityCharacteristicsRepetitionAndCollocation::CollocatedWithGlideslope,
+            b"2" => FacilityCharacteristicsRepetitionAndCollocation::CollocatedWithAzimuth,
+            b"3" => FacilityCharacteristicsRepetitionAndCollocation::CollocatedWithElevation,
+            b"4" => FacilityCharacteristicsRepetitionAndCollocation::NotCollocatedWithAzOrElev,
+            _ => {
+                if bytes[0].is_ascii_digit() {
+                    return Ok(Some(
+                        FacilityCharacteristicsRepetitionAndCollocation::KnownRepetition(
+                            bytes[0] - b'0',
+                        ),
+                    ));
+                } else {
+                    return Err(FieldParseError {
+                        message: "Invalid Facility Characteristics Repetition And Collocation"
+                            .to_string(),
+                    });
+                }
+            }
+        }))
+    }
+}
+
+/// 5.93 Facility Characteristics (FAC CHAR)
+#[derive(Debug, PartialEq, Eq)]
+pub struct FacilityCharacteristics(
+    FacilityCharacteristicsSynchronicity,
+    FacilityCharacteristicsVoiceIdent,
+    FacilityCharacteristicsEmissionType,
+    FacilityCharacteristicsFreqAndBackcourse,
+    FacilityCharacteristicsRepetitionAndCollocation,
+);
+impl FacilityCharacteristics {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(FacilityCharacteristics(
+            FacilityCharacteristicsSynchronicity::from_bytes(&bytes[0..1])?.ok_or(
+                FieldParseError {
+                    message: "Invalid Facility Characteristics Synchronicity".to_string(),
+                },
+            )?,
+            FacilityCharacteristicsVoiceIdent::from_bytes(&bytes[1..2])?.ok_or(
+                FieldParseError {
+                    message: "Invalid Facility Characteristics Voice Ident".to_string(),
+                },
+            )?,
+            FacilityCharacteristicsEmissionType::from_bytes(&bytes[2..3])?.ok_or(
+                FieldParseError {
+                    message: "Invalid Facility Characteristics Emission Type".to_string(),
+                },
+            )?,
+            FacilityCharacteristicsFreqAndBackcourse::from_bytes(&bytes[3..4])?.ok_or(
+                FieldParseError {
+                    message: "Invalid Facility Characteristics Freq And Backcourse".to_string(),
+                },
+            )?,
+            FacilityCharacteristicsRepetitionAndCollocation::from_bytes(&bytes[4..5])?.ok_or(
+                FieldParseError {
+                    message: "Invalid Facility Characteristics Repetition And Collocation"
+                        .to_string(),
+                },
+            )?,
+        )))
+    }
+}
+
+#[test]
+fn test_facility_characteristics() {
+    let bytes = b"SY049";
+    let facility_characteristics = FacilityCharacteristics::from_bytes(bytes).unwrap().unwrap();
+    assert_eq!(
+        facility_characteristics.0,
+        FacilityCharacteristicsSynchronicity::Synchronous
+    );
+    assert_eq!(
+        facility_characteristics.1,
+        FacilityCharacteristicsVoiceIdent::VoiceIdent
+    );
+    assert_eq!(
+        facility_characteristics.2,
+        FacilityCharacteristicsEmissionType::UnmodulatedCarrier
+    );
+    assert_eq!(
+        facility_characteristics.3,
+        FacilityCharacteristicsFreqAndBackcourse::Freq400Hz
+    );
+    assert_eq!(
+        facility_characteristics.4,
+        FacilityCharacteristicsRepetitionAndCollocation::KnownRepetition(9)
+    );
+}
+
+// Marker Type
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum MarkerTypeLocator {
+    Locator,
+    NotApplicable,
+}
+impl MarkerTypeLocator {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes[0] == BLANK {
+            return Ok(Some(MarkerTypeLocator::NotApplicable));
+        }
+        Ok(Some(match bytes {
+            b"L" => MarkerTypeLocator::Locator,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid Marker Type Locator".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum MarkerTypeLocation {
+    Inner,
+    Middle,
+    Outer,
+    Back,
+    NotApplicable,
+}
+impl MarkerTypeLocation {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes[0] == BLANK {
+            return Ok(Some(MarkerTypeLocation::NotApplicable));
+        }
+        Ok(Some(match bytes {
+            b"I" => MarkerTypeLocation::Inner,
+            b"M" => MarkerTypeLocation::Middle,
+            b"O" => MarkerTypeLocation::Outer,
+            b"B" => MarkerTypeLocation::Back,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid Marker Type Location".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum MarkerTypeMarker {
+    Marker,
+    NotApplicable,
+}
+impl MarkerTypeMarker {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes[0] == BLANK {
+            return Ok(Some(MarkerTypeMarker::NotApplicable));
+        }
+        Ok(Some(match bytes {
+            b"M" => MarkerTypeMarker::Marker,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid Marker Type Marker".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.99 Marker Type
+#[derive(Debug, PartialEq, Eq)]
+pub struct MarkerType(MarkerTypeLocator, MarkerTypeLocation, MarkerTypeMarker);
+impl MarkerType {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(MarkerType(
+            MarkerTypeLocator::from_bytes(&bytes[0..1])?.ok_or(FieldParseError {
+                message: "Invalid Marker Type Locator".to_string(),
+            })?,
+            MarkerTypeLocation::from_bytes(&bytes[1..2])?.ok_or(FieldParseError {
+                message: "Invalid Marker Type Location".to_string(),
+            })?,
+            MarkerTypeMarker::from_bytes(&bytes[2..3])?.ok_or(FieldParseError {
+                message: "Invalid Marker Type Marker".to_string(),
+            })?,
+        )))
+    }
+}
+
+// Service Indicator
+
+// Airport Heliport Communications Records
+#[derive(Debug, PartialEq, Eq)]
+pub enum AirportHeliportCommunicationsServiceIndicator1 {
+    AirportAdvisoryService,
+    CommunityAerodromeRadioStation,
+    DepartureServiceOtherThanDepartureControl,
+    FlightInformationService,
+    InitialContact,
+    ArrivalServiceOtherThanArrivalControl,
+    AerodromeFlightInformationService,
+    TerminalAreaControlOtherThanDedicatedTerminalControl,
+    NotApplicable,
+}
+
+impl AirportHeliportCommunicationsServiceIndicator1 {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            [BLANK] => AirportHeliportCommunicationsServiceIndicator1::NotApplicable,
+            b"A" => AirportHeliportCommunicationsServiceIndicator1::AirportAdvisoryService,
+            b"C" => AirportHeliportCommunicationsServiceIndicator1::CommunityAerodromeRadioStation,
+            b"D" => AirportHeliportCommunicationsServiceIndicator1::DepartureServiceOtherThanDepartureControl,
+            b"F" => AirportHeliportCommunicationsServiceIndicator1::FlightInformationService,
+            b"I" => AirportHeliportCommunicationsServiceIndicator1::InitialContact,
+            b"L" => AirportHeliportCommunicationsServiceIndicator1::ArrivalServiceOtherThanArrivalControl,
+            b"S" => AirportHeliportCommunicationsServiceIndicator1::AerodromeFlightInformationService,
+            b"T" => AirportHeliportCommunicationsServiceIndicator1::TerminalAreaControlOtherThanDedicatedTerminalControl,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid Airport Heliport Communications Service Indicator 1".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum AirportHeliportCommunicationsServiceIndicator2 {
+    AerodromeTrafficFrequency,
+    CommonTrafficAdvisoryFrequency,
+    MandatoryFrequency,
+    SecondaryFrequency,
+    NotApplicable,
+}
+impl AirportHeliportCommunicationsServiceIndicator2 {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            [BLANK] => AirportHeliportCommunicationsServiceIndicator2::NotApplicable,
+            b"A" => AirportHeliportCommunicationsServiceIndicator2::AerodromeTrafficFrequency,
+            b"C" => AirportHeliportCommunicationsServiceIndicator2::CommonTrafficAdvisoryFrequency,
+            b"M" => AirportHeliportCommunicationsServiceIndicator2::MandatoryFrequency,
+            b"S" => AirportHeliportCommunicationsServiceIndicator2::SecondaryFrequency,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid Airport Heliport Communications Service Indicator 2"
+                        .to_string(),
+                });
+            }
+        }))
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum AirportHeliportCommunicationsServiceIndicator3 {
+    VHFDirectionFindingService,
+    LanguageOtherThanEnglish,
+    MilitaryUseFrequency,
+    PilotControlledLight,
+    NotApplicable,
+}
+impl AirportHeliportCommunicationsServiceIndicator3 {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            [BLANK] => AirportHeliportCommunicationsServiceIndicator3::NotApplicable,
+            b"D" => AirportHeliportCommunicationsServiceIndicator3::VHFDirectionFindingService,
+            b"L" => AirportHeliportCommunicationsServiceIndicator3::LanguageOtherThanEnglish,
+            b"M" => AirportHeliportCommunicationsServiceIndicator3::MilitaryUseFrequency,
+            b"P" => AirportHeliportCommunicationsServiceIndicator3::PilotControlledLight,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid Airport Heliport Communications Service Indicator 3"
+                        .to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.106(A) Airport Heliport Communications Service Indicator
+#[derive(Debug, PartialEq, Eq)]
+pub struct AirportHeliportCommunicationsServiceIndicator(
+    AirportHeliportCommunicationsServiceIndicator1,
+    AirportHeliportCommunicationsServiceIndicator2,
+    AirportHeliportCommunicationsServiceIndicator3,
+);
+impl AirportHeliportCommunicationsServiceIndicator {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(AirportHeliportCommunicationsServiceIndicator(
+            AirportHeliportCommunicationsServiceIndicator1::from_bytes(&bytes[0..1])?.ok_or(
+                FieldParseError {
+                    message: "Invalid Airport Heliport Communications Service Indicator 1"
+                        .to_string(),
+                },
+            )?,
+            AirportHeliportCommunicationsServiceIndicator2::from_bytes(&bytes[1..2])?.ok_or(
+                FieldParseError {
+                    message: "Invalid Airport Heliport Communications Service Indicator 2"
+                        .to_string(),
+                },
+            )?,
+            AirportHeliportCommunicationsServiceIndicator3::from_bytes(&bytes[2..3])?.ok_or(
+                FieldParseError {
+                    message: "Invalid Airport Heliport Communications Service Indicator 3"
+                        .to_string(),
+                },
+            )?,
+        )))
+    }
+}
+
+// Enroute Communications Records
+#[derive(Debug, PartialEq, Eq)]
+pub enum EnrouteCommunicationsServiceIndicator1 {
+    AeronauticalEnrouteInformationService,
+    FlightInformationService,
+    NotApplicable,
+}
+impl EnrouteCommunicationsServiceIndicator1 {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            [BLANK] => EnrouteCommunicationsServiceIndicator1::NotApplicable,
+            b"A" => EnrouteCommunicationsServiceIndicator1::AeronauticalEnrouteInformationService,
+            b"F" => EnrouteCommunicationsServiceIndicator1::FlightInformationService,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid Enroute Communications Service Indicator 1".to_string(),
+                });
+            }
+        }))
+    }
+}
+#[derive(Debug, PartialEq, Eq)]
+pub enum EnrouteCommunicationsServiceIndicator2 {
+    AirGround,
+    DiscreteFrequency,
+    MandatoryFrequency,
+    SecondaryFrequency,
+    NotApplicable,
+}
+impl EnrouteCommunicationsServiceIndicator2 {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            [BLANK] => EnrouteCommunicationsServiceIndicator2::NotApplicable,
+            b"A" => EnrouteCommunicationsServiceIndicator2::AirGround,
+            b"D" => EnrouteCommunicationsServiceIndicator2::DiscreteFrequency,
+            b"M" => EnrouteCommunicationsServiceIndicator2::MandatoryFrequency,
+            b"S" => EnrouteCommunicationsServiceIndicator2::SecondaryFrequency,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid Enroute Communications Service Indicator 2".to_string(),
+                });
+            }
+        }))
+    }
+}
+#[derive(Debug, PartialEq, Eq)]
+pub enum EnrouteCommunicationsServiceIndicator3 {
+    VHFDirectionFindingService,
+    LanguageOtherThanEnglish,
+    MilitaryUseFrequency,
+    NotApplicable,
+}
+impl EnrouteCommunicationsServiceIndicator3 {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            [BLANK] => EnrouteCommunicationsServiceIndicator3::NotApplicable,
+            b"D" => EnrouteCommunicationsServiceIndicator3::VHFDirectionFindingService,
+            b"L" => EnrouteCommunicationsServiceIndicator3::LanguageOtherThanEnglish,
+            b"M" => EnrouteCommunicationsServiceIndicator3::MilitaryUseFrequency,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid Enroute Communications Service Indicator 3".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.106(B) Enroute Communications Service Indicator
+#[derive(Debug, PartialEq, Eq)]
+pub struct EnrouteCommunicationsServiceIndicator(
+    EnrouteCommunicationsServiceIndicator1,
+    EnrouteCommunicationsServiceIndicator2,
+    EnrouteCommunicationsServiceIndicator3,
+);
+impl EnrouteCommunicationsServiceIndicator {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(EnrouteCommunicationsServiceIndicator(
+            EnrouteCommunicationsServiceIndicator1::from_bytes(&bytes[0..1])?.ok_or(
+                FieldParseError {
+                    message: "Invalid Enroute Communications Service Indicator 1".to_string(),
+                },
+            )?,
+            EnrouteCommunicationsServiceIndicator2::from_bytes(&bytes[2..3])?.ok_or(
+                FieldParseError {
+                    message: "Invalid Enroute Communications Service Indicator 2".to_string(),
+                },
+            )?,
+            EnrouteCommunicationsServiceIndicator3::from_bytes(&bytes[3..4])?.ok_or(
+                FieldParseError {
+                    message: "Invalid Enroute Communications Service Indicator 3".to_string(),
+                },
+            )?,
+        )))
+    }
+}
+
+// Duplicate Indicator
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum DuplicateIndicatorAirspace {
+    Undefined,
+    HighAltitude,
+    LowAltitude,
+    SID,
+    STAR,
+    Approach,
+    MissedApproach,
+    UndefinedWithOther,
+    AllAltitude,
+}
+
+impl DuplicateIndicatorAirspace {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"0" => DuplicateIndicatorAirspace::Undefined,
+            b"1" => DuplicateIndicatorAirspace::HighAltitude,
+            b"2" => DuplicateIndicatorAirspace::LowAltitude,
+            b"3" => DuplicateIndicatorAirspace::SID,
+            b"4" => DuplicateIndicatorAirspace::STAR,
+            b"5" => DuplicateIndicatorAirspace::Approach,
+            b"6" => DuplicateIndicatorAirspace::MissedApproach,
+            b"7" => DuplicateIndicatorAirspace::UndefinedWithOther,
+            b"8" => DuplicateIndicatorAirspace::AllAltitude,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid duplicate indicator airspace".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+pub type DuplicateIndicatorDuplicates = u8;
+
+/// 5.114 Duplicate Indicator
+#[derive(Debug, PartialEq, Eq)]
+pub struct DuplicateIndicator(DuplicateIndicatorAirspace, DuplicateIndicatorDuplicates);
+impl DuplicateIndicator {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(DuplicateIndicator(
+            DuplicateIndicatorAirspace::from_bytes(&bytes[0..1])?.ok_or(FieldParseError {
+                message: "Invalid duplicate indicator airspace".to_string(),
+            })?,
+            bytes[1] - b'0' as u8,
+        )))
+    }
+}
+
+// Boundary Via
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum BoundaryViaPathType {
+    Circle,
+    GreatCircle,
+    RhumbLine,
+    CounterclockwiseArc,
+    ClockwiseArc,
+}
+impl BoundaryViaPathType {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"C" => BoundaryViaPathType::Circle,
+            b"G" => BoundaryViaPathType::GreatCircle,
+            b"H" => BoundaryViaPathType::RhumbLine,
+            b"L" => BoundaryViaPathType::CounterclockwiseArc,
+            b"R" => BoundaryViaPathType::ClockwiseArc,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid boundary via path type".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum BoundaryViaEndPoint {
+    EndOfDescription,
+    Other,
+}
+impl BoundaryViaEndPoint {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"E" => BoundaryViaEndPoint::EndOfDescription,
+            [BLANK] => BoundaryViaEndPoint::Other,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid boundary via end point".to_string(),
+                });
+            }
+        }))
+    }
+}
+/// 5.118 Boundary Via
+#[derive(Debug, PartialEq, Eq)]
+pub struct BoundaryVia(BoundaryViaPathType, BoundaryViaEndPoint);
+impl BoundaryVia {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(BoundaryVia(
+            BoundaryViaPathType::from_bytes(&bytes[0..1])?.ok_or(FieldParseError {
+                message: "Invalid boundary via path type".to_string(),
+            })?,
+            BoundaryViaEndPoint::from_bytes(&bytes[1..2])?.ok_or(FieldParseError {
+                message: "Invalid boundary via end point value".to_string(),
+            })?,
+        )))
+    }
+}
+
+// Lower/Upper Limit
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum DescriptiveAltitudeLimits {
+    NotSpecified,
+    Unlimited,
+    Ground,
+    MeanSeaLevel,
+    SeeNOTAM,
+}
+
+impl DescriptiveAltitudeLimits {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"NOTSP" => DescriptiveAltitudeLimits::NotSpecified,
+            b"UNLTD" => DescriptiveAltitudeLimits::Unlimited,
+            b"GND  " => DescriptiveAltitudeLimits::Ground,
+            b"MSL  " => DescriptiveAltitudeLimits::MeanSeaLevel,
+            b"NOTAM" => DescriptiveAltitudeLimits::SeeNOTAM,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid descriptive altitude limits".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.121 Lower/Upper Limit
+#[derive(Debug, PartialEq, Eq)]
+pub enum LowerUpperLimit {
+    Descriptive(DescriptiveAltitudeLimits),
+    Numeric(AltitudeNumeric),
+}
+impl LowerUpperLimit {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        // try to parse as descriptive altitude limit first, on error handle as numeric altitude
+        let descriptive = DescriptiveAltitudeLimits::from_bytes(bytes);
+        if let Ok(Some(descriptive)) = descriptive {
+            return Ok(Some(LowerUpperLimit::Descriptive(descriptive)));
+        }
+        match AltitudeNumeric::from_bytes(bytes) {
+            Ok(Some(numeric)) => Ok(Some(LowerUpperLimit::Numeric(numeric))),
+            Ok(None) => Ok(None),
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid lower/upper limit".to_string(),
+                });
+            }
+        }
+    }
+}
+
+#[test]
+pub fn test_lower_upper_limit() {
+    let r = LowerUpperLimit::from_bytes(b"10000");
+    if let Ok(Some(LowerUpperLimit::Numeric(numeric))) = r {
+        let val: i32 = numeric.into();
+        assert_eq!(val, 10000);
+    } else {
+        panic!("Failed to parse lower/upper limit");
+    }
+    let r = LowerUpperLimit::from_bytes(b"NOTSP");
+    if let Ok(Some(LowerUpperLimit::Descriptive(descriptive))) = r {
+        assert_eq!(descriptive, DescriptiveAltitudeLimits::NotSpecified);
+    } else {
+        panic!("Failed to parse lower/upper limit");
+    }
+    let r = LowerUpperLimit::from_bytes(b"FAILS");
+    if let Ok(_) = r {
+        panic!("Should have failed to parse lower/upper limit");
+    }
+    let r = LowerUpperLimit::from_bytes(b"     ");
+    if let Ok(optional) = r {
+        if let Some(_) = optional {
+            panic!("Should have parsed None for blank lower/upper limit");
+        }
+    }
+}
+
+/// 5.127 Maximum Altitude
+#[derive(Debug, PartialEq, Eq)]
+pub enum MaximumAltitude {
+    Descriptive(DescriptiveAltitudeLimits),
+    Numeric(AltitudeNumeric),
+}
+impl MaximumAltitude {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        let descriptive = DescriptiveAltitudeLimits::from_bytes(bytes);
+        if let Ok(Some(descriptive)) = descriptive {
+            // we only allow unlimited as descriptive altitude limit
+            match descriptive {
+                DescriptiveAltitudeLimits::Unlimited => {
+                    return Ok(Some(MaximumAltitude::Descriptive(descriptive)));
+                }
+                _ => {
+                    return Err(FieldParseError {
+                        message: "Invalid maximum altitude".to_string(),
+                    });
+                }
+            }
+        }
+        match AltitudeNumeric::from_bytes(bytes) {
+            Ok(Some(numeric)) => Ok(Some(MaximumAltitude::Numeric(numeric))),
+            Ok(None) => Ok(None),
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid lower/upper limit".to_string(),
+                });
+            }
+        }
+    }
+}
+
+/// 5.136 Cruise Level From/To
+#[derive(Debug, PartialEq, Eq)]
+pub enum CruiseLevelFromTo {
+    Descriptive(DescriptiveAltitudeLimits),
+    Numeric(MultiUnitAltitudeNumeric),
+}
+impl CruiseLevelFromTo {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        let descriptive = DescriptiveAltitudeLimits::from_bytes(bytes);
+        if let Ok(Some(descriptive)) = descriptive {
+            // we only allow unlimited as descriptive altitude limit
+            match descriptive {
+                DescriptiveAltitudeLimits::Unlimited => {
+                    return Ok(Some(CruiseLevelFromTo::Descriptive(descriptive)));
+                }
+                _ => {
+                    return Err(FieldParseError {
+                        message: "Invalid maximum altitude".to_string(),
+                    });
+                }
+            }
+        }
+        match MultiUnitAltitudeNumeric::from_bytes(bytes) {
+            Ok(Some(numeric)) => Ok(Some(CruiseLevelFromTo::Numeric(numeric))),
+            Ok(None) => Ok(None),
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid cruise level from to".to_string(),
+                });
+            }
+        }
+    }
+}
+
+#[test]
+pub fn test_cruise_level_from_to() {
+    let r = CruiseLevelFromTo::from_bytes(b"M1000");
+    if let Ok(Some(CruiseLevelFromTo::Numeric(MultiUnitAltitudeNumeric::Meters(altitude)))) = r {
+        let val: i32 = altitude.into();
+        assert_eq!(val, 1000);
+    } else {
+        panic!("Failed to parse cruise level from to");
+    }
+    let r = CruiseLevelFromTo::from_bytes(b"10000");
+    if let Ok(Some(CruiseLevelFromTo::Numeric(MultiUnitAltitudeNumeric::Feet(altitude)))) = r {
+        let val: i32 = altitude.into();
+        assert_eq!(val, 10000);
+    } else {
+        panic!("Failed to parse cruise level from to");
+    }
+}
+
+/// 5.146 MSA Sector Bearing
+#[derive(Debug, PartialEq, Eq)]
+pub struct SectorBearing {
+    pub start_bearing: UintNumeric,
+    pub end_bearing: UintNumeric,
+}
+impl SectorBearing {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        let start_bearing = UintNumeric::from_bytes(&bytes[0..3])?.ok_or(FieldParseError {
+            message: "Invalid sector bearing".to_string(),
+        })?;
+        let end_bearing = UintNumeric::from_bytes(&bytes[3..6])?.ok_or(FieldParseError {
+            message: "Invalid sector bearing".to_string(),
+        })?;
+        Ok(Some(SectorBearing {
+            start_bearing,
+            end_bearing,
+        }))
+    }
+}
+
+// Pad Dimensions
+#[derive(Debug, PartialEq, Eq)]
+pub struct RectangularPadDimensions {
+    pub width: UintNumeric,
+    pub length: UintNumeric,
+}
+impl RectangularPadDimensions {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        let width = UintNumeric::from_bytes(&bytes[0..5])?.ok_or(FieldParseError {
+            message: "Invalid rectangular pad dimensions".to_string(),
+        })?;
+        let length = UintNumeric::from_bytes(&bytes[5..8])?.ok_or(FieldParseError {
+            message: "Invalid rectangular pad dimensions".to_string(),
+        })?;
+        Ok(Some(RectangularPadDimensions { width, length }))
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct CircularPadDimensions {
+    pub diameter: UintNumeric,
+}
+impl CircularPadDimensions {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        let diameter = UintNumeric::from_bytes(&bytes[0..5])?.ok_or(FieldParseError {
+            message: "Invalid circular pad dimensions".to_string(),
+        })?;
+        Ok(Some(CircularPadDimensions { diameter }))
+    }
+}
+
+/// 5.176 Pad Dimensions
+///
+/// Note: This is a complex type that can be either rectangular or circular. Construction is manual
+/// based on the indicator that tells us which it is
+#[derive(Debug, PartialEq, Eq)]
+pub enum PadDimensions {
+    Rectangular(RectangularPadDimensions),
+    Circular(CircularPadDimensions),
+}
+
+// Timezone (ugh)
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum TimezoneZone {
+    UTCMinus1,
+    UTCMinus2,
+    UTCMinus3,
+    UTCMinus4,
+    UTCMinus5,
+    UTCMinus6,
+    UTCMinus7,
+    UTCMinus8,
+    UTCMinus9,
+    UTCMinus10,
+    UTCMinus11,
+    UTCMinus12,
+    UTCMinus13,
+    UTCMinus14,
+    UTC,
+    UTCPlus1,
+    UTCPlus2,
+    UTCPlus3,
+    UTCPlus4,
+    UTCPlus5,
+    UTCPlus6,
+    UTCPlus7,
+    UTCPlus8,
+    UTCPlus9,
+    UTCPlus10,
+    UTCPlus11,
+    UTCPlus12,
+}
+
+impl TimezoneZone {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"A" => TimezoneZone::UTCMinus1,
+            b"B" => TimezoneZone::UTCMinus2,
+            b"C" => TimezoneZone::UTCMinus3,
+            b"D" => TimezoneZone::UTCMinus4,
+            b"E" => TimezoneZone::UTCMinus5,
+            b"F" => TimezoneZone::UTCMinus6,
+            b"G" => TimezoneZone::UTCMinus7,
+            b"H" => TimezoneZone::UTCMinus8,
+            b"I" => TimezoneZone::UTCMinus9,
+            b"K" => TimezoneZone::UTCMinus10,
+            b"L" => TimezoneZone::UTCMinus11,
+            b"M" => TimezoneZone::UTCMinus12,
+            b"1" => TimezoneZone::UTCMinus13,
+            b"2" => TimezoneZone::UTCMinus14,
+            b"Z" => TimezoneZone::UTC,
+            b"N" => TimezoneZone::UTCPlus1,
+            b"O" => TimezoneZone::UTCPlus2,
+            b"P" => TimezoneZone::UTCPlus3,
+            b"Q" => TimezoneZone::UTCPlus4,
+            b"R" => TimezoneZone::UTCPlus5,
+            b"S" => TimezoneZone::UTCPlus6,
+            b"T" => TimezoneZone::UTCPlus7,
+            b"U" => TimezoneZone::UTCPlus8,
+            b"V" => TimezoneZone::UTCPlus9,
+            b"W" => TimezoneZone::UTCPlus10,
+            b"X" => TimezoneZone::UTCPlus11,
+            b"Y" => TimezoneZone::UTCPlus12,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid timezone zone".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.178 Timezone
+#[derive(Debug, PartialEq, Eq)]
+pub struct Timezone {
+    pub zone: TimezoneZone,
+    pub minutes_offset: Option<UintNumeric>,
+}
+impl Timezone {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        let zone = TimezoneZone::from_bytes(&bytes[0..1])?;
+        let minutes_offset = UintNumeric::from_bytes(&bytes[1..3])?;
+        if let Some(zone) = zone {
+            Ok(Some(Timezone {
+                zone: zone,
+                minutes_offset: minutes_offset,
+            }))
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+#[test]
+pub fn test_timezone() {
+    let r = Timezone::from_bytes(b"A30");
+    if let Ok(Some(Timezone {
+        zone,
+        minutes_offset: Some(minutes_offset),
+    })) = r
+    {
+        let minutes_offset: u64 = minutes_offset.into();
+        assert_eq!(zone, TimezoneZone::UTCMinus1);
+        assert_eq!(minutes_offset, 30);
+    } else {
+        panic!("Failed to parse timezone");
+    }
+    let r = Timezone::from_bytes(b"A  ");
+    if let Ok(Some(Timezone {
+        zone,
+        minutes_offset,
+    })) = r
+    {
+        assert_eq!(zone, TimezoneZone::UTCMinus1);
+        assert!(minutes_offset.is_none());
+    } else {
+        panic!("Failed to parse timezone");
+    }
+}
+
+/// 5.183 Comms Sectorization
+pub type CommunicationsSectorization = SectorBearing;
+
+// Name Format Indicator
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum NameFormatType1 {
+    AbeamFix,
+    BearingDistanceFix,
+    AirportNameAsFix,
+    FIRFix,
+    PhoneticLetterNameFix,
+    AirportIdentAsFix,
+    LatLongFix,
+    MultipleWordNameFix,
+    NavadIdentAsFix,
+    PublishedFiveLetterNameFix,
+    PublishedLessThanFiveLetterNameFix,
+    PublishedMoreThanFiveLetterNameFix,
+    AirportRunwayRelatedFix,
+    UIRFix,
+    VFRCheckpointReportingPointAsFix,
+}
+
+impl NameFormatType1 {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"A" => NameFormatType1::AbeamFix,
+            b"B" => NameFormatType1::BearingDistanceFix,
+            b"D" => NameFormatType1::AirportNameAsFix,
+            b"F" => NameFormatType1::FIRFix,
+            b"H" => NameFormatType1::PhoneticLetterNameFix,
+            b"I" => NameFormatType1::AirportIdentAsFix,
+            b"L" => NameFormatType1::LatLongFix,
+            b"M" => NameFormatType1::MultipleWordNameFix,
+            b"N" => NameFormatType1::NavadIdentAsFix,
+            b"P" => NameFormatType1::PublishedFiveLetterNameFix,
+            b"Q" => NameFormatType1::PublishedLessThanFiveLetterNameFix,
+            b"R" => NameFormatType1::PublishedMoreThanFiveLetterNameFix,
+            b"T" => NameFormatType1::AirportRunwayRelatedFix,
+            b"U" => NameFormatType1::UIRFix,
+            b"V" => NameFormatType1::VFRCheckpointReportingPointAsFix,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid name format indicator".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum NameFormatType2 {
+    LocalizerMarkerWithPublishedIdentifier,
+    LocalizerMarkerWithoutPublishedIdentifier,
+    NotApplicable,
+}
+impl NameFormatType2 {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(Some(NameFormatType2::NotApplicable));
+        }
+        Ok(Some(match bytes {
+            b"O" => NameFormatType2::LocalizerMarkerWithPublishedIdentifier,
+            b"M" => NameFormatType2::LocalizerMarkerWithoutPublishedIdentifier,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid name format indicator".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.196 Name Format Indicator
+#[derive(Debug, PartialEq, Eq)]
+pub struct NameFormat(NameFormatType1, NameFormatType2);
+impl NameFormat {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        let type1 = NameFormatType1::from_bytes(&bytes[0..1])?.ok_or(FieldParseError {
+            message: "Invalid name format indicator".to_string(),
+        })?;
+        let type2 = NameFormatType2::from_bytes(&bytes[1..2])?.ok_or(FieldParseError {
+            message: "Invalid name format indicator".to_string(),
+        })?;
+        Ok(Some(NameFormat(type1, type2)))
+    }
+}
+
+/// 5.207 Sector From / Sector To
+#[derive(Debug, PartialEq, Eq)]
+pub struct SectorFromTo {
+    pub from: Box<str>,
+    pub to: Box<str>,
+}
+impl SectorFromTo {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        if !(matches!(bytes[0], b'A'..=b'X') && matches!(bytes[1], b'A'..=b'X')) {
+            return Err(FieldParseError {
+                message: "Invalid sector in 'from' or 'to' position".to_string(),
+            });
+        }
+        let from_str =
+            Box::from(
+                std::str::from_utf8(&bytes[0..1]).map_err(|e| FieldParseError {
+                    message: format!("Could not convert 'from' sector to string: {}", e),
+                })?,
+            );
+
+        let to_str = Box::from(
+            std::str::from_utf8(&bytes[1..2]).map_err(|e| FieldParseError {
+                message: format!("Could not convert 'to' sector to string: {}", e),
+            })?,
+        );
+        Ok(Some(SectorFromTo {
+            from: from_str,
+            to: to_str,
+        }))
+    }
+}
+
+/// 5.208 Navaid Distance Limitation
+#[derive(Debug, PartialEq, Eq)]
+pub struct NavaidDistanceLimitation {
+    pub first_limit: UintNumeric,
+    pub second_limit: UintNumeric,
+}
+
+impl NavaidDistanceLimitation {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        let first_limit = UintNumeric::from_bytes(&bytes[0..3])?;
+        let second_limit = UintNumeric::from_bytes(&bytes[3..6])?;
+        if let Some(first_limit) = first_limit
+            && let Some(second_limit) = second_limit
+        {
+            Ok(Some(NavaidDistanceLimitation {
+                first_limit: first_limit,
+                second_limit: second_limit,
+            }))
+        } else {
+            return Err(FieldParseError {
+                message: "Invalid first or second limit".to_string(),
+            });
+        }
+    }
+}
+
+/// 5.209 Navaid Altitude Limitation
+#[derive(Debug, PartialEq, Eq)]
+pub struct NavaidAltitudeLimitation {
+    pub first_limit: UintNumeric,
+    pub second_limit: UintNumeric,
+}
+
+impl NavaidAltitudeLimitation {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        let first_limit = UintNumeric::from_bytes(&bytes[0..3])?;
+        let second_limit = UintNumeric::from_bytes(&bytes[3..6])?;
+        if let Some(first_limit) = first_limit
+            && let Some(second_limit) = second_limit
+        {
+            Ok(Some(NavaidAltitudeLimitation {
+                first_limit: first_limit,
+                second_limit: second_limit,
+            }))
+        } else {
+            return Err(FieldParseError {
+                message: "Invalid first or second limit".to_string(),
+            });
+        }
+    }
+}

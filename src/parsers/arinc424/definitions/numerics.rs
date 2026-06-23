@@ -34,6 +34,12 @@ impl UintNumeric {
     }
 }
 
+impl Into<u64> for UintNumeric {
+    fn into(self: UintNumeric) -> u64 {
+        self.0
+    }
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct IntNumeric(i64);
 impl IntNumeric {
@@ -227,6 +233,47 @@ pub fn test_altitude() {
         assert_eq!(altitude, -1100);
     } else {
         panic!("Failed to parse altitude");
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum MultiUnitAltitudeNumeric {
+    Meters(AltitudeNumeric),
+    Feet(AltitudeNumeric),
+}
+
+impl MultiUnitAltitudeNumeric {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        match bytes {
+            [b'M', rest @ ..] => {
+                let value = AltitudeNumeric::from_bytes(rest)?;
+                if let Some(value) = value {
+                    Ok(Some(MultiUnitAltitudeNumeric::Meters(value)))
+                } else {
+                    Ok(None)
+                }
+            }
+            _ => {
+                let value = AltitudeNumeric::from_bytes(bytes)?;
+                if let Some(value) = value {
+                    Ok(Some(MultiUnitAltitudeNumeric::Feet(value)))
+                } else {
+                    Ok(None)
+                }
+            }
+        }
+    }
+}
+
+impl Into<i32> for MultiUnitAltitudeNumeric {
+    fn into(self: MultiUnitAltitudeNumeric) -> i32 {
+        match self {
+            MultiUnitAltitudeNumeric::Meters(m) => m.into(),
+            MultiUnitAltitudeNumeric::Feet(f) => f.into(),
+        }
     }
 }
 
@@ -603,3 +650,107 @@ pub type IlsDmeBias = FloatNumeric<-1>;
 
 /// 5.92 Facility Elevation (FAC ELEV)
 pub type FacilityElevation = IntNumeric;
+
+/// 5.94 True Bearing
+pub type TrueBearing = FloatNumeric<-2>;
+
+/// 5.96 Glideslope Beam Width
+pub type GlideslopeBeamWidth = FloatNumeric<-2>;
+
+/// 5.97 Touchdown Zone Elevation
+pub type TouchdownZoneElevation = IntNumeric;
+
+/// 5.100 Minor Axis Bearing
+pub type MinorAxisBearing = FloatNumeric<-1>;
+
+/// 5.104 Communications Frequency
+///
+/// This enum is needed since this is one of the few fields we need to perform a
+/// lookup on the record as we parse the value out to know how to handle the value properly.
+/// As such this does not have a from_bytes method, but rather the value using this is manually constructed
+#[derive(Debug, PartialEq)]
+pub enum CommunicationsFrequency {
+    HighFrequency(FloatNumeric<-2>),
+    VeryHighFrequency(FloatNumeric<-3>),
+    UltraHighFrequency(FloatNumeric<-2>),
+}
+
+/// 5.109 Runway Width
+pub type RunwayWidth = UintNumeric;
+
+/// 5.119 Arc Distance
+pub type ArcDistance = FloatNumeric<-1>;
+
+/// 5.120 Arc Bearing
+pub type ArcBearing = FloatNumeric<-1>;
+
+/// 5.135 Course From/To (Cruise Table)
+pub type CruiseTableCourseFromTo = FloatNumeric<-1>;
+
+/// 5.137 Vertical Separation
+pub type VerticalSeparation = MultiUnitAltitudeNumeric;
+
+/// 5.145 MSA Radius Limit
+pub type MsaRadiusLimit = UintNumeric;
+
+/// 5.147 Sector Altitude
+#[derive(Debug, PartialEq, Eq)]
+pub enum SectorAltitude {
+    NoSectorAltitude,
+    SectorAltitude(UintNumeric),
+}
+
+impl SectorAltitude {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        match bytes {
+            b"999" => Ok(Some(SectorAltitude::NoSectorAltitude)),
+            _ => {
+                let altitude = UintNumeric::from_bytes(bytes)?;
+                if let Some(altitude) = altitude {
+                    Ok(Some(SectorAltitude::SectorAltitude(altitude)))
+                } else {
+                    Ok(None)
+                }
+            }
+        }
+    }
+}
+
+/// 5.150 Frequency Protection Distance
+pub type FrequencyProtectionDistance = UintNumeric;
+
+/// 5.161 Airway Restriction Altitude
+pub type AirwayRestrictionAltitude = UintNumeric;
+
+/// 5.166 MLS Channel
+pub type MLSChannel = UintNumeric;
+
+/// 5.167 MLS Azimuth/Back Azimuth Bearing
+pub type MLSAzimuthBearing = FloatNumeric<-1>;
+
+/// 5.168 MLS Azimuth/Back Azimuth Proportional Angle
+pub type MLSAzimuthProportionalAngle = UintNumeric;
+
+/// 5.169 MLS Elevation Angle Span
+pub type MLSElevationAngleSpan = FloatNumeric<-1>;
+
+/// 5.172 MLS Azimuth/Back Azimuth Coverage Sector
+pub type MLSAzimuthCoverageSector = UintNumeric;
+
+/// 5.173 MLS Nominal Elevation Angle
+pub type MLSNominalElevationAngle = FloatNumeric<-2>;
+
+/// 5.175 Holding Speed
+pub type HoldingSpeed = UintNumeric;
+
+/// 5.184 Communication Altitude
+pub type CommunicationsAltitude = UintNumeric;
+
+/// 5.188 Communications Distance
+pub type CommunicationsDistance = UintNumeric;
+
+/// 5.204 ARC Radius
+pub type ArcRadius = FloatNumeric<-3>;

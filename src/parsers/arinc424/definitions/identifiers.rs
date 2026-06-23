@@ -145,3 +145,120 @@ pub type EnrouteTransition = LengthLimitedIdentifier<5, false>;
 
 /// 5.87 Terminal/Alternate Airport
 pub type TerminalAlternateAirport = LengthLimitedIdentifier<4, false>;
+
+/// 5.105 Callsign
+pub type Callsign = LengthLimitedIdentifier<25, false>;
+
+/// 5.107 ATA/IATA Designator
+pub type AtaIataDesignator = LengthLimitedIdentifier<3, true>;
+
+/// 5.110 Marker Identifier (Enroute Marker) (IDENT)
+pub type MarkerIdentifier = LengthLimitedIdentifier<4, true>;
+
+/// 5.111 Marker Code (Morse)
+pub type MarkerCode = LengthLimitedIdentifier<4, true>;
+
+/// 5.116 FIR/UIR Identifier
+pub type FirUirIdentifier = LengthLimitedIdentifier<4, false>;
+
+/// 5.125 FIR/UIR Name
+pub type FirUirName = LengthLimitedIdentifier<25, false>;
+
+/// 5.126 Restrictive Airspace Name
+pub type RestrictiveAirspaceName = LengthLimitedIdentifier<30, false>;
+
+/// 5.129 Restrictive Airspace Designation
+pub type RestrictiveAirspaceDesignation = LengthLimitedIdentifier<10, false>;
+
+/// 5.130 Multiple Code
+pub type MultipleCode = LengthLimitedIdentifier<1, true>;
+
+/// 5.139 Procedure Name
+pub type ProcedureName = LengthLimitedIdentifier<78, false>;
+
+/// 5.140 Controlling Agency
+pub type ControllingAgency = LengthLimitedIdentifier<25, false>;
+
+/// 5.141 MORA Starting Latitude
+pub type MoraStartingLatitude = LengthLimitedIdentifier<3, false>;
+
+/// 5.142 MORA Starting Longitude
+pub type MoraStartingLongitude = LengthLimitedIdentifier<4, false>;
+
+/// 5.143 Grid MORA
+pub enum GridMora {
+    Mapped(LengthLimitedIdentifier<3, false>),
+    UnknownOrUnmapped,
+}
+
+impl GridMora {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"UNK" => GridMora::UnknownOrUnmapped,
+            _ => {
+                if let Ok(Some(value)) = LengthLimitedIdentifier::<3, false>::from_bytes(bytes) {
+                    GridMora::Mapped(value)
+                } else {
+                    return Err(FieldParseError {
+                        message: "Invalid grid MORA".to_string(),
+                    });
+                }
+            }
+        }))
+    }
+}
+
+/// 5.144 Center Fix
+pub type CenterFix = LengthLimitedIdentifier<5, false>;
+
+/// 5.148 Enroute Alternate Airport/Heliport
+pub type EnrouteAlternateAirportHeliport = LengthLimitedIdentifier<4, false>;
+
+/// 5.151 FIR/UIR Address
+pub type FirUirAddress = LengthLimitedIdentifier<4, true>;
+
+/// 5.154 Airway Restriction Identifier
+///
+/// Note: This is numeric only, but is an identifier nonetheless.
+pub type AirwayRestrictionIdentifier = LengthLimitedIdentifier<3, true>;
+
+/// 5.157 Airway Restriction Start/End Date
+pub type AirwayRestrictionStartEndDate = LengthLimitedIdentifier<7, false>;
+
+/// 5.163 Airway Restriction Notes
+pub type AirwayRestrictionNotes = LengthLimitedIdentifier<104, false>;
+
+/// 5.180 Pad Identifier
+pub type PadIdentifier = LengthLimitedIdentifier<5, false>;
+
+/// 5.185 Sector Facility
+pub type SectorFacility = LengthLimitedIdentifier<4, false>;
+
+/// 5.186 Sectorization Narrative
+pub type SectorizationNarrative = LengthLimitedIdentifier<60, false>;
+
+/// 5.189 Position Narrative
+pub type PositionNarrative = LengthLimitedIdentifier<25, false>;
+
+/// 5.190 FIR/RDO Identifier
+pub type FirRdoIdentifier = LengthLimitedIdentifier<4, false>;
+
+/// 5.194 Initial/Terminus Fix or Airport
+pub type InitialTerminusFixOrAirport = LengthLimitedIdentifier<5, false>;
+
+/// 5.195 Time of Operation
+///
+/// This should be a complex type but man I do not want to touch this right now.
+/// The mix of sunrise/sunset logic with the times is hellish.
+pub type TimeOfOperation = LengthLimitedIdentifier<10, false>;
+
+/// 5.198 Datum Code
+///
+/// Validation left to user for now. Refer to Attachment 2 in ARINC 424
+pub type DatumCode = LengthLimitedIdentifier<3, true>;
+
+/// 5.200 Remote Facility
+pub type RemoteFacility = LengthLimitedIdentifier<4, false>;
