@@ -357,3 +357,149 @@ impl MarkerLocatorNavaidClass {
         )))
     }
 }
+
+// Waypoint Type
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum PrimaryWaypointType {
+    ArcCenterFix,
+    CombinedNamedIntersectionAndOrDMEFixRNAVWaypoint,
+    UnnamedChartedIntersectionAndOrDMEFix,
+    MiddleInnerMarkerAsWaypoint,
+    NDBAsWaypoint,
+    OuterBackMarkerAsWaypoint,
+    NamedIntersectionAndOrDMEFix,
+    UnchartedAirwayIntersection,
+    VFRWaypoint,
+    RNAVWaypoint,
+}
+impl PrimaryWaypointType {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"A" => PrimaryWaypointType::ArcCenterFix,
+            b"C" => PrimaryWaypointType::CombinedNamedIntersectionAndOrDMEFixRNAVWaypoint,
+            b"I" => PrimaryWaypointType::UnnamedChartedIntersectionAndOrDMEFix,
+            b"M" => PrimaryWaypointType::MiddleInnerMarkerAsWaypoint,
+            b"N" => PrimaryWaypointType::NDBAsWaypoint,
+            b"O" => PrimaryWaypointType::OuterBackMarkerAsWaypoint,
+            b"R" => PrimaryWaypointType::NamedIntersectionAndOrDMEFix,
+            b"U" => PrimaryWaypointType::UnchartedAirwayIntersection,
+            b"V" => PrimaryWaypointType::VFRWaypoint,
+            b"W" => PrimaryWaypointType::RNAVWaypoint,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid Primary Waypoint Type".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum SecondaryWaypointType {
+    FinalApproachFix,
+    InitialAndFinalApproachFix,
+    FinalApproachCourseFix,
+    IntermediateApproachFix,
+    OffRouteWaypointIntersectionDMEFix,
+    InitialDepartureFix,
+    HelicopterOnlyAirwayFix,
+    InitialApproachFix,
+    RequiredOffRouteWaypoint,
+    InitialAndFinalApproachCourseFix,
+    IntermediateAndFinalApproachCourseFix,
+    MissedApproachFix,
+    InitialAndMissedApproachFix,
+    OceanicGatewayFix,
+    UnnamedStepdownFix,
+    RFLegFixNotAtProcedureFix,
+    NamedStepdownFix,
+    FIRUIRControlledAirspaceFix,
+    FullDegreeLatLongFix,
+    HalfDegreeLatLongFix,
+}
+impl SecondaryWaypointType {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"A" => SecondaryWaypointType::FinalApproachFix,
+            b"B" => SecondaryWaypointType::InitialAndFinalApproachFix,
+            b"C" => SecondaryWaypointType::FinalApproachCourseFix,
+            b"D" => SecondaryWaypointType::IntermediateApproachFix,
+            b"F" => SecondaryWaypointType::OffRouteWaypointIntersectionDMEFix,
+            b"G" => SecondaryWaypointType::InitialDepartureFix,
+            b"H" => SecondaryWaypointType::HelicopterOnlyAirwayFix,
+            b"I" => SecondaryWaypointType::InitialApproachFix,
+            b"J" => SecondaryWaypointType::RequiredOffRouteWaypoint,
+            b"K" => SecondaryWaypointType::InitialAndFinalApproachCourseFix,
+            b"L" => SecondaryWaypointType::IntermediateAndFinalApproachCourseFix,
+            b"M" => SecondaryWaypointType::MissedApproachFix,
+            b"N" => SecondaryWaypointType::InitialAndMissedApproachFix,
+            b"O" => SecondaryWaypointType::OceanicGatewayFix,
+            b"P" => SecondaryWaypointType::UnnamedStepdownFix,
+            b"R" => SecondaryWaypointType::RFLegFixNotAtProcedureFix,
+            b"S" => SecondaryWaypointType::NamedStepdownFix,
+            b"U" => SecondaryWaypointType::FIRUIRControlledAirspaceFix,
+            b"V" => SecondaryWaypointType::FullDegreeLatLongFix,
+            b"W" => SecondaryWaypointType::HalfDegreeLatLongFix,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid Secondary Waypoint Type".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum PublishedUse {
+    PublishedForUseInSID,
+    PublishedForUseInSTAR,
+    PublishedForUseInApproachProcedure,
+    PublishedForUseInMultipleTerminalProcedures,
+}
+
+impl PublishedUse {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"D" => PublishedUse::PublishedForUseInSID,
+            b"E" => PublishedUse::PublishedForUseInSTAR,
+            b"F" => PublishedUse::PublishedForUseInApproachProcedure,
+            b"Z" => PublishedUse::PublishedForUseInMultipleTerminalProcedures,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid Published Use".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.42 Waypoint Type (TYPE)
+#[derive(Debug, PartialEq, Eq)]
+pub struct WaypointType(PrimaryWaypointType, SecondaryWaypointType, PublishedUse);
+impl WaypointType {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(WaypointType(
+            PrimaryWaypointType::from_bytes(&bytes[0..1])?.ok_or(FieldParseError {
+                message: "Invalid Primary Waypoint Type".to_string(),
+            })?,
+            SecondaryWaypointType::from_bytes(&bytes[1..2])?.ok_or(FieldParseError {
+                message: "Invalid Secondary Waypoint Type".to_string(),
+            })?,
+            PublishedUse::from_bytes(&bytes[2..3])?.ok_or(FieldParseError {
+                message: "Invalid Published Use".to_string(),
+            })?,
+        )))
+    }
+}
+
+// 5.93 Facility Characteristics (FAC CHAR)
+// Note: This will be a best guess at layout since the table is unclear in its capture of the logic required
+
+// VHF Navaid/TACAN Only record class
+
+// NDB Navaid Class
+
+// Localizer Marker / Localizer Glideslope Class
+
+// MLS Class

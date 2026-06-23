@@ -169,8 +169,8 @@ pub fn test_time_distance_numeric() {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Altitude(i32);
-impl Altitude {
+pub struct AltitudeNumeric(i32);
+impl AltitudeNumeric {
     pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
@@ -186,7 +186,7 @@ impl Altitude {
             .map_err(|e| FieldParseError {
                 message: format!("Numeric is not a valid i32: {}", e),
             })?;
-            return Ok(Some(Altitude(value * 100)));
+            return Ok(Some(AltitudeNumeric(value * 100)));
         }
         // otherwise it is an altitude
         let value = i32::from_str_radix(
@@ -198,32 +198,32 @@ impl Altitude {
         .map_err(|e| FieldParseError {
             message: format!("Numeric is not a valid u64: {}", e),
         })?;
-        Ok(Some(Altitude(value as i32)))
+        Ok(Some(AltitudeNumeric(value as i32)))
     }
 }
 
-impl Into<i32> for Altitude {
-    fn into(self: Altitude) -> i32 {
+impl Into<i32> for AltitudeNumeric {
+    fn into(self: AltitudeNumeric) -> i32 {
         self.0
     }
 }
 
 #[test]
 pub fn test_altitude() {
-    let r = Altitude::from_bytes(&[b'1', b'0', b'0', b'0']);
-    if let Ok(Some(Altitude(altitude))) = r {
+    let r = AltitudeNumeric::from_bytes(&[b'1', b'0', b'0', b'0']);
+    if let Ok(Some(AltitudeNumeric(altitude))) = r {
         assert_eq!(altitude, 1000);
     } else {
         panic!("Failed to parse altitude");
     }
-    let r = Altitude::from_bytes(&[b'F', b'L', b'1', b'0', b'0']);
-    if let Ok(Some(Altitude(altitude))) = r {
+    let r = AltitudeNumeric::from_bytes(&[b'F', b'L', b'1', b'0', b'0']);
+    if let Ok(Some(AltitudeNumeric(altitude))) = r {
         assert_eq!(altitude, 10000);
     } else {
         panic!("Failed to parse altitude");
     }
-    let r = Altitude::from_bytes(&[b'-', b'1', b'1', b'0', b'0']);
-    if let Ok(Some(Altitude(altitude))) = r {
+    let r = AltitudeNumeric::from_bytes(&[b'-', b'1', b'1', b'0', b'0']);
+    if let Ok(Some(AltitudeNumeric(altitude))) = r {
         assert_eq!(altitude, -1100);
     } else {
         panic!("Failed to parse altitude");
@@ -333,9 +333,10 @@ impl MagneticVariationNumeric {
             return Ok(None);
         }
         let sign = match bytes[0] {
-            b'E' => -1.0,
-            b'W' => 1.0,
+            b'E' => 1.0,
+            b'W' => -1.0,
             b'T' => 0.0,
+            b'G' => 0.0,
             _ => {
                 return Err(FieldParseError {
                     message: "Invalid magnetic variation".to_string(),
@@ -364,34 +365,103 @@ impl Into<f64> for MagneticVariationNumeric {
 
 #[test]
 pub fn test_magnetic_variation() {
-    let r = MagneticVariationNumeric::from_bytes(b"E0010");
+    let r = MagneticVariationNumeric::from_bytes(b"W0010");
     if let Ok(Some(MagneticVariationNumeric(magnetic_variation))) = r {
         assert_within_epsilon(magnetic_variation, -1.0);
     }
 }
 
-// 5.12 Sequence Number
+/// Declination Numeric at first glance seems similar to Magnetic Variation, but is actually used in
+/// much more different contexts that need different semantic handling of values.
+pub enum DeclinationNumeric {
+    StandardDeclination(f64),
+    TrueNorth(f64),
+    GridNorth(f64),
+}
+
+impl DeclinationNumeric {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        let sign = match bytes[0] {
+            b'E' => 1.0,
+            b'W' => -1.0,
+            b'T' => 0.0,
+            b'G' => 0.0,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid declination".to_string(),
+                });
+            }
+        };
+        let value = sign
+            * 0.1
+            * u32::from_str_radix(
+                std::str::from_utf8(&bytes[1..]).map_err(|e| FieldParseError {
+                    message: format!("Failed to convert bytes to u32: {:?}", e),
+                })?,
+                10,
+            )
+            .map_err(|e| FieldParseError {
+                message: format!("Failed to convert bytes to u32: {:?}", e),
+            })? as f64;
+        Ok(Some(match bytes[0] {
+            b'E' => DeclinationNumeric::StandardDeclination(value),
+            b'W' => DeclinationNumeric::StandardDeclination(value),
+            b'T' => DeclinationNumeric::TrueNorth(value),
+            b'G' => DeclinationNumeric::GridNorth(value),
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid declination".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+#[test]
+pub fn test_declination() {
+    let r = DeclinationNumeric::from_bytes(b"E0010");
+    if let Ok(Some(DeclinationNumeric::StandardDeclination(declination))) = r {
+        assert_within_epsilon(declination, 1.0);
+    }
+    let r = DeclinationNumeric::from_bytes(b"W0010");
+    if let Ok(Some(DeclinationNumeric::StandardDeclination(declination))) = r {
+        assert_within_epsilon(declination, -1.0);
+    }
+    let r = DeclinationNumeric::from_bytes(b"T0010");
+    if let Ok(Some(DeclinationNumeric::TrueNorth(declination))) = r {
+        assert_within_epsilon(declination, 0.0);
+    }
+    let r = DeclinationNumeric::from_bytes(b"G0010");
+    if let Ok(Some(DeclinationNumeric::GridNorth(declination))) = r {
+        assert_within_epsilon(declination, 0.0);
+    }
+}
+
+/// 5.12 Sequence Number
 pub type SequenceNumber = UintNumeric;
 
-// 5.24 Theta
+/// 5.24 Theta
 pub type Theta = FloatNumeric<-1>;
 
-// 5.25 Rho
+/// 5.25 Rho
 pub type Rho = FloatNumeric<-1>;
 
-// 5.26 Outbound Course
+/// 5.26 Outbound Course
 pub type OutboundCourse = FloatNumeric<-1>;
 
-// 5.27 Route Distance From
+/// 5.27 Route Distance From
 pub type RouteDistanceFrom = TimeDistanceNumeric<-1>;
 
-// 5.28 Inbound Course
+/// 5.28 Inbound Course
 pub type InboundCourse = FloatNumeric<-1>;
 
-// 5.30 Altitude / Minimum Altitude
+/// 5.30 Altitude / Minimum Altitude
 #[derive(Debug, PartialEq, Eq)]
 pub enum AltitudeMinimumAltitude {
-    Established(Altitude),
+    Established(AltitudeNumeric),
     Unknown,
     NotEstablished,
 }
@@ -402,7 +472,7 @@ impl AltitudeMinimumAltitude {
             b"UNKNN" => Ok(Some(AltitudeMinimumAltitude::Unknown)),
             b"NESTB" => Ok(Some(AltitudeMinimumAltitude::NotEstablished)),
             _ => {
-                let altitude = Altitude::from_bytes(&bytes)?;
+                let altitude = AltitudeNumeric::from_bytes(&bytes)?;
                 if let Some(altitude) = altitude {
                     Ok(Some(AltitudeMinimumAltitude::Established(altitude)))
                 } else {
@@ -417,22 +487,22 @@ impl AltitudeMinimumAltitude {
 pub fn test_altitude_minimum_altitude() {
     let r = AltitudeMinimumAltitude::from_bytes(&[b'F', b'L', b'1', b'0', b'0']);
     if let Ok(Some(AltitudeMinimumAltitude::Established(altitude))) = r {
-        assert_eq!(altitude, Altitude(10000));
+        assert_eq!(altitude, AltitudeNumeric(10000));
     } else {
         panic!("Failed to parse altitude minimum altitude");
     }
     let r = AltitudeMinimumAltitude::from_bytes(&[b'-', b'1', b'1', b'0', b'0']);
     if let Ok(Some(AltitudeMinimumAltitude::Established(altitude))) = r {
-        assert_eq!(altitude, Altitude(-1100));
+        assert_eq!(altitude, AltitudeNumeric(-1100));
     } else {
         panic!("Failed to parse altitude minimum altitude");
     }
 }
 
-// 5.31 File Record Number
+/// 5.31 File Record Number
 pub type FileRecordNumber = UintNumeric;
 
-// 5.32 Cycle Date
+/// 5.32 Cycle Date
 pub type CycleDate = UintNumeric;
 
 /// 5.34 VOR/NDB Frequency
@@ -446,3 +516,90 @@ pub type Longitude = LongitudeNumeric;
 
 /// 5.39 Magnetic Variation
 pub type MagneticVariation = MagneticVariationNumeric;
+
+/// 5.40 DME Elevation
+pub type DMEElevation = IntNumeric;
+
+/// 5.45 Localizer Frequency (FREQ)
+pub type LocalizerFrequency = FloatNumeric<-2>;
+
+/// 5.47 Localizer Bearing (LOC BRG)
+pub type LocalizerBearing = FloatNumeric<-1>;
+
+/// 5.48 Localizer Position (LOC FR RW END / AZ/BAZ FR RW END) Azimuth/Back Azimuth Position (AZ/BAZ FR RW END)
+pub type LocalizerPosition = IntNumeric;
+
+/// 5.50 Glideslope Position (GS FR RW THRES) Elevation Position (EL FR RW THRES)
+pub type GlideslopePosition = IntNumeric;
+
+/// 5.51 Localizer Width (LOC WIDTH)
+pub type LocalizerWidth = FloatNumeric<-1>;
+
+/// Glideslope angle (GS ANGLE) Minimum Elevation Angle (MIN ELEV ANGLE)
+pub type GlideslopeAngle = FloatNumeric<-2>;
+
+/// 5.52 Transition Altitude/Level (TRANS ALTITUDE/LEVEL)
+pub type TransitionAltitudeLevel = IntNumeric;
+
+/// 5.53 Longest Runway (LONGEST RWY)
+pub type LongestRunway = UintNumeric;
+
+/// 5.54 Airport/Heliport Elevation (ELEV)
+pub type AirportHeliportElevation = IntNumeric;
+
+/// 5.57 Runway Length (RUNWAY LENGTH)
+pub type RunwayLength = UintNumeric;
+
+/// 5.58 Runway Bearing (RWY BRG)
+pub type RunwayBearing = FloatNumeric<-1>;
+
+/// 5.62 Inbound Holding Course (IB HOLD CRS)
+pub type InboundHoldingCourse = FloatNumeric<-1>;
+
+/// 5.64 Leg Length (LEG LENGTH)
+pub type LegLength = FloatNumeric<-1>;
+
+/// 5.65 Leg Time (LEG TIME)
+pub type LegTime = FloatNumeric<-1>;
+
+/// 5.66 Station Declination (STN DEC)
+pub type StationDeclination = DeclinationNumeric;
+
+/// 5.67 Threshold Crossing Height (TCH)
+pub type ThresholdCrossingHeight = UintNumeric;
+
+/// 5.68 Landing Threshold Elevation (LANDING THRES ELEV)
+pub type LandingThresholdElevation = IntNumeric;
+
+/// 5.69 Threshold Displacement Distance (DSPLCD THR)
+pub type ThresholdDisplacementDistance = UintNumeric;
+
+/// 5.70 Vertical Angle (VERT ANGLE)
+pub type VerticalAngle = FloatNumeric<-2>;
+
+/// 5.72 Speed Limit (SPEED LIMIT)
+pub type SpeedLimit = UintNumeric;
+
+/// 5.73 Speed Limit Altitude (SPEED LIMIT ALTITUDE)
+pub type SpeedLimitAltitude = AltitudeNumeric;
+
+/// 5.74 Component Elevation (GS ELEV, EL ELEV, AZ ELEV, BAZ ELEV, GLS ELEV)
+pub type ComponentElevation = IntNumeric;
+
+/// 5.79 Stopway (STOPWAY)
+pub type Stopway = UintNumeric;
+
+/// 5.86 Cruise Altitude (CRUISE ALTITUDE)
+pub type CruiseAltitude = AltitudeNumeric;
+
+/// 5.88 Alternate Distance
+pub type AlternateDistance = UintNumeric;
+
+/// 5.89 Cost Index
+pub type CostIndex = UintNumeric;
+
+/// 5.90 ILS/DME Bias
+pub type IlsDmeBias = FloatNumeric<-1>;
+
+/// 5.92 Facility Elevation (FAC ELEV)
+pub type FacilityElevation = IntNumeric;

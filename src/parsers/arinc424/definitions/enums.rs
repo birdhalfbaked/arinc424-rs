@@ -27,6 +27,7 @@ impl RecordType {
     }
 }
 
+/// 5.4 Section Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum Section {
     MORA,
@@ -59,6 +60,7 @@ impl Section {
     }
 }
 
+/// 5.5(A) MORA Subsection Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum MORASubsection {
     GridMORA,
@@ -77,6 +79,7 @@ impl MORASubsection {
     }
 }
 
+/// 5.5(B) Navaid Subsection Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum NavaidSubsection {
     VHFNavaid,
@@ -99,6 +102,7 @@ impl NavaidSubsection {
     }
 }
 
+/// 5.6(A) Enroute Subsection Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum EnrouteSubsection {
     Waypoints,
@@ -131,6 +135,7 @@ impl EnrouteSubsection {
     }
 }
 
+/// 5.6(B) Heliport Subsection Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum HeliportSubsection {
     ReferencePoints,
@@ -167,6 +172,7 @@ impl HeliportSubsection {
     }
 }
 
+/// 5.6(C) Airport Subsection Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum AirportSubsection {
     ReferencePoints,
@@ -221,6 +227,7 @@ impl AirportSubsection {
     }
 }
 
+/// 5.6(D) Company Routes Subsection Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum CompanyRoutesSubsection {
     CompanyRoutes,
@@ -242,6 +249,8 @@ impl CompanyRoutesSubsection {
         }))
     }
 }
+
+/// 5.6(E) Tables Subsection Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum TablesSubsection {
     CruisingTables,
@@ -266,6 +275,7 @@ impl TablesSubsection {
     }
 }
 
+/// 5.6(F) Airspace Subsection Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum AirspaceSubsection {
     ControlledAirspace,
@@ -288,6 +298,7 @@ impl AirspaceSubsection {
     }
 }
 
+/// 5.7(A) Enroute Airway Route Type
 #[derive(Debug, PartialEq, Eq)]
 pub enum EnrouteAirwayRouteType {
     AirlineAirway,
@@ -320,6 +331,7 @@ impl EnrouteAirwayRouteType {
     }
 }
 
+/// 5.7(B) Preferred Route Route Type
 #[derive(Debug, PartialEq, Eq)]
 pub enum PreferredRouteRouteType {
     NACommonRoute,
@@ -354,6 +366,7 @@ impl PreferredRouteRouteType {
     }
 }
 
+/// 5.7(C) SID Route Type
 #[derive(Debug, PartialEq, Eq)]
 pub enum SIDRouteType {
     EngineOut,
@@ -382,6 +395,7 @@ impl SIDRouteType {
     }
 }
 
+/// 5.7(D) STAR Route Type
 #[derive(Debug, PartialEq, Eq)]
 pub enum STARRouteType {
     EnrouteTransition,
@@ -404,6 +418,7 @@ impl STARRouteType {
     }
 }
 
+/// 5.7(E) Airport Heliport Approach Route Type
 pub enum AirportHeliportApproachRouteType {
     ApproachTransition,
     LocalizerBackcourseApproach,
@@ -461,6 +476,7 @@ impl AirportHeliportApproachRouteType {
     }
 }
 
+/// 5.8 Customer/Area Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum CustomerAreaCode {
     Africa,
@@ -506,8 +522,7 @@ impl CustomerAreaCode {
     }
 }
 
-// 5.18 Boundary Code
-
+/// 5.18 Boundary Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum BoundaryCode {
     USA,
@@ -544,8 +559,7 @@ impl BoundaryCode {
     }
 }
 
-// 5.19 Level
-
+/// 5.19 Level
 #[derive(Debug, PartialEq, Eq)]
 pub enum Level {
     AllAltitudes,
@@ -568,7 +582,7 @@ impl Level {
     }
 }
 
-// 5.20 Turn Direction
+/// 5.20 Turn Direction
 #[derive(Debug, PartialEq, Eq)]
 pub enum TurnDirection {
     Left,
@@ -589,8 +603,7 @@ impl TurnDirection {
     }
 }
 
-// 5.22 Turn Direction Valid
-
+/// 5.22 Turn Direction Valid
 #[derive(Debug, PartialEq, Eq)]
 pub enum TurnDirectionValid {
     Yes,
@@ -610,7 +623,7 @@ impl TurnDirectionValid {
     }
 }
 
-// 5.29 Crossing Altitude Description
+/// 5.29 Crossing Altitude Description
 #[derive(Debug, PartialEq, Eq)]
 pub enum CrossingAltitudeDescription {
     AtOrAbove,
@@ -637,6 +650,251 @@ impl CrossingAltitudeDescription {
             _ => {
                 return Err(FieldParseError {
                     message: "Invalid crossing altitude description".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.49 Localizer Azimuth Position Reference (@, +, -)
+#[derive(Debug, PartialEq, Eq)]
+pub enum LocalizerAzimuthPositionReference {
+    AheadOfApproachEnd,
+    BeyondStopEnd,
+    Aside,
+}
+
+impl LocalizerAzimuthPositionReference {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"@" => LocalizerAzimuthPositionReference::AheadOfApproachEnd,
+            b"+" => LocalizerAzimuthPositionReference::BeyondStopEnd,
+            b"-" => LocalizerAzimuthPositionReference::Aside,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid localizer azimuth position reference".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.63 Turn (TURN) for Holding Pattern records (TODO: investigate deduplication with 5.20 Turn Direction)
+#[derive(Debug, PartialEq, Eq)]
+pub enum Turn {
+    Left,
+    Right,
+}
+
+impl Turn {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"L" => Turn::Left,
+            b"R" => Turn::Right,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid turn".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.77(A) Company Route VIA Code
+#[derive(Debug, PartialEq, Eq)]
+pub enum CompanyRouteVIACode {
+    AlternateAirport,
+    ApproachRoute,
+    ApproachTransition,
+    DesignatedAirway,
+    DirectToFix,
+    InitialFix,
+    PreferredRoute,
+    SID,
+    SIDEnrouteTransition,
+    SIDRunwayTransition,
+    STARProfileDescent,
+    STARProfileDescentEnrouteTransition,
+    STARProfileDescentRunwayTransition,
+}
+
+impl CompanyRouteVIACode {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"ALT" => CompanyRouteVIACode::AlternateAirport,
+            b"APP" => CompanyRouteVIACode::ApproachRoute,
+            b"APT" => CompanyRouteVIACode::ApproachTransition,
+            b"AWY" => CompanyRouteVIACode::DesignatedAirway,
+            b"DIR" => CompanyRouteVIACode::DirectToFix,
+            b"INT" => CompanyRouteVIACode::InitialFix,
+            b"PRE" => CompanyRouteVIACode::PreferredRoute,
+            b"SID" => CompanyRouteVIACode::SID,
+            b"SDE" => CompanyRouteVIACode::SIDEnrouteTransition,
+            b"SDY" => CompanyRouteVIACode::SIDRunwayTransition,
+            b"STR" => CompanyRouteVIACode::STARProfileDescent,
+            b"STE" => CompanyRouteVIACode::STARProfileDescentEnrouteTransition,
+            b"STY" => CompanyRouteVIACode::STARProfileDescentRunwayTransition,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid company route VIA code".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.77(B) Preferred Route VIA Code
+pub enum PreferredRouteVIACode {
+    DesignatedAirway,
+    DirectToFix,
+    InitialFix,
+    RouteViaFix,
+    RouteViaFixNotPermitted,
+    SID,
+    STARProfileDescent,
+}
+
+impl PreferredRouteVIACode {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"AWY" => PreferredRouteVIACode::DesignatedAirway,
+            b"DIR" => PreferredRouteVIACode::DirectToFix,
+            b"INT" => PreferredRouteVIACode::InitialFix,
+            b"RVF" => PreferredRouteVIACode::RouteViaFix,
+            b"RNF" => PreferredRouteVIACode::RouteViaFixNotPermitted,
+            b"SID" => PreferredRouteVIACode::SID,
+            b"STR" => PreferredRouteVIACode::STARProfileDescent,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid preferred route VIA code".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.80 ILS/MLS/GLS Category (CAT)
+#[derive(Debug, PartialEq, Eq)]
+pub enum IlsMlsGlsCategory {
+    LocalizerOnlyNoGS,
+    ILSMLSGLSCatI,
+    ILSMLSGLSCatII,
+    ILSMLSGLSCatIII,
+    IGSFacility,
+    LDAWithGS,
+    LDANoGS,
+    SDFWithGS,
+    SDFNoGS,
+}
+
+impl IlsMlsGlsCategory {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"0" => IlsMlsGlsCategory::LocalizerOnlyNoGS,
+            b"1" => IlsMlsGlsCategory::ILSMLSGLSCatI,
+            b"2" => IlsMlsGlsCategory::ILSMLSGLSCatII,
+            b"3" => IlsMlsGlsCategory::ILSMLSGLSCatIII,
+            b"I" => IlsMlsGlsCategory::IGSFacility,
+            b"L" => IlsMlsGlsCategory::LDAWithGS,
+            b"A" => IlsMlsGlsCategory::LDANoGS,
+            b"S" => IlsMlsGlsCategory::SDFWithGS,
+            b"F" => IlsMlsGlsCategory::SDFNoGS,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid ILS/MLS/GLS category".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.81 ATC Indicator (ATC)
+///
+/// Note: This is confusing as written in the spec, but I have encoded it such that it is more properly understood.
+#[derive(Debug, PartialEq, Eq)]
+pub enum AtcIndicator {
+    ATCAssignmentOptional,
+    ATCAssignmentRequired,
+}
+
+impl AtcIndicator {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"A" => AtcIndicator::ATCAssignmentOptional,
+            b"S" => AtcIndicator::ATCAssignmentRequired,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid ATC indicator".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.82 Waypoint Usage
+#[derive(Debug, PartialEq, Eq)]
+pub enum WaypointUsage {
+    HIAndLo,
+    Hi,
+    Lo,
+    TerminalOnly,
+}
+
+impl WaypointUsage {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"B" => WaypointUsage::HIAndLo,
+            b"H" => WaypointUsage::Hi,
+            b"L" => WaypointUsage::Lo,
+            [BLANK] => WaypointUsage::TerminalOnly,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid waypoint usage".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.91 Continuation Record Application Type (APPL)
+#[derive(Debug, PartialEq, Eq)]
+pub enum ContinuationRecordApplicationType {
+    StandardContinuation,
+    ControllingAgencyContinuation,
+    PrimaryRecordExtension,
+    AdditionalSectorizationContinuation,
+    VHFNavaidTACANOnlyNavaidLimitationContinuation,
+    SectorNarrativeContinuation,
+    FlightPlanningApplicationContinuation,
+    SimulationApplicationContinuation,
+    FormattedTimeOfOperationsContinuation,
+    NarrativeTimeOfOperationsContinuation,
+    AirportHeliportProcedureDataContinuation,
+    AirportSIDSTARApproachProcedureNameContinuation,
+}
+
+impl ContinuationRecordApplicationType {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"A" => ContinuationRecordApplicationType::StandardContinuation,
+            b"C" => ContinuationRecordApplicationType::ControllingAgencyContinuation,
+            b"E" => ContinuationRecordApplicationType::PrimaryRecordExtension,
+            b"F" => ContinuationRecordApplicationType::AdditionalSectorizationContinuation,
+            b"L" => {
+                ContinuationRecordApplicationType::VHFNavaidTACANOnlyNavaidLimitationContinuation
+            }
+            b"N" => ContinuationRecordApplicationType::SectorNarrativeContinuation,
+            b"P" => ContinuationRecordApplicationType::FlightPlanningApplicationContinuation,
+            b"S" => ContinuationRecordApplicationType::SimulationApplicationContinuation,
+            b"T" => ContinuationRecordApplicationType::FormattedTimeOfOperationsContinuation,
+            b"U" => ContinuationRecordApplicationType::NarrativeTimeOfOperationsContinuation,
+            b"W" => ContinuationRecordApplicationType::AirportHeliportProcedureDataContinuation,
+            b"Y" => {
+                ContinuationRecordApplicationType::AirportSIDSTARApproachProcedureNameContinuation
+            }
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid continuation record application type".to_string(),
                 });
             }
         }))

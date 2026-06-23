@@ -77,19 +77,19 @@ pub type FixIdentifier = LengthLimitedIdentifier<5, false>;
 /// 5.14 ICAO Code
 pub type IcaoCode = LengthLimitedIdentifier<2, false>;
 
-// 5.15 Inbound Course Theta
+/// 5.15 Inbound Course Theta
 pub type InboundCourseTheta = LengthLimitedIdentifier<3, true>;
 
-// 5.16 Continuation Record Number
+/// 5.16 Continuation Record Number
 pub type ContinuationRecordNumber = LengthLimitedIdentifier<1, true>;
 
-// 5.17 Waypoint Description Code
+/// 5.17 Waypoint Description Code
 pub type WaypointDescriptionCode = LengthLimitedIdentifier<4, true>;
 
-// 5.21 Path and Termination
+/// 5.21 Path and Termination
 pub type PathAndTermination = LengthLimitedIdentifier<2, true>;
 
-// 5.23 Recommended NAVAID
+/// 5.23 Recommended NAVAID
 pub type RecommendedNavaid = LengthLimitedIdentifier<4, false>;
 
 /// 5.33 VOR/NDB Identifier
@@ -98,5 +98,50 @@ pub type VORNDBIdentifier = LengthLimitedIdentifier<4, false>;
 /// 5.38 DME Identifier
 pub type DMEIdentifier = LengthLimitedIdentifier<4, false>;
 
-/// 5.40 Region Code
+/// 5.41 Region Code
 pub type RegionCode = LengthLimitedIdentifier<4, false>;
+
+/// 5.43 Waypoint Name/Description (NAME/DESC)
+pub type WaypointNameDescription = LengthLimitedIdentifier<25, false>;
+
+/// 5.44 Localizer/MLS/GLS Identifier (LOC, MLS, GLS IDENT)
+pub type LocalizerMlsGlsIdentifier = LengthLimitedIdentifier<4, false>;
+
+/// 5.46 Runway Identifier (RUNWAY ID)
+pub type RunwayIdentifier = LengthLimitedIdentifier<5, false>;
+
+/// 5.56 Gate Identifier (GATE IDENT)
+pub type GateIdentifier = LengthLimitedIdentifier<5, false>;
+
+/// 5.59 Runway Description (RUNWAY DESCRIPTION)
+pub type RunwayDescription = LengthLimitedIdentifier<22, false>;
+
+/// 5.60 Name (NAME), Gate and Holding Pattern records
+pub type Name = LengthLimitedIdentifier<25, false>;
+
+/// 5.61 Notes (Continuation Records) (NOTES)
+pub type Notes = LengthLimitedIdentifier<102, false>;
+
+/// 5.71 Name Field, Navaid/Airport/Heliport/Enroute Marker records
+pub type NameOfFacility = LengthLimitedIdentifier<25, false>;
+
+/// 5.75 From/To Airport/Heliport/Fix (FROM/TO AIRPORT/HELIPORT/FIX)
+pub type FromToAirportHeliportFix = LengthLimitedIdentifier<5, false>;
+
+/// 5.76 Company Route Ident
+pub type CompanyRouteIdent = LengthLimitedIdentifier<10, false>;
+
+/// 5.78 SID/STAR/App/AWY (S/S/A/AWY), SID/STAR/AWY (S/S/AWY)
+pub type SidStarApproachAirway = LengthLimitedIdentifier<6, false>;
+
+/// 5.83 To Fix
+pub type ToFix = LengthLimitedIdentifier<5, false>;
+
+/// 5.84 Runway Transition
+pub type RunwayTransition = LengthLimitedIdentifier<5, false>;
+
+/// 5.85 Enrt Transition
+pub type EnrouteTransition = LengthLimitedIdentifier<5, false>;
+
+/// 5.87 Terminal/Alternate Airport
+pub type TerminalAlternateAirport = LengthLimitedIdentifier<4, false>;
