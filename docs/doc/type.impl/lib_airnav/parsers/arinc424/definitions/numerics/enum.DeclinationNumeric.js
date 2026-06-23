@@ -1,0 +1,9 @@
+(function() {
+    var type_impls = Object.fromEntries([["lib_airnav",[["<details class=\"toggle implementors-toggle\" open><summary><section id=\"impl-DeclinationNumeric\" class=\"impl\"><a class=\"src rightside\" href=\"src/lib_airnav/parsers\\arinc424\\definitions/numerics.rs.html#429-468\">Source</a><a href=\"#impl-DeclinationNumeric\" class=\"anchor\">§</a><h3 class=\"code-header\">impl <a class=\"enum\" href=\"lib_airnav/parsers/arinc424/definitions/numerics/enum.DeclinationNumeric.html\" title=\"enum lib_airnav::parsers::arinc424::definitions::numerics::DeclinationNumeric\">DeclinationNumeric</a></h3></section></summary><div class=\"impl-items\"><section id=\"method.from_bytes\" class=\"method\"><a class=\"src rightside\" href=\"src/lib_airnav/parsers\\arinc424\\definitions/numerics.rs.html#430-467\">Source</a><h4 class=\"code-header\">pub fn <a href=\"#method.from_bytes\" class=\"fn\">from_bytes</a>(bytes: &amp;[<a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.u8.html\">u8</a>]) -&gt; <a class=\"enum\" href=\"https://doc.rust-lang.org/nightly/core/result/enum.Result.html\" title=\"enum core::result::Result\">Result</a>&lt;<a class=\"enum\" href=\"https://doc.rust-lang.org/nightly/core/option/enum.Option.html\" title=\"enum core::option::Option\">Option</a>&lt;Self&gt;, <a class=\"struct\" href=\"lib_airnav/parsers/arinc424/fields/struct.FieldParseError.html\" title=\"struct lib_airnav::parsers::arinc424::fields::FieldParseError\">FieldParseError</a>&gt;</h4></section></div></details>",0,"lib_airnav::parsers::arinc424::definitions::numerics::StationDeclination"]]]]);
+    if (window.register_type_impls) {
+        window.register_type_impls(type_impls);
+    } else {
+        window.pending_type_impls = type_impls;
+    }
+})()
+//{"start":55,"fragment_lengths":[1571]}
