@@ -9,7 +9,7 @@
 //! For example, 5.27 - Route Distance From encodes both a time and a distance.
 //!
 //! To handle this, there are specific fields that capture the union of the two types appropriately.
-use crate::parsers::arinc424::fields::FieldParseError;
+use crate::parsers::arinc424::fields::{FieldParseError, ParseableField};
 #[cfg(test)]
 use crate::test_util::assert_within_epsilon;
 use std::convert::Into;
@@ -54,8 +54,8 @@ pub fn test_coalesce_into_number() {
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct UintNumeric(u64);
-impl UintNumeric {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for UintNumeric {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -72,8 +72,8 @@ impl Into<u64> for UintNumeric {
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct IntNumeric(i64);
-impl IntNumeric {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for IntNumeric {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -106,8 +106,8 @@ pub fn test_int_numeric() {
 
 #[derive(Debug, PartialEq)]
 pub struct FloatNumeric<const RADIX_SHIFT: i32 = 0>(f64);
-impl<const RADIX_SHIFT: i32> FloatNumeric<RADIX_SHIFT> {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl<const RADIX_SHIFT: i32> ParseableField for FloatNumeric<RADIX_SHIFT> {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -165,7 +165,9 @@ impl<const RADIX_DIRECTION: i32> VariableFloatNumeric<RADIX_DIRECTION> {
         RADIX_DIRECTION == 1 || RADIX_DIRECTION == -1,
         "Invalid RADIX_DIRECTION"
     );
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+}
+impl<const RADIX_DIRECTION: i32> ParseableField for VariableFloatNumeric<RADIX_DIRECTION> {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         let _ = Self::_VALID_RADIX_DIRECTIONS;
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
@@ -207,8 +209,8 @@ pub enum TimeDistanceNumeric<const RADIX_SHIFT: i32 = 0> {
     Distance(FloatNumeric<RADIX_SHIFT>),
 }
 
-impl<const RADIX_SHIFT: i32> TimeDistanceNumeric<RADIX_SHIFT> {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl<const RADIX_SHIFT: i32> ParseableField for TimeDistanceNumeric<RADIX_SHIFT> {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -258,8 +260,8 @@ pub fn test_time_distance_numeric() {
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct AltitudeNumeric(i32);
-impl AltitudeNumeric {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for AltitudeNumeric {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -308,8 +310,8 @@ pub enum MultiUnitAltitudeNumeric {
     Feet(AltitudeNumeric),
 }
 
-impl MultiUnitAltitudeNumeric {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for MultiUnitAltitudeNumeric {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -345,8 +347,8 @@ impl Into<i32> for MultiUnitAltitudeNumeric {
 
 #[derive(Debug, PartialEq)]
 pub struct LatitudeNumeric(f64);
-impl LatitudeNumeric {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for LatitudeNumeric {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -367,8 +369,8 @@ impl LatitudeNumeric {
 
 #[derive(Debug, PartialEq)]
 pub struct LongitudeNumeric(f64);
-impl LongitudeNumeric {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for LongitudeNumeric {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -407,8 +409,8 @@ pub fn test_longitude() {
 
 #[derive(Debug, PartialEq)]
 pub struct MagneticVariationNumeric(f64);
-impl MagneticVariationNumeric {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for MagneticVariationNumeric {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -443,14 +445,15 @@ pub fn test_magnetic_variation() {
 
 /// Declination Numeric at first glance seems similar to Magnetic Variation, but is actually used in
 /// much more different contexts that need different semantic handling of values.
+#[derive(Debug, PartialEq)]
 pub enum DeclinationNumeric {
     StandardDeclination(f64),
     TrueNorth(f64),
     GridNorth(f64),
 }
 
-impl DeclinationNumeric {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for DeclinationNumeric {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -526,8 +529,8 @@ pub enum AltitudeMinimumAltitude {
     NotEstablished,
 }
 
-impl AltitudeMinimumAltitude {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for AltitudeMinimumAltitude {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         match bytes {
             b"UNKNN" => Ok(Some(AltitudeMinimumAltitude::Unknown)),
             b"NESTB" => Ok(Some(AltitudeMinimumAltitude::NotEstablished)),
@@ -713,8 +716,8 @@ pub enum SectorAltitude {
     SectorAltitude(UintNumeric),
 }
 
-impl SectorAltitude {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for SectorAltitude {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -869,8 +872,8 @@ pub type RNPLevelOfService = VariableFloatNumeric<-1>;
 ///
 /// Note: This is a very odd field, but one that seems to benefit specifically Path Point approaches
 pub struct FinalApproachCourseAsRunway(u64);
-impl FinalApproachCourseAsRunway {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for FinalApproachCourseAsRunway {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }

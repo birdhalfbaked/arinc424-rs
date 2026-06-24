@@ -15,7 +15,7 @@
 use super::numerics::{AltitudeNumeric, UintNumeric};
 use crate::parsers::arinc424::{
     definitions::MultiUnitAltitudeNumeric,
-    fields::{BLANK, FieldParseError},
+    fields::{BLANK, FieldParseError, ParseableField},
 };
 
 // VHF Navaid Class
@@ -24,8 +24,8 @@ pub enum VHFNavaidType1 {
     VOR,
     Other,
 }
-impl VHFNavaidType1 {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for VHFNavaidType1 {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             b"V" => VHFNavaidType1::VOR,
             [BLANK] => VHFNavaidType1::Other,
@@ -46,8 +46,8 @@ pub enum VHFNavaidType2 {
     MLSDMEN,
     MLSDMEP,
 }
-impl VHFNavaidType2 {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for VHFNavaidType2 {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             b"D" => VHFNavaidType2::DME,
             b"T" => VHFNavaidType2::TACAN,
@@ -72,7 +72,7 @@ pub enum VHFRangePower {
     ILSTACAN,
 }
 impl VHFRangePower {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             b"T" => VHFRangePower::Terminal,
             b"L" => VHFRangePower::LowAltitude,
@@ -98,7 +98,7 @@ pub enum VHFAdditionalInfo {
 }
 
 impl VHFAdditionalInfo {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             b"D" => VHFAdditionalInfo::BiasedILSDMEOrILSTACAN,
             b"A" => VHFAdditionalInfo::AutomaticTranscribedWeatherBroadcast,
@@ -119,8 +119,8 @@ pub enum Collocation {
     NonCollocated,
 }
 
-impl Collocation {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for Collocation {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             [BLANK] => Collocation::Collocated,
             b"N" => Collocation::NonCollocated,
@@ -142,8 +142,8 @@ pub struct VHFNavaidClass(
     VHFAdditionalInfo,
     Collocation,
 );
-impl VHFNavaidClass {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for VHFNavaidClass {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(VHFNavaidClass(
             VHFNavaidType1::from_bytes(&bytes[0..1])?.ok_or(FieldParseError {
                 message: "Invalid Navaid Type 1".to_string(),
@@ -171,8 +171,8 @@ pub enum NDBNavaidType1 {
     SABH,
     MarineBeacon,
 }
-impl NDBNavaidType1 {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for NDBNavaidType1 {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             b"H" => NDBNavaidType1::NDB,
             b"S" => NDBNavaidType1::SABH,
@@ -193,8 +193,8 @@ pub enum NDBNavaidType2 {
     OuterMarker,
     BackMarker,
 }
-impl NDBNavaidType2 {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for NDBNavaidType2 {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             b"I" => NDBNavaidType2::InnerMarker,
             b"M" => NDBNavaidType2::MiddleMarker,
@@ -217,8 +217,8 @@ pub enum NDBRangePower {
     Locator,
 }
 
-impl NDBRangePower {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for NDBRangePower {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             b"H" => NDBRangePower::HighPoweredNDB,
             [BLANK] => NDBRangePower::NDB,
@@ -240,8 +240,8 @@ pub enum NDBAdditionalInfo {
     VoiceOnFrequency,
 }
 
-impl NDBAdditionalInfo {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for NDBAdditionalInfo {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             b"A" => NDBAdditionalInfo::AutomaticTranscribedWeatherBroadcast,
             b"B" => NDBAdditionalInfo::ScheduledWeatherBroadcast,
@@ -262,8 +262,8 @@ pub enum NDBCollocation {
     NonCollocated,
 }
 
-impl NDBCollocation {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for NDBCollocation {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             b"B" => NDBCollocation::BFOOperation,
             b"N" => NDBCollocation::NonCollocated,
@@ -285,8 +285,8 @@ pub struct NDBNavaidClass(
     NDBAdditionalInfo,
     NDBCollocation,
 );
-impl NDBNavaidClass {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for NDBNavaidClass {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(NDBNavaidClass(
             NDBNavaidType1::from_bytes(&bytes[0..1])?.ok_or(FieldParseError {
                 message: "Invalid Navaid Type 1".to_string(),
@@ -316,8 +316,8 @@ pub enum MarkerCollocation {
     LocatorMarkerCollocated,
     LocatorMarkerNotCollocated,
 }
-impl MarkerCollocation {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for MarkerCollocation {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             b"B" => MarkerCollocation::BFOOperation,
             b"A" => MarkerCollocation::LocatorMarkerCollocated,
@@ -340,8 +340,8 @@ pub struct MarkerLocatorNavaidClass(
     NDBAdditionalInfo,
     MarkerCollocation,
 );
-impl MarkerLocatorNavaidClass {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for MarkerLocatorNavaidClass {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(MarkerLocatorNavaidClass(
             NDBNavaidType1::from_bytes(&bytes[0..1])?.ok_or(FieldParseError {
                 message: "Invalid Navaid Type 1".to_string(),
@@ -377,8 +377,8 @@ pub enum PrimaryWaypointType {
     VFRWaypoint,
     RNAVWaypoint,
 }
-impl PrimaryWaypointType {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for PrimaryWaypointType {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             b"A" => PrimaryWaypointType::ArcCenterFix,
             b"C" => PrimaryWaypointType::CombinedNamedIntersectionAndOrDMEFixRNAVWaypoint,
@@ -422,8 +422,8 @@ pub enum SecondaryWaypointType {
     FullDegreeLatLongFix,
     HalfDegreeLatLongFix,
 }
-impl SecondaryWaypointType {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for SecondaryWaypointType {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             b"A" => SecondaryWaypointType::FinalApproachFix,
             b"B" => SecondaryWaypointType::InitialAndFinalApproachFix,
@@ -462,8 +462,8 @@ pub enum PublishedUse {
     PublishedForUseInMultipleTerminalProcedures,
 }
 
-impl PublishedUse {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for PublishedUse {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             b"D" => PublishedUse::PublishedForUseInSID,
             b"E" => PublishedUse::PublishedForUseInSTAR,
@@ -481,8 +481,8 @@ impl PublishedUse {
 /// 5.42 Waypoint Type (TYPE)
 #[derive(Debug, PartialEq, Eq)]
 pub struct WaypointType(PrimaryWaypointType, SecondaryWaypointType, PublishedUse);
-impl WaypointType {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for WaypointType {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(WaypointType(
             PrimaryWaypointType::from_bytes(&bytes[0..1])?.ok_or(FieldParseError {
                 message: "Invalid Primary Waypoint Type".to_string(),
@@ -506,8 +506,8 @@ pub enum FacilityCharacteristicsSynchronicity {
     Asynchronous,
     Unknown,
 }
-impl FacilityCharacteristicsSynchronicity {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for FacilityCharacteristicsSynchronicity {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             b"S" => FacilityCharacteristicsSynchronicity::Synchronous,
             b"A" => FacilityCharacteristicsSynchronicity::Asynchronous,
@@ -529,8 +529,8 @@ pub enum FacilityCharacteristicsVoiceIdent {
     NotApplicable,
 }
 
-impl FacilityCharacteristicsVoiceIdent {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for FacilityCharacteristicsVoiceIdent {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             b"Y" => FacilityCharacteristicsVoiceIdent::VoiceIdent,
             b"N" => FacilityCharacteristicsVoiceIdent::NoVoiceIdent,
@@ -552,8 +552,8 @@ pub enum FacilityCharacteristicsEmissionType {
     NotApplicable,
 }
 
-impl FacilityCharacteristicsEmissionType {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for FacilityCharacteristicsEmissionType {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes[0] == BLANK {
             return Ok(Some(FacilityCharacteristicsEmissionType::NotApplicable));
         }
@@ -581,8 +581,8 @@ pub enum FacilityCharacteristicsFreqAndBackcourse {
     MLSHighRateAzimuthGuidance,
     NotApplicable,
 }
-impl FacilityCharacteristicsFreqAndBackcourse {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for FacilityCharacteristicsFreqAndBackcourse {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes[0] == BLANK {
             return Ok(Some(
                 FacilityCharacteristicsFreqAndBackcourse::NotApplicable,
@@ -615,8 +615,8 @@ pub enum FacilityCharacteristicsRepetitionAndCollocation {
     NotApplicable,
     KnownRepetition(u8),
 }
-impl FacilityCharacteristicsRepetitionAndCollocation {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for FacilityCharacteristicsRepetitionAndCollocation {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes[0] == BLANK {
             return Ok(Some(
                 FacilityCharacteristicsRepetitionAndCollocation::NotApplicable,
@@ -655,8 +655,8 @@ pub struct FacilityCharacteristics(
     FacilityCharacteristicsFreqAndBackcourse,
     FacilityCharacteristicsRepetitionAndCollocation,
 );
-impl FacilityCharacteristics {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for FacilityCharacteristics {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(FacilityCharacteristics(
             FacilityCharacteristicsSynchronicity::from_bytes(&bytes[0..1])?.ok_or(
                 FieldParseError {
@@ -721,8 +721,8 @@ pub enum MarkerTypeLocator {
     Locator,
     NotApplicable,
 }
-impl MarkerTypeLocator {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for MarkerTypeLocator {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes[0] == BLANK {
             return Ok(Some(MarkerTypeLocator::NotApplicable));
         }
@@ -745,8 +745,8 @@ pub enum MarkerTypeLocation {
     Back,
     NotApplicable,
 }
-impl MarkerTypeLocation {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for MarkerTypeLocation {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes[0] == BLANK {
             return Ok(Some(MarkerTypeLocation::NotApplicable));
         }
@@ -769,8 +769,8 @@ pub enum MarkerTypeMarker {
     Marker,
     NotApplicable,
 }
-impl MarkerTypeMarker {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for MarkerTypeMarker {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes[0] == BLANK {
             return Ok(Some(MarkerTypeMarker::NotApplicable));
         }
@@ -788,8 +788,8 @@ impl MarkerTypeMarker {
 /// 5.99 Marker Type
 #[derive(Debug, PartialEq, Eq)]
 pub struct MarkerType(MarkerTypeLocator, MarkerTypeLocation, MarkerTypeMarker);
-impl MarkerType {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for MarkerType {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(MarkerType(
             MarkerTypeLocator::from_bytes(&bytes[0..1])?.ok_or(FieldParseError {
                 message: "Invalid Marker Type Locator".to_string(),
@@ -820,8 +820,8 @@ pub enum AirportHeliportCommunicationsServiceIndicator1 {
     NotApplicable,
 }
 
-impl AirportHeliportCommunicationsServiceIndicator1 {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for AirportHeliportCommunicationsServiceIndicator1 {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             [BLANK] => AirportHeliportCommunicationsServiceIndicator1::NotApplicable,
             b"A" => AirportHeliportCommunicationsServiceIndicator1::AirportAdvisoryService,
@@ -849,8 +849,8 @@ pub enum AirportHeliportCommunicationsServiceIndicator2 {
     SecondaryFrequency,
     NotApplicable,
 }
-impl AirportHeliportCommunicationsServiceIndicator2 {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for AirportHeliportCommunicationsServiceIndicator2 {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             [BLANK] => AirportHeliportCommunicationsServiceIndicator2::NotApplicable,
             b"A" => AirportHeliportCommunicationsServiceIndicator2::AerodromeTrafficFrequency,
@@ -875,8 +875,8 @@ pub enum AirportHeliportCommunicationsServiceIndicator3 {
     PilotControlledLight,
     NotApplicable,
 }
-impl AirportHeliportCommunicationsServiceIndicator3 {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for AirportHeliportCommunicationsServiceIndicator3 {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             [BLANK] => AirportHeliportCommunicationsServiceIndicator3::NotApplicable,
             b"D" => AirportHeliportCommunicationsServiceIndicator3::VHFDirectionFindingService,
@@ -900,8 +900,8 @@ pub struct AirportHeliportCommunicationsServiceIndicator(
     AirportHeliportCommunicationsServiceIndicator2,
     AirportHeliportCommunicationsServiceIndicator3,
 );
-impl AirportHeliportCommunicationsServiceIndicator {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for AirportHeliportCommunicationsServiceIndicator {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(AirportHeliportCommunicationsServiceIndicator(
             AirportHeliportCommunicationsServiceIndicator1::from_bytes(&bytes[0..1])?.ok_or(
                 FieldParseError {
@@ -932,8 +932,8 @@ pub enum EnrouteCommunicationsServiceIndicator1 {
     FlightInformationService,
     NotApplicable,
 }
-impl EnrouteCommunicationsServiceIndicator1 {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for EnrouteCommunicationsServiceIndicator1 {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             [BLANK] => EnrouteCommunicationsServiceIndicator1::NotApplicable,
             b"A" => EnrouteCommunicationsServiceIndicator1::AeronauticalEnrouteInformationService,
@@ -954,8 +954,8 @@ pub enum EnrouteCommunicationsServiceIndicator2 {
     SecondaryFrequency,
     NotApplicable,
 }
-impl EnrouteCommunicationsServiceIndicator2 {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for EnrouteCommunicationsServiceIndicator2 {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             [BLANK] => EnrouteCommunicationsServiceIndicator2::NotApplicable,
             b"A" => EnrouteCommunicationsServiceIndicator2::AirGround,
@@ -977,8 +977,8 @@ pub enum EnrouteCommunicationsServiceIndicator3 {
     MilitaryUseFrequency,
     NotApplicable,
 }
-impl EnrouteCommunicationsServiceIndicator3 {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for EnrouteCommunicationsServiceIndicator3 {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             [BLANK] => EnrouteCommunicationsServiceIndicator3::NotApplicable,
             b"D" => EnrouteCommunicationsServiceIndicator3::VHFDirectionFindingService,
@@ -1000,8 +1000,8 @@ pub struct EnrouteCommunicationsServiceIndicator(
     EnrouteCommunicationsServiceIndicator2,
     EnrouteCommunicationsServiceIndicator3,
 );
-impl EnrouteCommunicationsServiceIndicator {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for EnrouteCommunicationsServiceIndicator {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(EnrouteCommunicationsServiceIndicator(
             EnrouteCommunicationsServiceIndicator1::from_bytes(&bytes[0..1])?.ok_or(
                 FieldParseError {
@@ -1037,8 +1037,8 @@ pub enum DuplicateIndicatorAirspace {
     AllAltitude,
 }
 
-impl DuplicateIndicatorAirspace {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for DuplicateIndicatorAirspace {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             b"0" => DuplicateIndicatorAirspace::Undefined,
             b"1" => DuplicateIndicatorAirspace::HighAltitude,
@@ -1063,8 +1063,8 @@ pub type DuplicateIndicatorDuplicates = u8;
 /// 5.114 Duplicate Indicator
 #[derive(Debug, PartialEq, Eq)]
 pub struct DuplicateIndicator(DuplicateIndicatorAirspace, DuplicateIndicatorDuplicates);
-impl DuplicateIndicator {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for DuplicateIndicator {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(DuplicateIndicator(
             DuplicateIndicatorAirspace::from_bytes(&bytes[0..1])?.ok_or(FieldParseError {
                 message: "Invalid duplicate indicator airspace".to_string(),
@@ -1085,7 +1085,7 @@ pub enum BoundaryViaPathType {
     ClockwiseArc,
 }
 impl BoundaryViaPathType {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             b"C" => BoundaryViaPathType::Circle,
             b"G" => BoundaryViaPathType::GreatCircle,
@@ -1107,7 +1107,7 @@ pub enum BoundaryViaEndPoint {
     Other,
 }
 impl BoundaryViaEndPoint {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             b"E" => BoundaryViaEndPoint::EndOfDescription,
             [BLANK] => BoundaryViaEndPoint::Other,
@@ -1123,7 +1123,7 @@ impl BoundaryViaEndPoint {
 #[derive(Debug, PartialEq, Eq)]
 pub struct BoundaryVia(BoundaryViaPathType, BoundaryViaEndPoint);
 impl BoundaryVia {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(BoundaryVia(
             BoundaryViaPathType::from_bytes(&bytes[0..1])?.ok_or(FieldParseError {
                 message: "Invalid boundary via path type".to_string(),
@@ -1146,8 +1146,8 @@ pub enum DescriptiveAltitudeLimits {
     SeeNOTAM,
 }
 
-impl DescriptiveAltitudeLimits {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for DescriptiveAltitudeLimits {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             b"NOTSP" => DescriptiveAltitudeLimits::NotSpecified,
             b"UNLTD" => DescriptiveAltitudeLimits::Unlimited,
@@ -1169,8 +1169,8 @@ pub enum LowerUpperLimit {
     Descriptive(DescriptiveAltitudeLimits),
     Numeric(AltitudeNumeric),
 }
-impl LowerUpperLimit {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for LowerUpperLimit {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         // try to parse as descriptive altitude limit first, on error handle as numeric altitude
         let descriptive = DescriptiveAltitudeLimits::from_bytes(bytes);
         if let Ok(Some(descriptive)) = descriptive {
@@ -1221,8 +1221,8 @@ pub enum MaximumAltitude {
     Descriptive(DescriptiveAltitudeLimits),
     Numeric(AltitudeNumeric),
 }
-impl MaximumAltitude {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for MaximumAltitude {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         let descriptive = DescriptiveAltitudeLimits::from_bytes(bytes);
         if let Ok(Some(descriptive)) = descriptive {
             // we only allow unlimited as descriptive altitude limit
@@ -1255,8 +1255,8 @@ pub enum CruiseLevelFromTo {
     Descriptive(DescriptiveAltitudeLimits),
     Numeric(MultiUnitAltitudeNumeric),
 }
-impl CruiseLevelFromTo {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for CruiseLevelFromTo {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         let descriptive = DescriptiveAltitudeLimits::from_bytes(bytes);
         if let Ok(Some(descriptive)) = descriptive {
             // we only allow unlimited as descriptive altitude limit
@@ -1307,8 +1307,8 @@ pub struct SectorBearing {
     pub start_bearing: UintNumeric,
     pub end_bearing: UintNumeric,
 }
-impl SectorBearing {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for SectorBearing {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -1331,8 +1331,8 @@ pub struct RectangularPadDimensions {
     pub width: UintNumeric,
     pub length: UintNumeric,
 }
-impl RectangularPadDimensions {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for RectangularPadDimensions {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -1351,7 +1351,7 @@ pub struct CircularPadDimensions {
     pub diameter: UintNumeric,
 }
 impl CircularPadDimensions {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -1405,8 +1405,8 @@ pub enum TimezoneZone {
     UTCPlus12,
 }
 
-impl TimezoneZone {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for TimezoneZone {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -1454,7 +1454,7 @@ pub struct Timezone {
     pub minutes_offset: Option<UintNumeric>,
 }
 impl Timezone {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -1522,8 +1522,8 @@ pub enum NameFormatType1 {
     VFRCheckpointReportingPointAsFix,
 }
 
-impl NameFormatType1 {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for NameFormatType1 {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -1559,7 +1559,7 @@ pub enum NameFormatType2 {
     NotApplicable,
 }
 impl NameFormatType2 {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(Some(NameFormatType2::NotApplicable));
         }
@@ -1579,7 +1579,7 @@ impl NameFormatType2 {
 #[derive(Debug, PartialEq, Eq)]
 pub struct NameFormat(NameFormatType1, NameFormatType2);
 impl NameFormat {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -1599,8 +1599,8 @@ pub struct SectorFromTo {
     pub from: Box<str>,
     pub to: Box<str>,
 }
-impl SectorFromTo {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for SectorFromTo {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -1635,8 +1635,8 @@ pub struct NavaidDistanceLimitation {
     pub second_limit: UintNumeric,
 }
 
-impl NavaidDistanceLimitation {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for NavaidDistanceLimitation {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -1664,8 +1664,8 @@ pub struct NavaidAltitudeLimitation {
     pub second_limit: UintNumeric,
 }
 
-impl NavaidAltitudeLimitation {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for NavaidAltitudeLimitation {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -1693,7 +1693,7 @@ pub enum PreferredRouteType {
     AreaToArea,
 }
 impl PreferredRouteType {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             b"P" => PreferredRouteType::PointToPoint,
             b"A" => PreferredRouteType::AreaToArea,
@@ -1713,7 +1713,7 @@ pub enum PreferredRouteRNAVRequirement {
 }
 
 impl PreferredRouteRNAVRequirement {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             b"R" => PreferredRouteRNAVRequirement::RNAVRequired,
             b"N" => PreferredRouteRNAVRequirement::RNAVNotRequired,
@@ -1730,7 +1730,7 @@ impl PreferredRouteRNAVRequirement {
 #[derive(Debug, PartialEq, Eq)]
 pub struct PreferredRouteUseIndicator(PreferredRouteType, PreferredRouteRNAVRequirement);
 impl PreferredRouteUseIndicator {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -1770,8 +1770,8 @@ pub enum AircraftUseGroup {
     TwinEngine,
 }
 
-impl AircraftUseGroup {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for AircraftUseGroup {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -1803,7 +1803,7 @@ impl AircraftUseGroup {
 #[derive(Debug, PartialEq, Eq)]
 pub struct AircraftUseGroupIndicator(AircraftUseGroup, Option<AircraftUseGroup>);
 impl AircraftUseGroupIndicator {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -1830,8 +1830,8 @@ pub enum NumberOfEnginesRestrictionIndicator {
     Restricted,
     NotRestricted,
 }
-impl NumberOfEnginesRestrictionIndicator {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for NumberOfEnginesRestrictionIndicator {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             b"Y" => NumberOfEnginesRestrictionIndicator::Restricted,
             b"N" => NumberOfEnginesRestrictionIndicator::NotRestricted,
@@ -1852,8 +1852,8 @@ pub struct NumberOfEnginesRestriction(
     NumberOfEnginesRestrictionIndicator,
     NumberOfEnginesRestrictionIndicator,
 );
-impl NumberOfEnginesRestriction {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for NumberOfEnginesRestriction {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -1885,8 +1885,8 @@ pub enum LegTypePath {
     CurvedLine,
 }
 
-impl LegTypePath {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for LegTypePath {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             b"S" => LegTypePath::PointToPoint,
             b"C" => LegTypePath::CurvedLine,
@@ -1905,8 +1905,8 @@ pub enum LegTypeTurnIndication {
     Right,
 }
 
-impl LegTypeTurnIndication {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for LegTypeTurnIndication {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -1924,8 +1924,8 @@ impl LegTypeTurnIndication {
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct LegTypeCode(LegTypePath, Option<LegTypeTurnIndication>);
-impl LegTypeCode {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for LegTypeCode {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -1949,8 +1949,8 @@ pub enum GLSStationType1 {
     SCAT1Station,
 }
 
-impl GLSStationType1 {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for GLSStationType1 {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             b"LAAS" => GLSStationType1::LAASOrGLSGroundStation,
             b"SCAT1" => GLSStationType1::SCAT1Station,
@@ -1977,8 +1977,8 @@ pub struct GLSStationType(
     Option<GLSStationType2>,
     Option<GLSStationType3>,
 );
-impl GLSStationType {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for GLSStationType {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -1998,8 +1998,8 @@ pub struct TaaSectorRadius {
     pub start_radius: UintNumeric,
     pub end_radius: UintNumeric,
 }
-impl TaaSectorRadius {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for TaaSectorRadius {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
@@ -2026,8 +2026,8 @@ pub enum SpecialActivityTimesDayIndicator {
     Unknown,
 }
 
-impl SpecialActivityTimesDayIndicator {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for SpecialActivityTimesDayIndicator {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             b"C" => SpecialActivityTimesDayIndicator::WeekdaysAndWeekends,
             b"D" => SpecialActivityTimesDayIndicator::WeekdaysOnly,
@@ -2050,8 +2050,8 @@ pub enum SpecialActivityTimesHolidayIndicator {
     Unknown,
 }
 
-impl SpecialActivityTimesHolidayIndicator {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for SpecialActivityTimesHolidayIndicator {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             b"H" => SpecialActivityTimesHolidayIndicator::IncludingHolidays,
             b"X" => SpecialActivityTimesHolidayIndicator::ExcludingHolidays,
@@ -2072,8 +2072,8 @@ pub enum SpecialActivityTimesTimeIndicator {
     ActiveByNotam,
 }
 
-impl SpecialActivityTimesTimeIndicator {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for SpecialActivityTimesTimeIndicator {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             b"D" => SpecialActivityTimesTimeIndicator::SunriseOrSunset,
             b"N" => SpecialActivityTimesTimeIndicator::NightUse,
@@ -2095,8 +2095,8 @@ pub struct SpecialActivityTimes(
     SpecialActivityTimesHolidayIndicator,
     SpecialActivityTimesTimeIndicator,
 );
-impl SpecialActivityTimes {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for SpecialActivityTimes {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }

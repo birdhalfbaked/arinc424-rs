@@ -5,7 +5,7 @@
 //!
 
 use crate::parsers::arinc424::definitions::*;
-use crate::parsers::arinc424::fields::{BLANK, FieldParseError};
+use crate::parsers::arinc424::fields::{BLANK, FieldParseError, ParseableField};
 #[derive(Debug)]
 pub struct RecordParseError {
     pub message: String,
@@ -18,14 +18,23 @@ impl From<FieldParseError> for RecordParseError {
     }
 }
 
-/// Required field is used to represent a field that is required to be present in the record.
-fn required_field<T>(value: Result<Option<T>, FieldParseError>) -> Result<T, FieldParseError> {
-    match value {
-        Ok(Some(value)) => Ok(value),
-        Ok(None) => Err(FieldParseError {
-            message: "Required field is missing".to_string(),
-        }),
-        Err(error) => Err(error),
+#[derive(Debug)]
+pub struct RecordField<'a, T> {
+    pub raw_bytes: &'a [u8],
+    pub value: Option<T>,
+}
+impl<'a, T: ParseableField> RecordField<'a, T> {
+    pub fn from_bytes(
+        input: &'a [u8],
+        column: usize,
+        length: usize,
+    ) -> Result<Self, FieldParseError> {
+        // to make it 1:1 with the spec, let's use 1-indexed columns
+        let value = T::from_bytes(&input[column - 1..column - 1 + length])?;
+        Ok(Self {
+            raw_bytes: &input[column - 1..column - 1 + length],
+            value,
+        })
     }
 }
 
@@ -41,12 +50,12 @@ impl PlaceholderField {
 
 /// ARINC 424 Record Sum Type for all possible record types.
 #[derive(Debug)]
-pub enum ARINCRecord {
-    VHFNavaidPrimary(VHFNavaidPrimaryRecord),
-    VHFNavaidContinuation,
-    VHFNavaidSimulationContinuation,
-    VHFNavaidFlightPlanningContinuation,
-    VHFNavaidLimitationContinuation,
+pub enum ARINCRecord<'a> {
+    VHFNavaidPrimary(VHFNavaidPrimaryRecord<'a>),
+    VHFNavaidContinuation(VHFNavaidContinuationRecord<'a>),
+    VHFNavaidSimulationContinuation(VHFNavaidSimulationContinuationRecord<'a>),
+    VHFNavaidFlightPlanningContinuation(VHFNavaidFlightPlanningContinuationRecord<'a>),
+    VHFNavaidLimitationContinuation(VHFNavaidLimitationContinuationRecord<'a>),
 
     NDBNavaidPrimary,
     NDBNavaidContinuation,
@@ -224,11 +233,11 @@ pub enum ARINCRecord {
     HeliportHelipadPrimary,
 }
 
-impl ARINCRecord {
-    pub fn parse(input: &[u8]) -> Result<Self, RecordParseError> {
+impl<'a> ARINCRecord<'a> {
+    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         match input[4..6] {
             [b'D', subcode] => Ok(match subcode {
-                BLANK => ARINCRecord::VHFNavaidPrimary(VHFNavaidPrimaryRecord::parse(input)?),
+                BLANK => ARINCRecord::VHFNavaidPrimary(VHFNavaidPrimaryRecord::parse(&input)?),
                 _ => {
                     return Err(RecordParseError {
                         message: "Invalid record type".to_string(),
@@ -242,84 +251,310 @@ impl ARINCRecord {
     }
 }
 
-/// 4.1.2.1 - VHFNavaid Primary Record
+/// 4.1.2.1 VHFNavaid Primary Record
 #[derive(Debug)]
-pub struct VHFNavaidPrimaryRecord {
-    pub record_type: RecordType,
-    pub customer_area_code: Option<CustomerAreaCode>,
-    pub section: Section,
-    pub subsection: NavaidSubsection,
-    pub airport_icao_identifier: Option<AirportHeliportIdentifier>,
-    pub airport_icao_code: Option<IcaoCode>,
-    pub vor_identifier: Option<VORNDBIdentifier>,
-    pub vor_icao_code: Option<IcaoCode>,
-    pub continuation_record_number: ContinuationRecordNumber,
-    pub vor_frequency: Option<VORNDBFrequency>,
-    pub navaid_class: VHFNavaidClass,
-    pub vor_latitude: Option<Latitude>,
-    pub vor_longitude: Option<Longitude>,
-    pub dme_identifier: Option<DMEIdentifier>,
-    pub dme_latitude: Option<Latitude>,
-    pub dme_longitude: Option<Longitude>,
-    pub station_declination: PlaceholderField,
-    pub dme_elevation: PlaceholderField,
-    pub navaid_usable_range: PlaceholderField,
-    pub ils_dme_bias: PlaceholderField,
-    pub frequency_protection: PlaceholderField,
-    pub datum_code: PlaceholderField,
-    pub vor_name: PlaceholderField,
-    pub vfr_checkpoint_flag: PlaceholderField,
-    pub vor_range_power: PlaceholderField,
-    pub expanded_dme_service_volume: PlaceholderField,
-    pub route_inappropriate_dme: PlaceholderField,
-    pub dme_operational_service_volume: PlaceholderField,
-    pub file_record_number: FileRecordNumber,
-    pub cycle_date: CycleDate,
+pub struct VHFNavaidPrimaryRecord<'a> {
+    pub record_type: RecordField<'a, RecordType>,
+    pub customer_area_code: RecordField<'a, CustomerAreaCode>,
+    pub section: RecordField<'a, Section>,
+    pub subsection: RecordField<'a, NavaidSubsection>,
+    pub airport_icao_identifier: RecordField<'a, AirportHeliportIdentifier>,
+    pub airport_icao_code: RecordField<'a, IcaoCode>,
+    pub vor_identifier: RecordField<'a, VORNDBIdentifier>,
+    pub vor_icao_code: RecordField<'a, IcaoCode>,
+    pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
+    pub vor_frequency: RecordField<'a, VORNDBFrequency>,
+    pub navaid_class: RecordField<'a, VHFNavaidClass>,
+    pub vor_latitude: RecordField<'a, Latitude>,
+    pub vor_longitude: RecordField<'a, Longitude>,
+    pub dme_identifier: RecordField<'a, DMEIdentifier>,
+    pub dme_latitude: RecordField<'a, Latitude>,
+    pub dme_longitude: RecordField<'a, Longitude>,
+    pub station_declination: RecordField<'a, DeclinationNumeric>,
+    pub dme_elevation: RecordField<'a, DMEElevation>,
+    pub navaid_usable_range: RecordField<'a, NavaidUsableRange>,
+    pub ils_dme_bias: RecordField<'a, IlsDmeBias>,
+    pub frequency_protection: RecordField<'a, FrequencyProtectionDistance>,
+    pub datum_code: RecordField<'a, DatumCode>,
+    pub vor_name: RecordField<'a, NameOfFacility>,
+    pub vfr_checkpoint_flag: RecordField<'a, VFRCheckpointFlag>,
+    pub vor_range_power: RecordField<'a, VHFNavaidVorRangePower>,
+    pub expanded_dme_service_volume: RecordField<'a, DMEExpandedServiceVolume>,
+    pub route_inappropriate_dme: RecordField<'a, RouteInappropriateNavaidIndicator>,
+    pub dme_operational_service_volume: RecordField<'a, DMEOperationalServiceVolume>,
+    pub file_record_number: RecordField<'a, FileRecordNumber>,
+    pub cycle_date: RecordField<'a, CycleDate>,
 }
 
-impl VHFNavaidPrimaryRecord {
-    pub fn parse(input: &[u8]) -> Result<Self, RecordParseError> {
+#[rustfmt::skip]
+impl<'a> VHFNavaidPrimaryRecord<'a> {
+    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
-            record_type: required_field(RecordType::from_bytes(&input[0..1]))?,
-            customer_area_code: CustomerAreaCode::from_bytes(&input[1..4])?,
-            section: required_field(Section::from_bytes(&input[4..5]))?,
-            subsection: required_field(NavaidSubsection::from_bytes(&input[5..6]))?,
-            airport_icao_identifier: AirportHeliportIdentifier::from_bytes(&input[6..10])?,
-            airport_icao_code: IcaoCode::from_bytes(&input[10..12])?,
-            vor_identifier: VORNDBIdentifier::from_bytes(&input[13..17])?,
-            vor_icao_code: IcaoCode::from_bytes(&input[19..21])?,
-            continuation_record_number: required_field(ContinuationRecordNumber::from_bytes(
-                &input[21..22],
-            ))?,
-            vor_frequency: VORNDBFrequency::from_bytes(&input[22..27])?,
-            navaid_class: required_field(VHFNavaidClass::from_bytes(&input[27..32]))?,
-            vor_latitude: Latitude::from_bytes(&input[32..41])?,
-            vor_longitude: Longitude::from_bytes(&input[41..51])?,
-            dme_identifier: DMEIdentifier::from_bytes(&input[51..55])?,
-            dme_latitude: Latitude::from_bytes(&input[55..64])?,
-            dme_longitude: Longitude::from_bytes(&input[64..74])?,
-            station_declination: PlaceholderField::from_bytes(&input[74..79])?,
-            dme_elevation: PlaceholderField::from_bytes(&input[79..84])?,
-            navaid_usable_range: PlaceholderField::from_bytes(&input[84..85])?,
-            ils_dme_bias: PlaceholderField::from_bytes(&input[85..87])?,
-            frequency_protection: PlaceholderField::from_bytes(&input[87..90])?,
-            datum_code: PlaceholderField::from_bytes(&input[90..93])?,
-            vor_name: PlaceholderField::from_bytes(&input[93..118])?,
-            vfr_checkpoint_flag: PlaceholderField::from_bytes(&input[118..119])?,
-            vor_range_power: PlaceholderField::from_bytes(&input[119..120])?,
-            expanded_dme_service_volume: PlaceholderField::from_bytes(&input[120..121])?,
-            route_inappropriate_dme: PlaceholderField::from_bytes(&input[121..122])?,
-            dme_operational_service_volume: PlaceholderField::from_bytes(&input[122..123])?,
-            file_record_number: required_field(FileRecordNumber::from_bytes(&input[123..128]))?,
-            cycle_date: required_field(CycleDate::from_bytes(&input[128..132]))?,
+                record_type:                    RecordField::from_bytes(input, 1, 1)?,
+                customer_area_code:             RecordField::from_bytes(input, 2, 3)?,
+                section:                        RecordField::from_bytes(input, 5, 1)?,
+                subsection:                     RecordField::from_bytes(input, 6, 1)?,
+                airport_icao_identifier:        RecordField::from_bytes(input, 7, 4)?,
+                airport_icao_code:              RecordField::from_bytes(input, 11, 2)?,
+                vor_identifier:                 RecordField::from_bytes(input, 14, 4)?,
+                vor_icao_code:                  RecordField::from_bytes(input, 20, 2)?,
+                continuation_record_number:     RecordField::from_bytes(input, 22, 1)?,
+                vor_frequency:                  RecordField::from_bytes(input, 23, 5)?,
+                navaid_class:                   RecordField::from_bytes(input, 28, 5)?,
+                vor_latitude:                   RecordField::from_bytes(input, 33, 9)?,
+                vor_longitude:                  RecordField::from_bytes(input, 42, 10)?,
+                dme_identifier:                 RecordField::from_bytes(input, 52, 4)?,
+                dme_latitude:                   RecordField::from_bytes(input, 56, 9)?,
+                dme_longitude:                  RecordField::from_bytes(input, 65, 10)?,
+                station_declination:            RecordField::from_bytes(input, 75, 5)?,
+                dme_elevation:                  RecordField::from_bytes(input, 80, 5)?,
+                navaid_usable_range:            RecordField::from_bytes(input, 85, 1)?,
+                ils_dme_bias:                   RecordField::from_bytes(input, 86, 2)?,
+                frequency_protection:           RecordField::from_bytes(input, 88, 3)?,
+                datum_code:                     RecordField::from_bytes(input, 91, 3)?,
+                vor_name:                       RecordField::from_bytes(input, 94, 25)?,
+                vfr_checkpoint_flag:            RecordField::from_bytes(input, 119, 1)?,
+                vor_range_power:                RecordField::from_bytes(input, 120, 1)?,
+                expanded_dme_service_volume:    RecordField::from_bytes(input, 121, 1)?,
+                route_inappropriate_dme:        RecordField::from_bytes(input, 122, 1)?,
+                dme_operational_service_volume: RecordField::from_bytes(input, 123, 1)?,
+                file_record_number:             RecordField::from_bytes(input, 124, 5)?,
+                cycle_date:                     RecordField::from_bytes(input, 129, 4)?,
         })
     }
 }
 
-#[test]
-pub fn test_vhf_navaid_primary_record() {
-    let input = b"SUSAD KFATK2 IRPW  K2011130 ITWN                   IRPWN36471081W119435663E0130003470     NARFRESNO YOSEMITE INTL          261851713";
-    let record = VHFNavaidPrimaryRecord::parse(input).unwrap();
-    // replace this later, just want to see it mapping correctly
-    println!("{:?}", record);
+/// 4.1.2.2 VHFNavaid Continuation Record
+#[derive(Debug)]
+pub struct VHFNavaidContinuationRecord<'a> {
+    pub record_type: RecordField<'a, RecordType>,
+    pub customer_area_code: RecordField<'a, CustomerAreaCode>,
+    pub section: RecordField<'a, Section>,
+    pub subsection: RecordField<'a, NavaidSubsection>,
+    pub airport_icao_identifier: RecordField<'a, AirportHeliportIdentifier>,
+    pub airport_icao_code: RecordField<'a, IcaoCode>,
+    pub vor_identifier: RecordField<'a, VORNDBIdentifier>,
+    pub vor_icao_code: RecordField<'a, IcaoCode>,
+    pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
+    pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
+    pub notes: RecordField<'a, Notes>,
+    pub file_record_number: RecordField<'a, FileRecordNumber>,
+    pub cycle_date: RecordField<'a, CycleDate>,
+}
+
+#[rustfmt::skip]
+impl<'a> VHFNavaidContinuationRecord<'a> {
+    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+        Ok(Self {
+            record_type:                RecordField::from_bytes(input, 1, 1)?,
+            customer_area_code:         RecordField::from_bytes(input, 2, 3)?,
+            section:                    RecordField::from_bytes(input, 5, 1)?,
+            subsection:                 RecordField::from_bytes(input, 6, 1)?,
+            airport_icao_identifier:    RecordField::from_bytes(input, 7, 4)?,
+            airport_icao_code:          RecordField::from_bytes(input, 11, 2)?,
+            vor_identifier:             RecordField::from_bytes(input, 14, 4)?,
+            vor_icao_code:              RecordField::from_bytes(input, 20, 2)?,
+            continuation_record_number: RecordField::from_bytes(input, 22, 1)?,
+            application_type:           RecordField::from_bytes(input, 23, 1)?,
+            notes:                      RecordField::from_bytes(input, 24, 69)?,
+            file_record_number:         RecordField::from_bytes(input, 124, 5)?,
+            cycle_date:                 RecordField::from_bytes(input, 129, 4)?,
+        })
+    }
+}
+
+/// 4.1.2.3 VHFNavaid Simulation Continuation Record
+#[derive(Debug)]
+pub struct VHFNavaidSimulationContinuationRecord<'a> {
+    pub record_type: RecordField<'a, RecordType>,
+    pub customer_area_code: RecordField<'a, CustomerAreaCode>,
+    pub section: RecordField<'a, Section>,
+    pub subsection: RecordField<'a, NavaidSubsection>,
+    pub airport_icao_identifier: RecordField<'a, AirportHeliportIdentifier>,
+    pub airport_icao_code: RecordField<'a, IcaoCode>,
+    pub vor_identifier: RecordField<'a, VORNDBIdentifier>,
+    pub vor_icao_code: RecordField<'a, IcaoCode>,
+    pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
+    pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
+    pub facility_characteristics: RecordField<'a, FacilityCharacteristics>,
+    pub magnetic_variation: RecordField<'a, MagneticVariationNumeric>,
+    pub facility_elevation: RecordField<'a, FacilityElevation>,
+    pub file_record_number: RecordField<'a, FileRecordNumber>,
+    pub cycle_date: RecordField<'a, CycleDate>,
+}
+
+#[rustfmt::skip]
+impl<'a> VHFNavaidSimulationContinuationRecord<'a> {
+    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+        Ok(Self {
+            record_type:                RecordField::from_bytes(input, 1, 1)?,
+            customer_area_code:         RecordField::from_bytes(input, 2, 3)?,
+            section:                    RecordField::from_bytes(input, 5, 1)?,
+            subsection:                 RecordField::from_bytes(input, 6, 1)?,
+            airport_icao_identifier:    RecordField::from_bytes(input, 7, 4)?,
+            airport_icao_code:          RecordField::from_bytes(input, 11, 2)?,
+            vor_identifier:             RecordField::from_bytes(input, 14, 4)?,
+            vor_icao_code:              RecordField::from_bytes(input, 20, 2)?,
+            continuation_record_number: RecordField::from_bytes(input, 22, 1)?,
+            application_type:           RecordField::from_bytes(input, 23, 1)?,
+            facility_characteristics:   RecordField::from_bytes(input, 28, 5)?,
+            magnetic_variation:         RecordField::from_bytes(input, 75, 5)?,
+            facility_elevation:         RecordField::from_bytes(input, 80, 5)?,
+            file_record_number:         RecordField::from_bytes(input, 124, 5)?,
+            cycle_date:                 RecordField::from_bytes(input, 129, 4)?,
+        })
+    }
+}
+
+/// 4.1.2.4 VHFNavaid Flight Planning Continuation Record
+#[derive(Debug)]
+pub struct VHFNavaidFlightPlanningContinuationRecord<'a> {
+    pub record_type: RecordField<'a, RecordType>,
+    pub customer_area_code: RecordField<'a, CustomerAreaCode>,
+    pub section: RecordField<'a, Section>,
+    pub subsection: RecordField<'a, NavaidSubsection>,
+    pub airport_icao_identifier: RecordField<'a, AirportHeliportIdentifier>,
+    pub airport_icao_code: RecordField<'a, IcaoCode>,
+    pub vor_identifier: RecordField<'a, VORNDBIdentifier>,
+    pub vor_icao_code: RecordField<'a, IcaoCode>,
+    pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
+    pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
+    pub fir_identifier: RecordField<'a, FirUirIdentifier>,
+    pub uir_identifier: RecordField<'a, FirUirIdentifier>,
+    pub fir_fra_entry_point: RecordField<'a, FIRFRATransitionType>,
+    pub fir_fra_exit_point: RecordField<'a, FIRFRATransitionType>,
+    pub fir_fra_arrival_transition: RecordField<'a, FIRFRATransitionType>,
+    pub fir_fra_departure_transition: RecordField<'a, FIRFRATransitionType>,
+    pub fir_fra_intermediate_point: RecordField<'a, FIRFRATransitionType>,
+    pub fir_fra_terminal_holding_point: RecordField<'a, FIRFRATransitionType>,
+    pub file_record_number: RecordField<'a, FileRecordNumber>,
+    pub cycle_date: RecordField<'a, CycleDate>,
+}
+
+#[rustfmt::skip]
+impl<'a> VHFNavaidFlightPlanningContinuationRecord<'a> {
+    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+        Ok(Self {
+            record_type:                    RecordField::from_bytes(input, 1, 1)?,
+            customer_area_code:             RecordField::from_bytes(input, 2, 3)?,
+            section:                        RecordField::from_bytes(input, 5, 1)?,
+            subsection:                     RecordField::from_bytes(input, 6, 1)?,
+            airport_icao_identifier:        RecordField::from_bytes(input, 7, 4)?,
+            airport_icao_code:              RecordField::from_bytes(input, 11, 2)?,
+            vor_identifier:                 RecordField::from_bytes(input, 14, 4)?,
+            vor_icao_code:                  RecordField::from_bytes(input, 20, 2)?,
+            continuation_record_number:     RecordField::from_bytes(input, 22, 1)?,
+            application_type:               RecordField::from_bytes(input, 23, 1)?,
+            fir_identifier:                 RecordField::from_bytes(input, 24, 4)?,
+            uir_identifier:                 RecordField::from_bytes(input, 28, 4)?,
+            fir_fra_entry_point:            RecordField::from_bytes(input, 44, 1)?,
+            fir_fra_exit_point:             RecordField::from_bytes(input, 45, 1)?,
+            fir_fra_arrival_transition:     RecordField::from_bytes(input, 46, 1)?,
+            fir_fra_departure_transition:   RecordField::from_bytes(input, 47, 1)?,
+            fir_fra_intermediate_point:     RecordField::from_bytes(input, 48, 1)?,
+            fir_fra_terminal_holding_point: RecordField::from_bytes(input, 49, 1)?,
+            file_record_number:             RecordField::from_bytes(input, 124, 5)?,
+            cycle_date:                     RecordField::from_bytes(input, 129, 4)?,
+        })
+    }
+}
+
+/// 4.1.2.5 VHFNavaid Limitation Continuation Record
+#[derive(Debug)]
+pub struct VHFNavaidLimitationContinuationRecord<'a> {
+    pub record_type: RecordField<'a, RecordType>,
+    pub customer_area_code: RecordField<'a, CustomerAreaCode>,
+    pub section: RecordField<'a, Section>,
+    pub subsection: RecordField<'a, NavaidSubsection>,
+    pub airport_icao_identifier: RecordField<'a, AirportHeliportIdentifier>,
+    pub airport_icao_code: RecordField<'a, IcaoCode>,
+    pub vor_identifier: RecordField<'a, VORNDBIdentifier>,
+    pub vor_icao_code: RecordField<'a, IcaoCode>,
+    pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
+    pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
+    pub navaid_limitation_code: RecordField<'a, NavaidLimitationCode>,
+    pub component_affected_indicator: RecordField<'a, ComponentAffectedIndicator>,
+    pub sequence_number: RecordField<'a, SequenceNumber>,
+    // limitation block 1
+    pub limitation_1_sector_from_sector_to: RecordField<'a, SectorFromTo>,
+    pub limitation_1_distance_description: RecordField<'a, DistanceDescription>,
+    pub limitation_1_distance_limit: RecordField<'a, NavaidDistanceLimitation>,
+    pub limitation_1_altitude_description: RecordField<'a, CrossingAltitudeDescription>,
+    pub limitation_1_altitude_limit: RecordField<'a, NavaidAltitudeLimitation>,
+    // limitation block 2
+    pub limitation_2_sector_from_sector_to: RecordField<'a, SectorFromTo>,
+    pub limitation_2_distance_description: RecordField<'a, DistanceDescription>,
+    pub limitation_2_distance_limit: RecordField<'a, NavaidDistanceLimitation>,
+    pub limitation_2_altitude_description: RecordField<'a, CrossingAltitudeDescription>,
+    pub limitation_2_altitude_limit: RecordField<'a, NavaidAltitudeLimitation>,
+    // limitation block 3
+    pub limitation_3_sector_from_sector_to: RecordField<'a, SectorFromTo>,
+    pub limitation_3_distance_description: RecordField<'a, DistanceDescription>,
+    pub limitation_3_distance_limit: RecordField<'a, NavaidDistanceLimitation>,
+    pub limitation_3_altitude_description: RecordField<'a, CrossingAltitudeDescription>,
+    pub limitation_3_altitude_limit: RecordField<'a, NavaidAltitudeLimitation>,
+    // limitation block 4
+    pub limitation_4_sector_from_sector_to: RecordField<'a, SectorFromTo>,
+    pub limitation_4_distance_description: RecordField<'a, DistanceDescription>,
+    pub limitation_4_distance_limit: RecordField<'a, NavaidDistanceLimitation>,
+    pub limitation_4_altitude_description: RecordField<'a, CrossingAltitudeDescription>,
+    pub limitation_4_altitude_limit: RecordField<'a, NavaidAltitudeLimitation>,
+    // limitation block 5
+    pub limitation_5_sector_from_sector_to: RecordField<'a, SectorFromTo>,
+    pub limitation_5_distance_description: RecordField<'a, DistanceDescription>,
+    pub limitation_5_distance_limit: RecordField<'a, NavaidDistanceLimitation>,
+    pub limitation_5_altitude_description: RecordField<'a, CrossingAltitudeDescription>,
+    pub limitation_5_altitude_limit: RecordField<'a, NavaidAltitudeLimitation>,
+    pub sequence_end_indicator: RecordField<'a, SequenceEndIndicator>,
+    pub file_record_number: RecordField<'a, FileRecordNumber>,
+    pub cycle_date: RecordField<'a, CycleDate>,
+}
+
+#[rustfmt::skip]
+impl<'a> VHFNavaidLimitationContinuationRecord<'a> {
+    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+        Ok(Self {
+            record_type:                        RecordField::from_bytes(input, 1, 1)?,
+            customer_area_code:                 RecordField::from_bytes(input, 2, 3)?,
+            section:                            RecordField::from_bytes(input, 5, 1)?,
+            subsection:                         RecordField::from_bytes(input, 6, 1)?,
+            airport_icao_identifier:            RecordField::from_bytes(input, 7, 4)?,
+            airport_icao_code:                  RecordField::from_bytes(input, 11, 2)?,
+            vor_identifier:                     RecordField::from_bytes(input, 14, 4)?,
+            vor_icao_code:                      RecordField::from_bytes(input, 20, 2)?,
+            continuation_record_number:         RecordField::from_bytes(input, 22, 1)?,
+            application_type:                   RecordField::from_bytes(input, 23, 1)?,
+            navaid_limitation_code:             RecordField::from_bytes(input, 24, 1)?,
+            component_affected_indicator:       RecordField::from_bytes(input, 25, 1)?,
+            sequence_number:                    RecordField::from_bytes(input, 26, 2)?,
+            limitation_1_sector_from_sector_to: RecordField::from_bytes(input, 28, 2)?,
+            limitation_1_distance_description:  RecordField::from_bytes(input, 30, 1)?,
+            limitation_1_distance_limit:        RecordField::from_bytes(input, 31, 6)?,
+            limitation_1_altitude_description:  RecordField::from_bytes(input, 37, 1)?,
+            limitation_1_altitude_limit:        RecordField::from_bytes(input, 38, 6)?,
+            limitation_2_sector_from_sector_to: RecordField::from_bytes(input, 44, 2)?,
+            limitation_2_distance_description:  RecordField::from_bytes(input, 46, 1)?,
+            limitation_2_distance_limit:        RecordField::from_bytes(input, 47, 6)?,
+            limitation_2_altitude_description:  RecordField::from_bytes(input, 53, 1)?,
+            limitation_2_altitude_limit:        RecordField::from_bytes(input, 54, 6)?,
+            limitation_3_sector_from_sector_to: RecordField::from_bytes(input, 60, 2)?,
+            limitation_3_distance_description:  RecordField::from_bytes(input, 62, 1)?,
+            limitation_3_distance_limit:        RecordField::from_bytes(input, 63, 6)?,
+            limitation_3_altitude_description:  RecordField::from_bytes(input, 69, 1)?,
+            limitation_3_altitude_limit:        RecordField::from_bytes(input, 70, 6)?,
+            limitation_4_sector_from_sector_to: RecordField::from_bytes(input, 76, 2)?,
+            limitation_4_distance_description:  RecordField::from_bytes(input, 78, 1)?,
+            limitation_4_distance_limit:        RecordField::from_bytes(input, 79, 6)?,
+            limitation_4_altitude_description:  RecordField::from_bytes(input, 85, 1)?,
+            limitation_4_altitude_limit:        RecordField::from_bytes(input, 86, 6)?,
+            limitation_5_sector_from_sector_to: RecordField::from_bytes(input, 92, 2)?,
+            limitation_5_distance_description:  RecordField::from_bytes(input, 94, 1)?,
+            limitation_5_distance_limit:        RecordField::from_bytes(input, 95, 6)?,
+            limitation_5_altitude_description:  RecordField::from_bytes(input, 101,1)?,
+            limitation_5_altitude_limit:        RecordField::from_bytes(input, 102, 6)?,
+            sequence_end_indicator:             RecordField::from_bytes(input, 108, 1)?,
+            file_record_number:                 RecordField::from_bytes(input, 124, 5)?,
+            cycle_date:                         RecordField::from_bytes(input, 129, 4)?,
+        })
+    }
 }

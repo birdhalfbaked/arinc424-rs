@@ -5,7 +5,7 @@
 //!
 //! Example is 5.6 - Airport/Heliport Identifier which describes a 4-character code that identifies an airport or heliport.
 
-use crate::parsers::arinc424::fields::FieldParseError;
+use crate::parsers::arinc424::fields::{FieldParseError, ParseableField};
 
 fn validate_alphanumeric(bytes: &[u8]) -> Result<(), FieldParseError> {
     if !bytes
@@ -28,8 +28,8 @@ fn test_validate_alphanumeric() {
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct LengthLimitedIdentifier<const LEN: usize, const EXACT: bool>(Box<str>);
-impl<const LEN: usize, const EXACT: bool> LengthLimitedIdentifier<LEN, EXACT> {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl<const LEN: usize, const EXACT: bool> ParseableField for LengthLimitedIdentifier<LEN, EXACT> {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         validate_alphanumeric(bytes)?;
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
@@ -50,6 +50,18 @@ impl<const LEN: usize, const EXACT: bool> LengthLimitedIdentifier<LEN, EXACT> {
                 })?
                 .trim_end(),
         ))))
+    }
+}
+
+impl<const LEN: usize, const EXACT: bool> Into<Box<str>> for LengthLimitedIdentifier<LEN, EXACT> {
+    fn into(self: LengthLimitedIdentifier<LEN, EXACT>) -> Box<str> {
+        self.0
+    }
+}
+
+impl<const LEN: usize, const EXACT: bool> Into<String> for LengthLimitedIdentifier<LEN, EXACT> {
+    fn into(self: LengthLimitedIdentifier<LEN, EXACT>) -> String {
+        self.0.into()
     }
 }
 

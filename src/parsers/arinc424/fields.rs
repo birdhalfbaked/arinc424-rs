@@ -23,6 +23,10 @@
 //! and validate on record level later on.
 #![allow(non_camel_case_types)]
 
+pub trait ParseableField: Sized {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError>;
+}
+
 pub const BLANK: u8 = b' ';
 #[derive(Debug, PartialEq, Eq)]
 pub struct FieldParseError {
