@@ -236,17 +236,59 @@ pub enum ARINCRecord<'a> {
 impl<'a> ARINCRecord<'a> {
     pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         match input[4..6] {
-            [b'D', subcode] => Ok(match subcode {
-                BLANK => ARINCRecord::VHFNavaidPrimary(VHFNavaidPrimaryRecord::parse(&input)?),
-                _ => {
-                    return Err(RecordParseError {
-                        message: "Invalid record type".to_string(),
-                    });
-                }
-            }),
+            [b'D', BLANK] => VHFNavaidRecords::parse(input),
             _ => Err(RecordParseError {
                 message: "Invalid record type".to_string(),
             }),
+        }
+    }
+}
+
+// Layout dispatch helpers
+
+fn is_primary_record(input: &[u8], continuation_column: usize) -> bool {
+    matches!(input[continuation_column - 1], b'0' | b'1' | BLANK)
+}
+
+struct VHFNavaidRecords;
+impl VHFNavaidRecords {
+    const CONTINUATION_COLUMN: usize = 22;
+    const CONTINUATION_APPLICATION_COLUMN: usize = 23;
+
+    pub fn parse(input: &[u8]) -> Result<ARINCRecord<'_>, RecordParseError> {
+        if is_primary_record(input, Self::CONTINUATION_COLUMN) {
+            Ok(ARINCRecord::VHFNavaidPrimary(
+                VHFNavaidPrimaryRecord::parse(input)?,
+            ))
+        } else {
+            match ContinuationRecordApplicationType::from_bytes(
+                &input[Self::CONTINUATION_APPLICATION_COLUMN
+                    ..Self::CONTINUATION_APPLICATION_COLUMN + 1],
+            )? {
+                Some(ContinuationRecordApplicationType::StandardContinuation) => Ok(
+                    ARINCRecord::VHFNavaidContinuation(VHFNavaidContinuationRecord::parse(input)?),
+                ),
+                Some(ContinuationRecordApplicationType::FlightPlanningApplicationContinuation) => {
+                    Ok(ARINCRecord::VHFNavaidFlightPlanningContinuation(
+                        VHFNavaidFlightPlanningContinuationRecord::parse(input)?,
+                    ))
+                }
+                Some(ContinuationRecordApplicationType::VHFNavaidTACANOnlyNavaidLimitationContinuation) => {
+                    Ok(ARINCRecord::VHFNavaidLimitationContinuation(
+                        VHFNavaidLimitationContinuationRecord::parse(input)?,
+                    ))
+                }
+                Some(ContinuationRecordApplicationType::SimulationApplicationContinuation) => {
+                    Ok(ARINCRecord::VHFNavaidSimulationContinuation(
+                        VHFNavaidSimulationContinuationRecord::parse(input)?,
+                    ))
+                }
+                _ => {
+                    return Err(RecordParseError {
+                        message: "Invalid continuation record application type".to_string(),
+                    });
+                }
+            }
         }
     }
 }

@@ -13,7 +13,7 @@ use crate::parsers::arinc424::records::{ARINCRecord, RecordParseError};
 pub struct Arinc424Parser;
 
 impl Arinc424Parser {
-    pub fn parse(input: &[u8]) -> Result<ARINCRecord, RecordParseError> {
+    pub fn parse(input: &[u8]) -> Result<ARINCRecord<'_>, RecordParseError> {
         // record types are the
         match ARINCRecord::parse(input) {
             Ok(record) => Ok(record),
