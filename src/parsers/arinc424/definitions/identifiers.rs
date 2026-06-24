@@ -262,3 +262,108 @@ pub type DatumCode = LengthLimitedIdentifier<3, true>;
 
 /// 5.200 Remote Facility
 pub type RemoteFacility = LengthLimitedIdentifier<4, false>;
+
+/// 5.214 Controlled Airspace Center
+pub type ControlledAirspaceCenter = LengthLimitedIdentifier<5, false>;
+
+/// 5.215 Controlled Airspace Classification
+///
+/// Note: This is differentiated from the ControlledAirspaceType enum as it is a value local to specific
+/// governments independent of this standard.
+pub type ControlledAirspaceClassification = LengthLimitedIdentifier<1, true>;
+
+/// 5.216 Controlled Airspace Name
+pub type ControlledAirspaceName = LengthLimitedIdentifier<30, false>;
+
+/// 5.218 Geographical Reference Table Identifier
+pub type GeographicalReferenceTableIdentifier = LengthLimitedIdentifier<2, false>;
+
+/// 5.219 Geographical Entity
+pub type GeographicalEntity = LengthLimitedIdentifier<29, false>;
+
+/// 5.224 SBAS/GBAS Route Indicator
+pub type SBASGBASRouteIndicator = LengthLimitedIdentifier<1, true>;
+
+/// 5.229 Final Approach Segment Data CRC Remainder
+pub type FinalApproachSegmentDataCrcRemainder = LengthLimitedIdentifier<8, true>;
+
+/// 5.236 ATC Identifier
+pub type AtcIdentifier = LengthLimitedIdentifier<7, false>;
+
+/// 5.237 Procedure Description
+pub type ProcedureDescription = LengthLimitedIdentifier<15, false>;
+
+/// 5.243 GLS Station Identifier
+pub type GlsStationIdentifier = LengthLimitedIdentifier<4, false>;
+
+/// 5.246 GLS TDMA Slots
+pub type GlsTdmaSlots = LengthLimitedIdentifier<2, false>;
+
+/// 5.253 Primary and Additional Alternate Identifier
+pub type PrimaryAndAdditionalAlternateIdentifier = LengthLimitedIdentifier<10, false>;
+
+/// 5.257 Reference Path Identifier
+pub type ReferencePathIdentifier = LengthLimitedIdentifier<4, false>;
+
+/// 5.262 Approach Type Identifier
+pub type ApproachTypeIdentifier = LengthLimitedIdentifier<10, false>;
+
+/// 5.273 TAA Waypoint
+pub type TaaWaypoint = LengthLimitedIdentifier<5, false>;
+
+/// 5.275 Level of Service Name
+pub type LevelOfServiceName = LengthLimitedIdentifier<10, false>;
+
+/// 5.279 Special Activity Area Identifier
+pub type SpecialActivityAreaIdentifier = LengthLimitedIdentifier<6, false>;
+
+/// 5.281 Special Activity Area Volume
+pub type SpecialActivityAreaVolume = LengthLimitedIdentifier<1, true>;
+
+/// 5.284 Assigned Sector Name
+pub type AssignedSectorName = LengthLimitedIdentifier<25, false>;
+
+/// 5.285 Time Narrative
+pub type TimeNarrative = LengthLimitedIdentifier<100, false>;
+
+/// 5.288 Communications Type Translation
+pub type CommunicationsTypeTranslation = LengthLimitedIdentifier<80, false>;
+
+/// 5.299 Procedure Referenced Fix Identifier
+pub type ProcedureReferencedFixIdentifier = LengthLimitedIdentifier<5, false>;
+
+/// 5.304 TAA Sector Bearing Reference Waypoint
+pub type TaaSectorBearingReferenceWaypoint = LengthLimitedIdentifier<5, false>;
+
+/// 5.326 ATN Ground Facility Identifier
+pub type ATNGroundFacilityIdentifier = LengthLimitedIdentifier<8, false>;
+
+/// 5.327 ATN Authority Format Identifier
+pub type ATNAuthorityFormatIdentifier = LengthLimitedIdentifier<2, false>;
+
+/// 5.328 ATN Initial Domain Identifier
+pub type ATNInitialDomainIdentifier = LengthLimitedIdentifier<4, false>;
+
+/// 5.329 ATN Version
+pub type ATNVersion = LengthLimitedIdentifier<2, false>;
+
+/// 5.330 ATN Administration
+pub type ATNAdministration = LengthLimitedIdentifier<6, false>;
+
+/// 5.331 ATN Routing Domain Format
+pub type ATNRoutingDomainFormat = LengthLimitedIdentifier<2, false>;
+
+/// 5.332 ATN Administrative Region Selector
+pub type ATNAdministrativeRegionSelector = LengthLimitedIdentifier<6, false>;
+
+/// 5.333 ATN Routing Location
+pub type ATNRoutingLocation = LengthLimitedIdentifier<4, false>;
+
+/// 5.334 ATN System Identifier
+pub type ATNSystemIdentifier = LengthLimitedIdentifier<12, false>;
+
+/// 5.335 ATN Network Service Access Point Selector
+pub type ATNNetworkServiceAccessPointSelector = LengthLimitedIdentifier<2, false>;
+
+/// 5.336 ATN Context Management Transport Selector
+pub type ATNContextManagementTransportSelector = LengthLimitedIdentifier<4, false>;

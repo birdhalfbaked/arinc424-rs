@@ -13,6 +13,44 @@ use crate::parsers::arinc424::fields::FieldParseError;
 #[cfg(test)]
 use crate::test_util::assert_within_epsilon;
 use std::convert::Into;
+use std::str::FromStr;
+
+fn coalesce_into_number<T: FromStr>(bytes: &[u8]) -> Result<T, FieldParseError> where {
+    if let Ok(utf8_str) = std::str::from_utf8(bytes) {
+        if let Ok(value) = T::from_str(utf8_str) {
+            return Ok(value);
+        }
+    }
+    return Err(FieldParseError {
+        message: format!(
+            "Numeric is not a valid {}: {}",
+            std::any::type_name::<T>(),
+            std::str::from_utf8(bytes).unwrap_or("unknown error")
+        ),
+    });
+}
+
+#[test]
+pub fn test_coalesce_into_number() {
+    let r = coalesce_into_number::<u16>(b"1234");
+    if let Ok(value) = r {
+        assert_eq!(value, 1234);
+    } else {
+        panic!("Failed to coalesce into number: {:?}", r);
+    }
+    let r = coalesce_into_number::<u16>(b"1234a");
+    if let Err(e) = r {
+        assert_eq!(e.message, "Numeric is not a valid u16: 1234a");
+    } else {
+        panic!("Expected error, got {:?}", r);
+    }
+    let r: Result<u64, FieldParseError> = coalesce_into_number(b"12345678901234567890");
+    if let Ok(value) = r {
+        assert_eq!(value, 12345678901234567890);
+    } else {
+        panic!("Failed to coalesce into number: {:?}", r);
+    }
+}
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct UintNumeric(u64);
@@ -21,15 +59,7 @@ impl UintNumeric {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
-        let value = u64::from_str_radix(
-            std::str::from_utf8(bytes).map_err(|e| FieldParseError {
-                message: format!("Numeric is not valid UTF-8: {}", e),
-            })?,
-            10,
-        )
-        .map_err(|e| FieldParseError {
-            message: format!("Numeric is not a valid u64: {}", e),
-        })?;
+        let value = coalesce_into_number::<u64>(bytes)?;
         Ok(Some(UintNumeric(value)))
     }
 }
@@ -47,24 +77,28 @@ impl IntNumeric {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
-        let value = i64::from_str_radix(
-            std::str::from_utf8(bytes).map_err(|e| FieldParseError {
-                message: format!("Numeric is not valid UTF-8: {}", e),
-            })?,
-            10,
-        )
-        .map_err(|e| FieldParseError {
-            message: format!("Numeric is not a valid i64: {}", e),
-        })?;
+        let value = coalesce_into_number::<i64>(bytes)?;
         Ok(Some(IntNumeric(value)))
     }
 }
 
 #[test]
 pub fn test_int_numeric() {
-    let r = IntNumeric::from_bytes(&[b'0', b'0', b'1']);
+    let r = IntNumeric::from_bytes(b"001");
     if let Ok(Some(IntNumeric(value))) = r {
         assert_eq!(value, 1);
+    } else {
+        panic!("Failed to parse int numeric");
+    }
+    let r = IntNumeric::from_bytes(b"+001");
+    if let Ok(Some(IntNumeric(value))) = r {
+        assert_eq!(value, 1);
+    } else {
+        panic!("Failed to parse int numeric");
+    }
+    let r = IntNumeric::from_bytes(b"-001");
+    if let Ok(Some(IntNumeric(value))) = r {
+        assert_eq!(value, -1);
     } else {
         panic!("Failed to parse int numeric");
     }
@@ -77,7 +111,7 @@ impl<const RADIX_SHIFT: i32> FloatNumeric<RADIX_SHIFT> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
-        let int_val = u64::from_str_radix(
+        let int_val = i64::from_str_radix(
             std::str::from_utf8(bytes.trim_ascii_end()).map_err(|e| FieldParseError {
                 message: format!("Numeric is not valid UTF-8: {}", e),
             })?,
@@ -100,7 +134,7 @@ impl<const RADIX_SHIFT: i32> Into<f64> for FloatNumeric<RADIX_SHIFT> {
 
 #[test]
 pub fn test_float_numeric() {
-    let r = FloatNumeric::<0>::from_bytes(&[b'0', b'0', b'1']);
+    let r = FloatNumeric::<0>::from_bytes(b"001");
     if let Ok(Some(f)) = r {
         let val: f64 = f.into();
         assert_within_epsilon(val, 1.0);
@@ -108,12 +142,60 @@ pub fn test_float_numeric() {
         panic!("Failed to parse float numeric");
     }
 
-    let r = FloatNumeric::<-1>::from_bytes(&[b'2', b'7', b'6', b'1']);
+    let r = FloatNumeric::<-1>::from_bytes(b"+2761");
     if let Ok(Some(f)) = r {
         let val: f64 = f.into();
         assert_within_epsilon(val, 276.1);
     } else {
         panic!("Failed to parse float numeric");
+    }
+    let r = FloatNumeric::<-1>::from_bytes(b"-2761");
+    if let Ok(Some(f)) = r {
+        let val: f64 = f.into();
+        assert_within_epsilon(val, -276.1);
+    } else {
+        panic!("Failed to parse float numeric");
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct VariableFloatNumeric<const RADIX_DIRECTION: i32 = 1>(f64);
+impl<const RADIX_DIRECTION: i32> VariableFloatNumeric<RADIX_DIRECTION> {
+    const _VALID_RADIX_DIRECTIONS: () = assert!(
+        RADIX_DIRECTION == 1 || RADIX_DIRECTION == -1,
+        "Invalid RADIX_DIRECTION"
+    );
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        let _ = Self::_VALID_RADIX_DIRECTIONS;
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        // get last byte in the slice and use that as the RADIX_SHIFT
+        let radix_shift = bytes[bytes.len() - 1] - b'0';
+        let numeric_value = coalesce_into_number::<i64>(&bytes[..bytes.len() - 1])?;
+        let value = numeric_value as f64 * 10_f64.powi(RADIX_DIRECTION * radix_shift as i32);
+        Ok(Some(VariableFloatNumeric(value)))
+    }
+}
+
+impl<const RADIX_DIRECTION: i32> Into<f64> for VariableFloatNumeric<RADIX_DIRECTION> {
+    fn into(self: VariableFloatNumeric<RADIX_DIRECTION>) -> f64 {
+        self.0
+    }
+}
+
+#[test]
+
+pub fn test_variable_float_numeric() {
+    let r = VariableFloatNumeric::<-1>::from_bytes(b"013");
+    if let Ok(Some(f)) = r {
+        let val: f64 = f.into();
+        assert_within_epsilon(val, 0.001);
+    }
+    let r = VariableFloatNumeric::<1>::from_bytes(b"013");
+    if let Ok(Some(f)) = r {
+        let val: f64 = f.into();
+        assert_within_epsilon(val, 1000.0);
     }
 }
 
@@ -183,27 +265,11 @@ impl AltitudeNumeric {
         }
         // if starts with FL, it is a flight level and we convert to altitude
         if bytes.starts_with(b"FL") {
-            let value = i32::from_str_radix(
-                std::str::from_utf8(&bytes[2..]).map_err(|e| FieldParseError {
-                    message: format!("Numeric is not valid UTF-8: {}", e),
-                })?,
-                10,
-            )
-            .map_err(|e| FieldParseError {
-                message: format!("Numeric is not a valid i32: {}", e),
-            })?;
+            let value = coalesce_into_number::<i32>(&bytes[2..])?;
             return Ok(Some(AltitudeNumeric(value * 100)));
         }
         // otherwise it is an altitude
-        let value = i32::from_str_radix(
-            std::str::from_utf8(bytes).map_err(|e| FieldParseError {
-                message: format!("Numeric is not valid UTF-8: {}", e),
-            })?,
-            10,
-        )
-        .map_err(|e| FieldParseError {
-            message: format!("Numeric is not a valid u64: {}", e),
-        })?;
+        let value = coalesce_into_number::<i32>(bytes)?;
         Ok(Some(AltitudeNumeric(value as i32)))
     }
 }
@@ -285,38 +351,17 @@ impl LatitudeNumeric {
             return Ok(None);
         }
         let sign = if bytes[0] == b'S' { -1.0 } else { 1.0 };
-        let [degrees, minutes, seconds, hundredths]: [u32; 4] = bytes[1..9]
-            .chunks_exact(2)
-            .map(|b| u32::from_str_radix(std::str::from_utf8(b).unwrap(), 10).unwrap())
-            .collect::<Vec<_>>()
-            .try_into()
-            .map_err(|e| FieldParseError {
-                message: format!(
-                    "Failed to convert bytes to [u32; 4]: {:?}, got bytes: {:?}",
-                    e,
-                    &bytes[1..9]
-                ),
-            })?;
+        let degrees = coalesce_into_number::<u16>(&bytes[1..3])?;
+        let minutes = coalesce_into_number::<u16>(&bytes[3..5])?;
+        let seconds = coalesce_into_number::<u16>(&bytes[5..7])?;
+        // rest of the bytes are on the other side of the decimal point
+        let decimal = coalesce_into_number::<u64>(&bytes[7..])?;
+        let decimal_fraction = decimal as f64 / 10_f64.powi((bytes.len() - 7) as i32);
         let value = sign
             * (degrees as f64
                 + minutes as f64 / 60.0
-                + seconds as f64 / 3600.0
-                + hundredths as f64 / 360000.0);
+                + (seconds as f64 + decimal_fraction) / 3600.0);
         Ok(Some(LatitudeNumeric(value)))
-    }
-}
-
-impl Into<f64> for LatitudeNumeric {
-    fn into(self: LatitudeNumeric) -> f64 {
-        self.0
-    }
-}
-
-#[test]
-pub fn test_latitude() {
-    let r = LatitudeNumeric::from_bytes(b"N39513881");
-    if let Ok(Some(LatitudeNumeric(latitude))) = r {
-        assert_within_epsilon(latitude, 39.860780556);
     }
 }
 
@@ -328,32 +373,16 @@ impl LongitudeNumeric {
             return Ok(None);
         }
         let sign = if bytes[0] == b'W' { -1.0 } else { 1.0 };
-        let (degree_bytes, rest) = &bytes[1..].split_at(3);
-        let degrees =
-            u32::from_str_radix(std::str::from_utf8(degree_bytes).unwrap(), 10).map_err(|e| {
-                FieldParseError {
-                    message: format!(
-                        "Failed to convert bytes to u32: {:?}, got bytes: {:?}",
-                        e, degree_bytes
-                    ),
-                }
-            })?;
-        let [minutes, seconds, hundredths]: [u32; 3] = rest
-            .chunks_exact(2)
-            .map(|b| u32::from_str_radix(std::str::from_utf8(b).unwrap(), 10).unwrap())
-            .collect::<Vec<_>>()
-            .try_into()
-            .map_err(|e| FieldParseError {
-                message: format!(
-                    "Failed to convert bytes to [u32; 4]: {:?}, got bytes: {:?}",
-                    e, rest
-                ),
-            })?;
+        let degrees = coalesce_into_number::<u16>(&bytes[1..4])?;
+        let minutes = coalesce_into_number::<u16>(&bytes[4..6])?;
+        let seconds = coalesce_into_number::<u16>(&bytes[6..8])?;
+        // rest of the bytes are on the other side of the decimal point
+        let decimal = coalesce_into_number::<u64>(&bytes[8..])?;
+        let decimal_fraction = decimal as f64 / 10_f64.powi((bytes.len() - 8) as i32);
         let value = sign
             * (degrees as f64
                 + minutes as f64 / 60.0
-                + seconds as f64 / 3600.0
-                + hundredths as f64 / 360000.0);
+                + (seconds as f64 + decimal_fraction) / 3600.0);
         Ok(Some(LongitudeNumeric(value)))
     }
 }
@@ -369,6 +398,10 @@ pub fn test_longitude() {
     let r = LongitudeNumeric::from_bytes(b"W039513881");
     if let Ok(Some(LongitudeNumeric(longitude))) = r {
         assert_within_epsilon(longitude, -39.860780556);
+    }
+    let r = LongitudeNumeric::from_bytes(b"W039513881123");
+    if let Ok(Some(LongitudeNumeric(longitude))) = r {
+        assert_within_epsilon(longitude, -39.860780556123);
     }
 }
 
@@ -390,17 +423,7 @@ impl MagneticVariationNumeric {
                 });
             }
         };
-        let value = 0.1
-            * sign
-            * u32::from_str_radix(
-                std::str::from_utf8(&bytes[1..]).map_err(|e| FieldParseError {
-                    message: format!("Failed to convert bytes to u32: {:?}", e),
-                })?,
-                10,
-            )
-            .map_err(|e| FieldParseError {
-                message: format!("Failed to convert bytes to u32: {:?}", e),
-            })? as f64;
+        let value = 0.1 * sign * coalesce_into_number::<u32>(&bytes[1..])? as f64;
         Ok(Some(MagneticVariationNumeric(value)))
     }
 }
@@ -442,17 +465,7 @@ impl DeclinationNumeric {
                 });
             }
         };
-        let value = sign
-            * 0.1
-            * u32::from_str_radix(
-                std::str::from_utf8(&bytes[1..]).map_err(|e| FieldParseError {
-                    message: format!("Failed to convert bytes to u32: {:?}", e),
-                })?,
-                10,
-            )
-            .map_err(|e| FieldParseError {
-                message: format!("Failed to convert bytes to u32: {:?}", e),
-            })? as f64;
+        let value = sign * 0.1 * coalesce_into_number::<u32>(&bytes[1..])? as f64;
         Ok(Some(match bytes[0] {
             b'E' => DeclinationNumeric::StandardDeclination(value),
             b'W' => DeclinationNumeric::StandardDeclination(value),
@@ -754,3 +767,156 @@ pub type CommunicationsDistance = UintNumeric;
 
 /// 5.204 ARC Radius
 pub type ArcRadius = FloatNumeric<-3>;
+
+/// 5.211 Required Navigation Performance
+pub type RequiredNavigationPerformance = VariableFloatNumeric<-1>;
+
+/// 5.212 Runway Gradient
+pub type RunwayGradient = FloatNumeric<-3>;
+
+/// 5.225 WGS-84 ellipsoid height
+pub type WGS84EllipsoidHeight = FloatNumeric<-1>;
+
+/// 5.226 SBAS/GBAS Glide Path Angle
+pub type SBASGBASGlidePathAngle = FloatNumeric<-2>;
+
+/// 5.227 Orthometric height
+///
+/// Note: All values are in reference to MSL
+pub type OrthometricHeight = FloatNumeric<-1>;
+
+/// 5.228 Course width at threshold
+pub type CourseWidthAtThreshold = FloatNumeric<-2>;
+
+/// 5.231 Along Track Distance
+pub type AlongTrackDistance = UintNumeric;
+
+/// 5.240 Flight Planning Altitude
+pub type FlightPlanningAltitude = UintNumeric;
+
+/// 5.244 SBAS/GBAS Channel
+pub type SBASGBASChannel = UintNumeric;
+
+/// 5.245 GLS Service Volume Radius
+pub type GlsServiceVolumeRadius = UintNumeric;
+
+/// 5.248 GLS WGS84 Station Elevation
+///
+/// Note: Be aware that this value is in whole feet, not meters with tenths like 5.225
+pub type GLSWgs84StationElevation = IntNumeric;
+
+/// 5.251 Distance To Alternate
+pub type DistanceToAlternate = UintNumeric;
+
+/// 5.254 Fixed Radius Transition Indicator
+pub type FixedRadiusTransitionIndicator = FloatNumeric<-1>;
+
+/// 5.256 Reference Path Data Selector
+pub type ReferencePathDataSelector = UintNumeric;
+
+/// 5.259 SBAS/GBAS Length Offset
+pub type SBASGBASLengthOffset = UintNumeric;
+
+/// 5.260 Terminal Procedure Flight Planning Leg Distance
+pub type TerminalProcedureFlightPlanningLegDistance = FloatNumeric<-1>;
+
+/// 5.263 Horizontal Alert Limit
+pub type HorizontalAlertLimit = FloatNumeric<-1>;
+
+/// 5.264 Vertical Alert Limit
+pub type VerticalAlertLimit = FloatNumeric<-1>;
+
+/// 5.265 Path Point TCH
+///
+/// Note: This must be manually constructed as its value handling depends on another field's value.
+#[derive(Debug, PartialEq)]
+pub enum PathPointTCH {
+    Feet(FloatNumeric<-1>),
+    Meters(FloatNumeric<-2>),
+}
+
+/// 5.267 High Precision Latitude
+pub type HighPrecisionLatitude = LatitudeNumeric;
+
+/// 5.268 High Precision Longitude
+pub type HighPrecisionLongitude = LongitudeNumeric;
+
+/// 5.269 Helicopter Procedure Course
+pub type HelicopterProcedureCourse = UintNumeric;
+
+/// 5.280 Special Activity Area Size
+pub type SpecialActivityAreaSize = FloatNumeric<-1>;
+
+/// 5.290 Procedure Design Magnetic Variation
+pub type ProcedureDesignMagneticVariation = MagneticVariationNumeric;
+
+/// 5.292 Circling Category Distance
+pub type CirclingCategoryDistance = FloatNumeric<-1>;
+
+/// 5.293 Vertical Scale Factor
+pub type VerticalScaleFactor = UintNumeric;
+
+/// 5.294 RVSM Minimum Level
+pub type RVSMMinimumLevel = UintNumeric;
+
+/// 5.295 RVSM Maximum Level
+pub type RVSMMaximumLevel = UintNumeric;
+
+/// 5.296 RNP Level of Service
+pub type RNPLevelOfService = VariableFloatNumeric<-1>;
+
+/// 5.299 Final Approach Course as Runway
+///
+/// Note: This is a very odd field, but one that seems to benefit specifically Path Point approaches
+pub struct FinalApproachCourseAsRunway(u64);
+impl FinalApproachCourseAsRunway {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        let value = coalesce_into_number::<u64>(&bytes[0..2])? * 10;
+        Ok(Some(FinalApproachCourseAsRunway(value)))
+    }
+}
+
+impl Into<u64> for FinalApproachCourseAsRunway {
+    fn into(self: FinalApproachCourseAsRunway) -> u64 {
+        self.0
+    }
+}
+
+/// 5.309 Maximum Allowable Helicopter Weight
+pub type MaximumAllowableHelicopterWeight = UintNumeric;
+
+/// 5.312 Runway StartCOLer Extension
+pub type RunwayStartCOLerExtension = UintNumeric;
+
+/// 5.313 TORA
+pub type TORA = UintNumeric;
+
+/// 5.314 TODA
+pub type TODA = UintNumeric;
+
+/// 5.315 ASDA
+pub type ASDA = UintNumeric;
+
+/// 5.316 LDA
+pub type LDA = UintNumeric;
+
+/// 5.320 SBAS Final Approach Course
+pub type SBASFinalApproachCourse = RunwayBearing;
+
+/// 5.321 Helipad Maximum Rotor Diameter
+pub type HelipadMaximumRotorDiameter = UintNumeric;
+
+/// 5.323 Heliport Orientation
+pub type HeliportOrientation = FloatNumeric<-2>;
+
+/// 5.324 Heliport Identifier Orientation
+pub type HeliportIdentifierOrientation = FloatNumeric<-2>;
+
+/// 5.325 Preferred Approach Bearing
+pub type PreferredApproachBearing = RunwayBearing;
+
+/// 5.343 Holding Pattern Magnetic Variation
+pub type HoldingPatternMagneticVariation = MagneticVariationNumeric;

@@ -2156,3 +2156,1560 @@ impl ComponentAffectedIndicator {
         }))
     }
 }
+
+/// 5.210 Sequence End Indicator
+#[derive(Debug, PartialEq, Eq)]
+pub enum SequenceEndIndicator {
+    EndOfSequence,
+    NotEndOfSequence,
+}
+
+impl SequenceEndIndicator {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"E" => SequenceEndIndicator::EndOfSequence,
+            [BLANK] => SequenceEndIndicator::NotEndOfSequence,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid sequence end indicator".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.213 Controlled Airspace Type
+#[derive(Debug, PartialEq, Eq)]
+pub enum ControlledAirspaceType {
+    ClassC,
+    ControlArea,
+    TerminalControlArea,
+    RadarArea,
+    ClassB,
+    RadioMandatoryZone,
+    TransponderMandatoryZone,
+    ClassD,
+}
+
+impl ControlledAirspaceType {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"A" => ControlledAirspaceType::ClassC,
+            b"C" => ControlledAirspaceType::ClassC,
+            b"M" => ControlledAirspaceType::TerminalControlArea,
+            b"R" => ControlledAirspaceType::RadarArea,
+            b"T" => ControlledAirspaceType::ClassB,
+            b"U" => ControlledAirspaceType::RadioMandatoryZone,
+            b"V" => ControlledAirspaceType::TransponderMandatoryZone,
+            b"Z" => ControlledAirspaceType::ClassD,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid controlled airspace type".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.217 Controlled Airspace Indicator
+#[derive(Debug, PartialEq, Eq)]
+pub enum ControlledAirspaceIndicator {
+    WithinClassC,
+    WithinControlArea,
+    WithinTerminalControlArea,
+    WithinRadarArea,
+    WithinClassB,
+}
+
+impl ControlledAirspaceIndicator {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"A" => ControlledAirspaceIndicator::WithinClassC,
+            b"C" => ControlledAirspaceIndicator::WithinControlArea,
+            b"M" => ControlledAirspaceIndicator::WithinTerminalControlArea,
+            b"R" => ControlledAirspaceIndicator::WithinRadarArea,
+            b"T" => ControlledAirspaceIndicator::WithinClassB,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid controlled airspace indicator".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.222 GNSS/FMS Indicator
+#[derive(Debug, PartialEq, Eq)]
+pub enum GnssFmsIndicator {
+    NotAuthorizedForGNSSOrFMSOverlay,
+    GNSSOverlayWithNavaidMonitoring,
+    GNSSOverlayWithNavaid,
+    GNSSOverlay,
+    FMSOverlay,
+    SBASWithVNAV,
+    RNPRNAVVisualNoSBASVNAV,
+    RNPSBASVNAVNotPublished,
+    RNPSBASNoSBASVNAV,
+    StandaloneGNSS,
+    RNPApproachAsGPS,
+    ILSLocalizerOnly,
+    OverlayAuthorizationNotPublished,
+}
+
+impl GnssFmsIndicator {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"0" => GnssFmsIndicator::NotAuthorizedForGNSSOrFMSOverlay,
+            b"1" => GnssFmsIndicator::GNSSOverlayWithNavaidMonitoring,
+            b"2" => GnssFmsIndicator::GNSSOverlayWithNavaid,
+            b"3" => GnssFmsIndicator::GNSSOverlay,
+            b"4" => GnssFmsIndicator::FMSOverlay,
+            b"A" => GnssFmsIndicator::SBASWithVNAV,
+            b"B" => GnssFmsIndicator::RNPRNAVVisualNoSBASVNAV,
+            b"C" => GnssFmsIndicator::RNPSBASVNAVNotPublished,
+            b"D" => GnssFmsIndicator::RNPSBASNoSBASVNAV,
+            b"P" => GnssFmsIndicator::StandaloneGNSS,
+            b"G" => GnssFmsIndicator::RNPApproachAsGPS,
+            b"L" => GnssFmsIndicator::ILSLocalizerOnly,
+            b"U" => GnssFmsIndicator::OverlayAuthorizationNotPublished,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid GNSS/FMS indicator".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.223(A) SBAS Operation Type
+#[derive(Debug, PartialEq, Eq)]
+pub enum SBASOperationType {
+    StraightInOrPointInSpaceApproach,
+    Reserved,
+    Spare,
+}
+
+impl SBASOperationType {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+
+        let numeric_value = u8::from_str_radix(
+            std::str::from_utf8(bytes).map_err(|e| FieldParseError {
+                message: format!("Numeric is not valid UTF-8: {}", e),
+            })?,
+            10,
+        )
+        .map_err(|e| FieldParseError {
+            message: format!("Numeric is not a valid u8: {}", e),
+        })?;
+
+        Ok(Some(match numeric_value {
+            0 => SBASOperationType::StraightInOrPointInSpaceApproach,
+            1..=2 => SBASOperationType::Reserved,
+            3..=15 => SBASOperationType::Spare,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid SBAS operation type".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.223(B) GBAS Operation Type
+#[derive(Debug, PartialEq, Eq)]
+pub enum GBASOperationType {
+    StraightInApproachPath,
+    TerminalAreaPath,
+    MissedApproach,
+    Spare,
+}
+
+impl GBASOperationType {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+
+        let numeric_value = u8::from_str_radix(
+            std::str::from_utf8(bytes).map_err(|e| FieldParseError {
+                message: format!("Numeric is not valid UTF-8: {}", e),
+            })?,
+            10,
+        )
+        .map_err(|e| FieldParseError {
+            message: format!("Numeric is not a valid u8: {}", e),
+        })?;
+
+        Ok(Some(match numeric_value {
+            0 => GBASOperationType::StraightInApproachPath,
+            1 => GBASOperationType::TerminalAreaPath,
+            2 => GBASOperationType::MissedApproach,
+            3..=15 => GBASOperationType::Spare,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid GBAS operation type".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.230 Procedure Type
+#[derive(Debug, PartialEq, Eq)]
+pub enum ProcedureType {
+    ArrivalProcedureInDatabase,
+    ArrivalProcedureNotInDatabase,
+    DepartureProcedureInDatabase,
+    DepartureProcedureNotInDatabase,
+    STARInDatabase,
+    STARNotInDatabase,
+    SIDInDatabase,
+    SIDNotInDatabase,
+    VectorSIDInDatabase,
+    VectorSIDNotInDatabase,
+    ApproachProcedureInDatabase,
+    ApproachProcedureNotInDatabase,
+}
+
+impl ProcedureType {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"A" => ProcedureType::ArrivalProcedureInDatabase,
+            b"B" => ProcedureType::ArrivalProcedureNotInDatabase,
+            b"C" => ProcedureType::DepartureProcedureInDatabase,
+            b"D" => ProcedureType::DepartureProcedureNotInDatabase,
+            b"E" => ProcedureType::STARInDatabase,
+            b"F" => ProcedureType::STARNotInDatabase,
+            b"G" => ProcedureType::SIDInDatabase,
+            b"H" => ProcedureType::SIDNotInDatabase,
+            b"I" => ProcedureType::VectorSIDInDatabase,
+            b"J" => ProcedureType::VectorSIDNotInDatabase,
+            b"K" => ProcedureType::ApproachProcedureInDatabase,
+            b"L" => ProcedureType::ApproachProcedureNotInDatabase,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid procedure type".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.233 Turboprop/Jet Indicator
+#[derive(Debug, PartialEq, Eq)]
+pub enum TurbopropJetIndicator {
+    AllAircraft,
+    JetsAndTurboprops,
+    AllAircraftLessThan250Kts,
+    NonJetAndTurboprop,
+    MultiEngineProps,
+    Jets,
+    NonJetNonTurboprop,
+    Turboprops,
+}
+
+impl TurbopropJetIndicator {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"A" => TurbopropJetIndicator::AllAircraft,
+            b"B" => TurbopropJetIndicator::JetsAndTurboprops,
+            b"C" => TurbopropJetIndicator::AllAircraftLessThan250Kts,
+            b"D" => TurbopropJetIndicator::NonJetAndTurboprop,
+            b"E" => TurbopropJetIndicator::MultiEngineProps,
+            b"J" => TurbopropJetIndicator::Jets,
+            b"N" => TurbopropJetIndicator::NonJetNonTurboprop,
+            b"P" => TurbopropJetIndicator::Turboprops,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid turboprop/jet indicator".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.234 RNAV Flag
+#[derive(Debug, PartialEq, Eq)]
+pub enum RNAVFlag {
+    RNAV,
+    NotRNAV,
+}
+
+impl RNAVFlag {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"Y" => RNAVFlag::RNAV,
+            b"N" => RNAVFlag::NotRNAV,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid RNAV flag".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.235 ATC Weight Category
+#[derive(Debug, PartialEq, Eq)]
+pub enum ATCWeightCategory {
+    Heavy,
+    Medium,
+    Light,
+}
+
+impl ATCWeightCategory {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"H" => ATCWeightCategory::Heavy,
+            b"M" => ATCWeightCategory::Medium,
+            b"L" => ATCWeightCategory::Light,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid ATC weight category".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.239 Reporting Code
+#[derive(Debug, PartialEq, Eq)]
+pub enum ReportingCode {
+    ReportingRequired,
+    ReportingNotRequired,
+}
+
+impl ReportingCode {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"C" => ReportingCode::ReportingRequired,
+            b"X" => ReportingCode::ReportingNotRequired,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid reporting code".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.241 Fix Related Transition Code
+#[derive(Debug, PartialEq, Eq)]
+pub enum FixRelatedTransitionCode {
+    SIDRunwayTransition,
+    SIDCommonPortion,
+    SIDEnrouteTransition,
+    STAREnrouteTransition,
+    STARCommonPortion,
+    STARRunwayTransition,
+}
+
+impl FixRelatedTransitionCode {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"1" => FixRelatedTransitionCode::SIDRunwayTransition,
+            b"2" => FixRelatedTransitionCode::SIDCommonPortion,
+            b"3" => FixRelatedTransitionCode::SIDEnrouteTransition,
+            b"4" => FixRelatedTransitionCode::STAREnrouteTransition,
+            b"5" => FixRelatedTransitionCode::STARCommonPortion,
+            b"6" => FixRelatedTransitionCode::STARRunwayTransition,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid fix related transition code".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.242 Procedure Category
+#[derive(Debug, PartialEq, Eq)]
+pub enum ProcedureCategory {
+    LAAS,
+    WAAS,
+    FMS,
+    GPS,
+    VORDMEVORTAC,
+    CircleToLand,
+}
+
+impl ProcedureCategory {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"LAAS" => ProcedureCategory::LAAS,
+            b"WAAS" => ProcedureCategory::WAAS,
+            b"FMS " => ProcedureCategory::FMS,
+            b"GPS " => ProcedureCategory::GPS,
+            b"VDME" => ProcedureCategory::VORDMEVORTAC,
+            b"CIRC" => ProcedureCategory::CircleToLand,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid procedure category".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.249 Runway Surface Code
+#[derive(Debug, PartialEq, Eq)]
+pub enum RunwaySurfaceCode {
+    HardSurface,
+    SoftSurface,
+    WaterRunway,
+    Undefined,
+}
+
+impl RunwaySurfaceCode {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"H" => RunwaySurfaceCode::HardSurface,
+            b"S" => RunwaySurfaceCode::SoftSurface,
+            b"W" => RunwaySurfaceCode::WaterRunway,
+            b"U" => RunwaySurfaceCode::Undefined,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid runway surface code".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.250 Alternate Record Type
+#[derive(Debug, PartialEq, Eq)]
+pub enum AlternateRecordType {
+    ArrivalAirport,
+    DepartureAirport,
+    EndFix,
+}
+
+impl AlternateRecordType {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"AA" => AlternateRecordType::ArrivalAirport,
+            b"DA" => AlternateRecordType::DepartureAirport,
+            b"EA" => AlternateRecordType::EndFix,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid alternate record type".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.252 Alternate Type
+#[derive(Debug, PartialEq, Eq)]
+pub enum AlternateType {
+    Airport,
+    CompanyRoute,
+}
+
+impl AlternateType {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"A" => AlternateType::Airport,
+            b"C" => AlternateType::CompanyRoute,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid alternate type".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.255 SBAS Service Provider Identifier
+#[derive(Debug, PartialEq, Eq)]
+pub enum SbasServiceProviderIdentifier {
+    WAAS,
+    EGNOS,
+    MSAS,
+    GAGAN,
+    SDCM,
+    Spare,
+    CRCForGBAS,
+    AnyServiceProvider,
+}
+
+impl SbasServiceProviderIdentifier {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        let numeric_value: u8 = u8::from_str_radix(
+            std::str::from_utf8(bytes).map_err(|e| FieldParseError {
+                message: format!("Invalid SBAS service provider identifier: {}", e),
+            })?,
+            10,
+        )
+        .map_err(|e| FieldParseError {
+            message: format!("Invalid SBAS service provider identifier: {}", e),
+        })?;
+        Ok(Some(match numeric_value {
+            0 => SbasServiceProviderIdentifier::WAAS,
+            1 => SbasServiceProviderIdentifier::EGNOS,
+            2 => SbasServiceProviderIdentifier::MSAS,
+            3 => SbasServiceProviderIdentifier::GAGAN,
+            4 => SbasServiceProviderIdentifier::SDCM,
+            5..=13 => SbasServiceProviderIdentifier::Spare,
+            14 => SbasServiceProviderIdentifier::CRCForGBAS,
+            15 => SbasServiceProviderIdentifier::AnyServiceProvider,
+            _ => {
+                return Err(FieldParseError {
+                    message: format!(
+                        "Invalid SBAS service provider identifier: {}",
+                        numeric_value
+                    ),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.258 GBAS Approach Performance Designator
+#[derive(Debug, PartialEq, Eq)]
+pub enum GBASApproachPerformanceDesignator {
+    GASTAOrGASTB,
+    GASTC,
+    GASTCOrGASTD,
+    Spare,
+}
+
+impl GBASApproachPerformanceDesignator {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        let numeric_value = u8::from_str_radix(
+            std::str::from_utf8(bytes).map_err(|e| FieldParseError {
+                message: format!("Invalid GBAS approach performance designator: {}", e),
+            })?,
+            10,
+        )
+        .map_err(|e| FieldParseError {
+            message: format!("Invalid GBAS approach performance designator: {}", e),
+        })?;
+        Ok(Some(match numeric_value {
+            0 => GBASApproachPerformanceDesignator::GASTAOrGASTB,
+            1 => GBASApproachPerformanceDesignator::GASTC,
+            2 => GBASApproachPerformanceDesignator::GASTCOrGASTD,
+            3..=7 => GBASApproachPerformanceDesignator::Spare,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid GBAS approach performance designator".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.261 Speed Limit Description
+#[derive(Debug, PartialEq, Eq)]
+pub enum SpeedLimitDescription {
+    AtSpeed,
+    AtOrAboveSpeed,
+    AtOrBelowSpeed,
+}
+
+impl SpeedLimitDescription {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"@" => SpeedLimitDescription::AtSpeed,
+            b"+" => SpeedLimitDescription::AtOrAboveSpeed,
+            b"-" => SpeedLimitDescription::AtOrBelowSpeed,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid speed limit description".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.266 TCH Units Indicator
+#[derive(Debug, PartialEq, Eq)]
+pub enum TCHUnitsIndicator {
+    Feet,
+    Meters,
+}
+
+impl TCHUnitsIndicator {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"F" => TCHUnitsIndicator::Feet,
+            b"M" => TCHUnitsIndicator::Meters,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid TCH units indicator".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.270 TCH Value Indicator
+#[derive(Debug, PartialEq, Eq)]
+pub enum TchValueIndicator {
+    ElectronicGlideslope,
+    RNAVProcedureToRunway,
+    DefaultValue,
+}
+
+impl TchValueIndicator {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"I" => TchValueIndicator::ElectronicGlideslope,
+            b"R" => TchValueIndicator::RNAVProcedureToRunway,
+            b"D" => TchValueIndicator::DefaultValue,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid TCH value indicator".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.271 Procedure Turn
+#[derive(Debug, PartialEq, Eq)]
+pub enum ProcedureTurn {
+    Required,
+    NoProcedureTurn,
+}
+
+impl ProcedureTurn {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"Y" => ProcedureTurn::Required,
+            b"N" => ProcedureTurn::NoProcedureTurn,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid procedure turn".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.272 TAA Sector Identifier
+#[derive(Debug, PartialEq, Eq)]
+pub enum TaaSectorIdentifier {
+    StraightInOrCenterFix,
+    LeftBaseArea,
+    RightBaseArea,
+}
+
+impl TaaSectorIdentifier {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"C" => TaaSectorIdentifier::StraightInOrCenterFix,
+            b"L" => TaaSectorIdentifier::LeftBaseArea,
+            b"T" => TaaSectorIdentifier::RightBaseArea,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid TAA sector identifier".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.276 Level of Service Authorized
+#[derive(Debug, PartialEq, Eq)]
+pub enum LevelOfServiceAuthorized {
+    Authorized,
+    NotAuthorized,
+}
+
+impl LevelOfServiceAuthorized {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"A" => LevelOfServiceAuthorized::Authorized,
+            [BLANK] => LevelOfServiceAuthorized::NotAuthorized,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid level of service authorized".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.277 DME Operational Service Volume
+#[derive(Debug, PartialEq, Eq)]
+pub enum DMEOperationalServiceVolume {
+    LessThan40NM,
+    LessThan70NM,
+    LessThan130NM,
+    GreaterThan130NM,
+    Unspecified,
+}
+
+impl DMEOperationalServiceVolume {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"A" => DMEOperationalServiceVolume::LessThan40NM,
+            b"B" => DMEOperationalServiceVolume::LessThan70NM,
+            b"C" => DMEOperationalServiceVolume::LessThan130NM,
+            b"D" => DMEOperationalServiceVolume::GreaterThan130NM,
+            b"U" => DMEOperationalServiceVolume::Unspecified,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid DME operational service volume".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.278 Special Activity Type
+#[derive(Debug, PartialEq, Eq)]
+pub enum SpecialActivityType {
+    ParachuteJumping,
+    Glider,
+    HangGlider,
+    Ultralight,
+}
+
+impl SpecialActivityType {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"P" => SpecialActivityType::ParachuteJumping,
+            b"G" => SpecialActivityType::Glider,
+            b"H" => SpecialActivityType::HangGlider,
+            b"U" => SpecialActivityType::Ultralight,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid special activity type".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.283 Communications Class
+#[derive(Debug, PartialEq, Eq)]
+pub enum CommunicationsClass {
+    LinkedToFIRUIRForControl,
+    LinkedToFIRUIRForInformation,
+    UsedWithinFIRUIRForOtherPurposes,
+    UsedWithinFIRUIRForBroadcastServices,
+    UsedWithinTerminalAreaForControl,
+    UsedwithinTerminalAreaForOtherPurposes,
+    UsedWithinTerminalAreaForBroadcastServices,
+}
+
+impl CommunicationsClass {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"LIRC" => CommunicationsClass::LinkedToFIRUIRForControl,
+            b"LIRI" => CommunicationsClass::LinkedToFIRUIRForInformation,
+            b"USVC" => CommunicationsClass::UsedWithinFIRUIRForOtherPurposes,
+            b"ASVC" => CommunicationsClass::UsedWithinFIRUIRForBroadcastServices,
+            b"ATCF" => CommunicationsClass::UsedWithinTerminalAreaForControl,
+            b"AOTF" => CommunicationsClass::UsedwithinTerminalAreaForOtherPurposes,
+            b"AFAC" => CommunicationsClass::UsedWithinTerminalAreaForBroadcastServices,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid communications class".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.286 Multi-Sector Indicator
+#[derive(Debug, PartialEq, Eq)]
+pub enum MultiSectorIndicator {
+    MultiSector,
+    SingleSector,
+}
+
+impl MultiSectorIndicator {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"Y" => MultiSectorIndicator::MultiSector,
+            b"N" => MultiSectorIndicator::SingleSector,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid multi-sector indicator".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.287 Communications Type Recognized By
+#[derive(Debug, PartialEq, Eq)]
+pub enum CommunicationsTypeRecognizedBy {
+    ICAO,
+    FAA,
+    ICAOAndFAA,
+    CountryAuthority,
+    DataProvider,
+}
+
+impl CommunicationsTypeRecognizedBy {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"I" => CommunicationsTypeRecognizedBy::ICAO,
+            b"F" => CommunicationsTypeRecognizedBy::FAA,
+            b"B" => CommunicationsTypeRecognizedBy::ICAOAndFAA,
+            b"C" => CommunicationsTypeRecognizedBy::CountryAuthority,
+            b"S" => CommunicationsTypeRecognizedBy::DataProvider,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid communications type recognized by".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.289 Communications Used On
+#[derive(Debug, PartialEq, Eq)]
+pub enum CommunicationsUsedOn {
+    AirportCommunicationsRecordsOnly,
+    EnrouteCommunicationsRecordsOnly,
+    HeliportCommunicationsRecordsOnly,
+    AllApplicableCommunicationsRecords,
+    AirportAndHeliportCommunicationsRecords,
+}
+
+impl CommunicationsUsedOn {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"A" => CommunicationsUsedOn::AirportCommunicationsRecordsOnly,
+            b"E" => CommunicationsUsedOn::EnrouteCommunicationsRecordsOnly,
+            b"H" => CommunicationsUsedOn::HeliportCommunicationsRecordsOnly,
+            b"B" => CommunicationsUsedOn::AllApplicableCommunicationsRecords,
+            b"C" => CommunicationsUsedOn::AirportAndHeliportCommunicationsRecords,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid used on".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.291 Procedure Design Magnetic Variation Indicator
+#[derive(Debug, PartialEq, Eq)]
+pub enum ProcedureDesignMagneticVariationIndicator {
+    EntireProcedure,
+    AssociatedLeg,
+}
+
+impl ProcedureDesignMagneticVariationIndicator {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"P" => ProcedureDesignMagneticVariationIndicator::EntireProcedure,
+            b"L" => ProcedureDesignMagneticVariationIndicator::AssociatedLeg,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid procedure design magnetic variation indicator".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.297 Route Inappropriate Navaid Indicator
+#[derive(Debug, PartialEq, Eq)]
+pub enum RouteInappropriateNavaidIndicator {
+    Appropriate,
+    Inappropriate,
+}
+
+impl RouteInappropriateNavaidIndicator {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"Y" => RouteInappropriateNavaidIndicator::Inappropriate,
+            b"N" => RouteInappropriateNavaidIndicator::Appropriate,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid route inappropriate navaid indicator".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.298 Holding Pattern/Race Track Course Reversal Leg Inbound/Outbound Indicator
+#[derive(Debug, PartialEq, Eq)]
+pub enum HoldingPatternCourseReversalLegIndicator {
+    Inbound,
+    Outbound,
+}
+
+impl HoldingPatternCourseReversalLegIndicator {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"I" => HoldingPatternCourseReversalLegIndicator::Inbound,
+            b"O" => HoldingPatternCourseReversalLegIndicator::Outbound,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid holding pattern/race track course reversal leg inbound/outbound indicator".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.299 Procedure Design Aircraft Category or Type
+#[derive(Debug, PartialEq, Eq)]
+pub enum ProcedureDesignAircraftCategoryOrType {
+    CategoryA,
+    CategoryB,
+    CategoryC,
+    CategoryD,
+    CategoryE,
+    CategoriesAB,
+    CategoriesCD,
+    CategoriesABC,
+    CategoriesABCD,
+    CategoriesABCDE,
+    CategoriesDE,
+    Helicopters,
+    CategoriesBC,
+    CategoriesCDE,
+    CategoriesBCDE,
+    Jets,
+    NonJets,
+    Pistons,
+    NotLimited,
+    TurbojetAndTurboprop,
+    Turbojet,
+    Turboprop,
+    Prop,
+    TurbopropAndProp,
+    NonTurbojets,
+    NotProvided,
+}
+
+impl ProcedureDesignAircraftCategoryOrType {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"A" => ProcedureDesignAircraftCategoryOrType::CategoryA,
+            b"B" => ProcedureDesignAircraftCategoryOrType::CategoryB,
+            b"C" => ProcedureDesignAircraftCategoryOrType::CategoryC,
+            b"D" => ProcedureDesignAircraftCategoryOrType::CategoryD,
+            b"E" => ProcedureDesignAircraftCategoryOrType::CategoryE,
+            b"F" => ProcedureDesignAircraftCategoryOrType::CategoriesAB,
+            b"G" => ProcedureDesignAircraftCategoryOrType::CategoriesCD,
+            b"I" => ProcedureDesignAircraftCategoryOrType::CategoriesABC,
+            b"J" => ProcedureDesignAircraftCategoryOrType::CategoriesABCD,
+            b"K" => ProcedureDesignAircraftCategoryOrType::CategoriesABCDE,
+            b"L" => ProcedureDesignAircraftCategoryOrType::CategoriesDE,
+            b"H" => ProcedureDesignAircraftCategoryOrType::Helicopters,
+            b"M" => ProcedureDesignAircraftCategoryOrType::CategoriesBC,
+            b"N" => ProcedureDesignAircraftCategoryOrType::CategoriesCDE,
+            b"O" => ProcedureDesignAircraftCategoryOrType::CategoriesBCDE,
+            b"W" => ProcedureDesignAircraftCategoryOrType::Jets,
+            b"X" => ProcedureDesignAircraftCategoryOrType::NonJets,
+            b"Y" => ProcedureDesignAircraftCategoryOrType::Pistons,
+            b"P" => ProcedureDesignAircraftCategoryOrType::NotLimited,
+            b"Q" => ProcedureDesignAircraftCategoryOrType::TurbojetAndTurboprop,
+            b"R" => ProcedureDesignAircraftCategoryOrType::Turbojet,
+            b"S" => ProcedureDesignAircraftCategoryOrType::Turboprop,
+            b"T" => ProcedureDesignAircraftCategoryOrType::Prop,
+            b"U" => ProcedureDesignAircraftCategoryOrType::TurbopropAndProp,
+            b"V" => ProcedureDesignAircraftCategoryOrType::NonTurbojets,
+            [BLANK] => ProcedureDesignAircraftCategoryOrType::NotProvided,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid procedure design aircraft category or type".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.299 Surface Type
+#[derive(Debug, PartialEq, Eq)]
+pub enum SurfaceType {
+    Asphalt,
+    ApshaltAndGrass,
+    BituminousSurface,
+    Brick,
+    Clay,
+    Concrete,
+    ConcreteAndAsphalt,
+    ConcreteAndGrass,
+    Coral,
+    Dirt,
+    Grass,
+    Gravel,
+    Ice,
+    Laterite,
+    Macadam,
+    LandingMat,
+    Laminate,
+    Metal,
+    NonBituminousMix,
+    Other,
+    Paved,
+    PiercedSteelPlanking,
+    Sand,
+    Sealed,
+    Silt,
+    Snow,
+    Soil,
+    Stone,
+    Tarmac,
+    Treated,
+    Turf,
+    Unknown,
+    Unpaved,
+    Water,
+}
+
+impl SurfaceType {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"ASPH" => SurfaceType::Asphalt,
+            b"ASGR" => SurfaceType::ApshaltAndGrass,
+            b"BITU" => SurfaceType::BituminousSurface,
+            b"BRCK" => SurfaceType::Brick,
+            b"CLAY" => SurfaceType::Clay,
+            b"CONC" => SurfaceType::Concrete,
+            b"COAS" => SurfaceType::ConcreteAndAsphalt,
+            b"COGS" => SurfaceType::ConcreteAndGrass,
+            b"CORL" => SurfaceType::Coral,
+            b"DIRT" => SurfaceType::Dirt,
+            b"GRAS" => SurfaceType::Grass,
+            b"GRVL" => SurfaceType::Gravel,
+            b"ICE " => SurfaceType::Ice,
+            b"LATE" => SurfaceType::Laterite,
+            b"MACA" => SurfaceType::Macadam,
+            b"MATS" => SurfaceType::LandingMat,
+            b"MEMB" => SurfaceType::Laminate,
+            b"META" => SurfaceType::Metal,
+            b"MIX " => SurfaceType::NonBituminousMix,
+            b"OTHR" => SurfaceType::Other,
+            b"PAVD" => SurfaceType::Paved,
+            b"PSP " => SurfaceType::PiercedSteelPlanking,
+            b"SAND" => SurfaceType::Sand,
+            b"SELD" => SurfaceType::Sealed,
+            b"SILT" => SurfaceType::Silt,
+            b"SNOW" => SurfaceType::Snow,
+            b"SOIL" => SurfaceType::Soil,
+            b"STON" => SurfaceType::Stone,
+            b"TARM" => SurfaceType::Tarmac,
+            b"TRTD" => SurfaceType::Treated,
+            b"TURF" => SurfaceType::Turf,
+            b"UNKN" => SurfaceType::Unknown,
+            b"UNPV" => SurfaceType::Unpaved,
+            b"WATE" => SurfaceType::Water,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid surface type".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.303 Helipad Shape
+#[derive(Debug, PartialEq, Eq)]
+pub enum HelipadShape {
+    Circle,
+    Rectangular,
+    Runway,
+    Undefined,
+}
+
+impl HelipadShape {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"C" => HelipadShape::Circle,
+            b"S" => HelipadShape::Rectangular,
+            b"R" => HelipadShape::Runway,
+            b"U" => HelipadShape::Undefined,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid helipad shape".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.305 Heliport Type
+#[derive(Debug, PartialEq, Eq)]
+pub enum HeliportType {
+    Hospital,
+    OilRig,
+    Other,
+    NotProvided,
+}
+
+impl HeliportType {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"H" => HeliportType::Hospital,
+            b"O" => HeliportType::OilRig,
+            [BLANK] => HeliportType::Other,
+            b"N" => HeliportType::NotProvided,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid heliport type".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.306 Preferred Multiple Approach Indicator
+#[derive(Debug, PartialEq, Eq)]
+pub enum PreferredMultipleApproachIndicator {
+    Preferred,
+    NotPreferred,
+}
+
+impl PreferredMultipleApproachIndicator {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"P" => PreferredMultipleApproachIndicator::Preferred,
+            [BLANK] => PreferredMultipleApproachIndicator::NotPreferred,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid preferred multiple approach indicator".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.307 Terminal Procedure Special Indicator
+#[derive(Debug, PartialEq, Eq)]
+pub enum SpecialProcedureIndicator {
+    SpecialProcedure,
+    NotASpecialProcedure,
+}
+
+impl SpecialProcedureIndicator {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"Y" => SpecialProcedureIndicator::SpecialProcedure,
+            [BLANK] => SpecialProcedureIndicator::NotASpecialProcedure,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid terminal procedure special indicator".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.308 Remote Altimeter Flag
+#[derive(Debug, PartialEq, Eq)]
+pub enum RemoteAltimeterFlag {
+    LNAVVNAVRestricted,
+    NotRestricted,
+}
+
+impl RemoteAltimeterFlag {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"Y" => RemoteAltimeterFlag::LNAVVNAVRestricted,
+            [BLANK] => RemoteAltimeterFlag::NotRestricted,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid remote altimeter flag".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.310 Helicopter Performance Requirement
+#[derive(Debug, PartialEq, Eq)]
+pub enum HelicopterPerformanceRequirement {
+    MultiEngineRequired,
+    SingleEngine,
+    Unknown,
+}
+
+impl HelicopterPerformanceRequirement {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"M" => HelicopterPerformanceRequirement::MultiEngineRequired,
+            b"S" => HelicopterPerformanceRequirement::SingleEngine,
+            b"U" => HelicopterPerformanceRequirement::Unknown,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid helicopter performance requirement".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.311 FIR/FRA Transition Type
+#[derive(Debug, PartialEq, Eq)]
+pub enum FIRFRATransitionType {
+    EntryPoint,
+    ExitPoint,
+    ArrivalTransitionPoint,
+    DepartureTransitinoPoint,
+    IntermediatePoint,
+    Unknown,
+}
+
+impl FIRFRATransitionType {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"E" => FIRFRATransitionType::EntryPoint,
+            b"X" => FIRFRATransitionType::ExitPoint,
+            b"A" => FIRFRATransitionType::ArrivalTransitionPoint,
+            b"D" => FIRFRATransitionType::DepartureTransitinoPoint,
+            b"I" => FIRFRATransitionType::IntermediatePoint,
+            b"H" => FIRFRATransitionType::Unknown,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid FIR/FRA transition type".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.317 Runway Usage Indicator
+#[derive(Debug, PartialEq, Eq)]
+pub enum RunwayUsageIndicator {
+    LandingOnly,
+    TakeoffOnly,
+    TakeoffAndLanding,
+}
+
+impl RunwayUsageIndicator {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"L" => RunwayUsageIndicator::LandingOnly,
+            b"T" => RunwayUsageIndicator::TakeoffOnly,
+            b"B" => RunwayUsageIndicator::TakeoffAndLanding,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid runway usage indicator".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.318 Runway Accuracy Compliance Flag
+#[derive(Debug, PartialEq, Eq)]
+pub enum RunwayAccuracyComplianceFlag {
+    Compliant,
+    NonCompliant,
+    NotEvaluated,
+}
+
+impl RunwayAccuracyComplianceFlag {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"Y" => RunwayAccuracyComplianceFlag::Compliant,
+            b"N" => RunwayAccuracyComplianceFlag::NonCompliant,
+            [BLANK] => RunwayAccuracyComplianceFlag::NotEvaluated,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid runway accuracy compliance flag".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.319 Landing Threshold Elevation Accuracy Compliance Flag
+#[derive(Debug, PartialEq, Eq)]
+pub enum LandingThresholdElevationAccuracyComplianceFlag {
+    Compliant,
+    NonCompliant,
+    NotEvaluated,
+}
+
+impl LandingThresholdElevationAccuracyComplianceFlag {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"Y" => LandingThresholdElevationAccuracyComplianceFlag::Compliant,
+            b"N" => LandingThresholdElevationAccuracyComplianceFlag::NonCompliant,
+            [BLANK] => LandingThresholdElevationAccuracyComplianceFlag::NotEvaluated,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid runway accuracy compliance flag".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.322 Helipad Type
+#[derive(Debug, PartialEq, Eq)]
+pub enum HelipadType {
+    Elevated,
+    OtherOrUnknown,
+}
+
+impl HelipadType {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"E" => HelipadType::Elevated,
+            [BLANK] => HelipadType::OtherOrUnknown,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid helipad type".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.337 ATN ATSU Ground Facility Use Indicator
+#[derive(Debug, PartialEq, Eq)]
+pub enum ATNATSUGroundFacilityUseIndicator {
+    Implemented,
+    Future,
+    TestFacility,
+    Unknown,
+}
+
+impl ATNATSUGroundFacilityUseIndicator {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"Y" => ATNATSUGroundFacilityUseIndicator::Implemented,
+            b"N" => ATNATSUGroundFacilityUseIndicator::Future,
+            b"T" => ATNATSUGroundFacilityUseIndicator::TestFacility,
+            [BLANK] => ATNATSUGroundFacilityUseIndicator::Unknown,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid ATN ATSU ground facility use indicator".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.338 VHF Navaid VOR Range/Power
+#[derive(Debug, PartialEq, Eq)]
+pub enum VhfNavaidVorRangePower {
+    Within25NMTo12000Feet,
+    Within40NMTo18000Feet,
+    Within130NMTo60000Feet,
+    NotProvided,
+    Within70NMTo18000FeetExpanded,
+    Within130NMTo60000FeetExpanded,
+}
+
+impl VhfNavaidVorRangePower {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"T" => VhfNavaidVorRangePower::Within25NMTo12000Feet,
+            b"L" => VhfNavaidVorRangePower::Within40NMTo18000Feet,
+            b"H" => VhfNavaidVorRangePower::Within130NMTo60000Feet,
+            b"U" => VhfNavaidVorRangePower::NotProvided,
+            b"M" => VhfNavaidVorRangePower::Within70NMTo18000FeetExpanded,
+            b"N" => VhfNavaidVorRangePower::Within130NMTo60000FeetExpanded,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid VHF Navaid VOR Range/Power".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.339 DME Expanded Service Volume
+#[derive(Debug, PartialEq, Eq)]
+pub enum DMEExpandedServiceVolume {
+    Within130NMTo18000FeetExpanded,
+    Within130NMTo60000FeetExpanded,
+    NotProvided,
+}
+
+impl DMEExpandedServiceVolume {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"F" => DMEExpandedServiceVolume::Within130NMTo18000FeetExpanded,
+            b"G" => DMEExpandedServiceVolume::Within130NMTo60000FeetExpanded,
+            b"U" => DMEExpandedServiceVolume::NotProvided,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid DME expanded service volume".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.340 Unmanned Aerial Vehicle (UAV) Only
+#[derive(Debug, PartialEq, Eq)]
+pub enum UnmannedAerialVehicleOnly {
+    Yes,
+    No,
+}
+
+impl UnmannedAerialVehicleOnly {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"Y" => UnmannedAerialVehicleOnly::Yes,
+            [BLANK] => UnmannedAerialVehicleOnly::No,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid unmanned aerial vehicle only".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.341 Terminal Procedure For Military Indicator
+#[derive(Debug, PartialEq, Eq)]
+pub enum TerminalProcedureForMilitaryIndicator {
+    Yes,
+    No,
+}
+
+impl TerminalProcedureForMilitaryIndicator {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"Y" => TerminalProcedureForMilitaryIndicator::Yes,
+            [BLANK] => TerminalProcedureForMilitaryIndicator::No,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid terminal procedure for military indicator".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.342 Source of LAL/VAL
+#[derive(Debug, PartialEq, Eq)]
+pub enum SourceOfLALVAL {
+    OfficialSource,
+    DerivedFromLinesOfMinima,
+    BasicDefaults,
+}
+
+impl SourceOfLALVAL {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"Y" => SourceOfLALVAL::OfficialSource,
+            b"M" => SourceOfLALVAL::DerivedFromLinesOfMinima,
+            b"N" => SourceOfLALVAL::BasicDefaults,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid source of LAL/VAL".to_string(),
+                });
+            }
+        }))
+    }
+}

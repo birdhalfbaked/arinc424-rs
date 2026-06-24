@@ -1685,3 +1685,435 @@ impl NavaidAltitudeLimitation {
         }
     }
 }
+
+// Preferred Route Use
+#[derive(Debug, PartialEq, Eq)]
+pub enum PreferredRouteType {
+    PointToPoint,
+    AreaToArea,
+}
+impl PreferredRouteType {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"P" => PreferredRouteType::PointToPoint,
+            b"A" => PreferredRouteType::AreaToArea,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid preferred route type".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum PreferredRouteRNAVRequirement {
+    RNAVRequired,
+    RNAVNotRequired,
+}
+
+impl PreferredRouteRNAVRequirement {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"R" => PreferredRouteRNAVRequirement::RNAVRequired,
+            b"N" => PreferredRouteRNAVRequirement::RNAVNotRequired,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid preferred route RNAV requirement".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.220 Preferred Route Use Indicator
+#[derive(Debug, PartialEq, Eq)]
+pub struct PreferredRouteUseIndicator(PreferredRouteType, PreferredRouteRNAVRequirement);
+impl PreferredRouteUseIndicator {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        let route_type = PreferredRouteType::from_bytes(&bytes[0..1])?;
+        let rnav_requirement = PreferredRouteRNAVRequirement::from_bytes(&bytes[1..2])?;
+        if let Some(route_type) = route_type
+            && let Some(rnav_requirement) = rnav_requirement
+        {
+            Ok(Some(PreferredRouteUseIndicator(
+                route_type,
+                rnav_requirement,
+            )))
+        } else {
+            return Err(FieldParseError {
+                message: "Invalid preferred route type or RNAV requirement".to_string(),
+            });
+        }
+    }
+}
+
+// Aircraft Use Group
+#[derive(Debug, PartialEq, Eq)]
+pub enum AircraftUseGroup {
+    AllAircraft,
+    AllAircraftLessThan250Kts,
+    NonJetAndTurboprop,
+    MultiEnginePropsOnly,
+    JetsAndTurboPropsGreaterThan190Kts,
+    HelicopterOnly,
+    JetPower,
+    TurbopropGreaterThan190Kts,
+    NonJetNonTurboprop,
+    NonJetGreaterThan190Kts,
+    NonJetLessThan190Kts,
+    AsDefinedInNotes,
+    SingleEngine,
+    TwinEngine,
+}
+
+impl AircraftUseGroup {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"A" => AircraftUseGroup::AllAircraft,
+            b"C" => AircraftUseGroup::AllAircraftLessThan250Kts,
+            b"D" => AircraftUseGroup::NonJetAndTurboprop,
+            b"E" => AircraftUseGroup::MultiEnginePropsOnly,
+            b"F" => AircraftUseGroup::JetsAndTurboPropsGreaterThan190Kts,
+            b"H" => AircraftUseGroup::HelicopterOnly,
+            b"J" => AircraftUseGroup::JetPower,
+            b"M" => AircraftUseGroup::TurbopropGreaterThan190Kts,
+            b"N" => AircraftUseGroup::NonJetNonTurboprop,
+            b"P" => AircraftUseGroup::NonJetGreaterThan190Kts,
+            b"Q" => AircraftUseGroup::NonJetLessThan190Kts,
+            b"R" => AircraftUseGroup::AsDefinedInNotes,
+            b"S" => AircraftUseGroup::SingleEngine,
+            b"T" => AircraftUseGroup::TwinEngine,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid aircraft use group".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.221 Aircraft Use Group Indicator
+#[derive(Debug, PartialEq, Eq)]
+pub struct AircraftUseGroupIndicator(AircraftUseGroup, Option<AircraftUseGroup>);
+impl AircraftUseGroupIndicator {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        let aircraft_use_primary_group = AircraftUseGroup::from_bytes(&bytes[0..1])?;
+        let aircraft_use_alternate_group = AircraftUseGroup::from_bytes(&bytes[1..2])?;
+        if let Some(aircraft_use_primary_group) = aircraft_use_primary_group {
+            // second group is optional
+            Ok(Some(AircraftUseGroupIndicator(
+                aircraft_use_primary_group,
+                aircraft_use_alternate_group,
+            )))
+        } else {
+            return Err(FieldParseError {
+                message: "Invalid aircraft use group indicator".to_string(),
+            });
+        }
+    }
+}
+
+// Number of Engines Restriction
+// Side note, this is the least efficient field use I have found yet.. I would like to know more
+#[derive(Debug, PartialEq, Eq)]
+pub enum NumberOfEnginesRestrictionIndicator {
+    Restricted,
+    NotRestricted,
+}
+impl NumberOfEnginesRestrictionIndicator {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"Y" => NumberOfEnginesRestrictionIndicator::Restricted,
+            b"N" => NumberOfEnginesRestrictionIndicator::NotRestricted,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid number of engines restriction indicator".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.232 Number of Engines Restriction
+#[derive(Debug, PartialEq, Eq)]
+pub struct NumberOfEnginesRestriction(
+    NumberOfEnginesRestrictionIndicator,
+    NumberOfEnginesRestrictionIndicator,
+    NumberOfEnginesRestrictionIndicator,
+    NumberOfEnginesRestrictionIndicator,
+);
+impl NumberOfEnginesRestriction {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        // all must have values
+        let indicator1 = NumberOfEnginesRestrictionIndicator::from_bytes(&bytes[0..1])?;
+        let indicator2 = NumberOfEnginesRestrictionIndicator::from_bytes(&bytes[1..2])?;
+        let indicator3 = NumberOfEnginesRestrictionIndicator::from_bytes(&bytes[2..3])?;
+        let indicator4 = NumberOfEnginesRestrictionIndicator::from_bytes(&bytes[3..4])?;
+        if let Some(indicator1) = indicator1
+            && let Some(indicator2) = indicator2
+            && let Some(indicator3) = indicator3
+            && let Some(indicator4) = indicator4
+        {
+            Ok(Some(NumberOfEnginesRestriction(
+                indicator1, indicator2, indicator3, indicator4,
+            )))
+        } else {
+            return Err(FieldParseError {
+                message: "Invalid number of engines restriction".to_string(),
+            });
+        }
+    }
+}
+
+// Leg Type Code
+#[derive(Debug, PartialEq, Eq)]
+pub enum LegTypePath {
+    PointToPoint,
+    CurvedLine,
+}
+
+impl LegTypePath {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"S" => LegTypePath::PointToPoint,
+            b"C" => LegTypePath::CurvedLine,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid leg type path".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum LegTypeTurnIndication {
+    Left,
+    Right,
+}
+
+impl LegTypeTurnIndication {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"L" => LegTypeTurnIndication::Left,
+            b"R" => LegTypeTurnIndication::Right,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid leg type turn indication".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct LegTypeCode(LegTypePath, Option<LegTypeTurnIndication>);
+impl LegTypeCode {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        let leg_type_path = LegTypePath::from_bytes(&bytes[0..1])?;
+        let leg_type_turn_indication = LegTypeTurnIndication::from_bytes(&bytes[1..2])?;
+        // only the path is required
+        if let Some(leg_type_path) = leg_type_path {
+            Ok(Some(LegTypeCode(leg_type_path, leg_type_turn_indication)))
+        } else {
+            return Err(FieldParseError {
+                message: "Invalid leg type code".to_string(),
+            });
+        }
+    }
+}
+
+// GLS Station Type
+#[derive(Debug, PartialEq, Eq)]
+pub enum GLSStationType1 {
+    LAASOrGLSGroundStation,
+    SCAT1Station,
+}
+
+impl GLSStationType1 {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"LAAS" => GLSStationType1::LAASOrGLSGroundStation,
+            b"SCAT1" => GLSStationType1::SCAT1Station,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid GLS station type".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+// reserved for future use
+#[derive(Debug, PartialEq, Eq)]
+pub enum GLSStationType2 {}
+// reserved for future use
+#[derive(Debug, PartialEq, Eq)]
+pub enum GLSStationType3 {}
+
+/// 5.247 GLS Station Type
+#[derive(Debug, PartialEq, Eq)]
+pub struct GLSStationType(
+    GLSStationType1,
+    Option<GLSStationType2>,
+    Option<GLSStationType3>,
+);
+impl GLSStationType {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        let gls_station_type1 = GLSStationType1::from_bytes(&bytes[0..1])?;
+        if let Some(gls_station_type1) = gls_station_type1 {
+            Ok(Some(GLSStationType(gls_station_type1, None, None)))
+        } else {
+            return Err(FieldParseError {
+                message: "Invalid GLS station type".to_string(),
+            });
+        }
+    }
+}
+
+/// 5.274 TAA Sector Radius
+pub struct TaaSectorRadius {
+    pub start_radius: UintNumeric,
+    pub end_radius: UintNumeric,
+}
+impl TaaSectorRadius {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        let start_radius = UintNumeric::from_bytes(&bytes[0..2])?.ok_or(FieldParseError {
+            message: "Invalid TAA sector radius".to_string(),
+        })?;
+        let end_radius = UintNumeric::from_bytes(&bytes[2..4])?.ok_or(FieldParseError {
+            message: "Invalid TAA sector radius".to_string(),
+        })?;
+        Ok(Some(TaaSectorRadius {
+            start_radius,
+            end_radius,
+        }))
+    }
+}
+
+// Special Activity Area Operating Times
+#[derive(Debug, PartialEq, Eq)]
+pub enum SpecialActivityTimesDayIndicator {
+    WeekdaysAndWeekends,
+    WeekdaysOnly,
+    WeekendsOnly,
+    Other,
+    Unknown,
+}
+
+impl SpecialActivityTimesDayIndicator {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"C" => SpecialActivityTimesDayIndicator::WeekdaysAndWeekends,
+            b"D" => SpecialActivityTimesDayIndicator::WeekdaysOnly,
+            b"E" => SpecialActivityTimesDayIndicator::WeekendsOnly,
+            b"O" => SpecialActivityTimesDayIndicator::Other,
+            b"U" => SpecialActivityTimesDayIndicator::Unknown,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid special activity times day indicator".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum SpecialActivityTimesHolidayIndicator {
+    IncludingHolidays,
+    ExcludingHolidays,
+    Unknown,
+}
+
+impl SpecialActivityTimesHolidayIndicator {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"H" => SpecialActivityTimesHolidayIndicator::IncludingHolidays,
+            b"X" => SpecialActivityTimesHolidayIndicator::ExcludingHolidays,
+            b"U" => SpecialActivityTimesHolidayIndicator::Unknown,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid special activity times holiday indicator".to_string(),
+                });
+            }
+        }))
+    }
+}
+#[derive(Debug, PartialEq, Eq)]
+pub enum SpecialActivityTimesTimeIndicator {
+    SunriseOrSunset,
+    NightUse,
+    Continuous,
+    ActiveByNotam,
+}
+
+impl SpecialActivityTimesTimeIndicator {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"D" => SpecialActivityTimesTimeIndicator::SunriseOrSunset,
+            b"N" => SpecialActivityTimesTimeIndicator::NightUse,
+            b"C" => SpecialActivityTimesTimeIndicator::Continuous,
+            b"A" => SpecialActivityTimesTimeIndicator::ActiveByNotam,
+            _ => {
+                return Err(FieldParseError {
+                    message: "Invalid special activity times time indicator".to_string(),
+                });
+            }
+        }))
+    }
+}
+
+/// 5.282 Special Activity Area Operating Times
+#[derive(Debug, PartialEq, Eq)]
+pub struct SpecialActivityTimes(
+    SpecialActivityTimesDayIndicator,
+    SpecialActivityTimesHolidayIndicator,
+    SpecialActivityTimesTimeIndicator,
+);
+impl SpecialActivityTimes {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        // all fields must be Some type
+        let day_indicator = SpecialActivityTimesDayIndicator::from_bytes(&bytes[0..1])?;
+        let holiday_indicator = SpecialActivityTimesHolidayIndicator::from_bytes(&bytes[1..2])?;
+        let time_indicator = SpecialActivityTimesTimeIndicator::from_bytes(&bytes[2..3])?;
+        if day_indicator.is_some() && holiday_indicator.is_some() && time_indicator.is_some() {
+            Ok(Some(SpecialActivityTimes(
+                day_indicator.unwrap(),
+                holiday_indicator.unwrap(),
+                time_indicator.unwrap(),
+            )))
+        } else {
+            Err(FieldParseError {
+                message: "Invalid special activity times".to_string(),
+            })
+        }
+    }
+}
