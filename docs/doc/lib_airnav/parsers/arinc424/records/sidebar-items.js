@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["ARINCRecord"],"struct":["PlaceholderField","RecordParseError","VHFNavaidPrimaryRecord"]};
+window.SIDEBAR_ITEMS = {"enum":["ARINCRecord"],"struct":["PlaceholderField","RecordField","RecordParseError","VHFNavaidContinuationRecord","VHFNavaidFlightPlanningContinuationRecord","VHFNavaidLimitationContinuationRecord","VHFNavaidPrimaryRecord","VHFNavaidSimulationContinuationRecord"]};

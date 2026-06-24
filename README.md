@@ -1,4 +1,4 @@
-# Lib-airnav
+# Lib-airnav [![Read the Docs](https://img.shields.io/badge/read%20the%20docs-d2991d)](https://birdhalfbaked.github.io/airnav-rs/doc/lib_airnav/index.html)
 
 This project helps process air navigation data in a structured way. It targets **ARINC 424** today and is intended to grow toward **AIXM** sources as well.
 
@@ -17,9 +17,9 @@ sources.
 
 Parsing and definitions follow **ARINC 424-23** (Specification 424, Change 23).
 
-- Raw field definitions with human verification through field **5.148**
-- Record parsing soon after all the human verification of the raw fields is done. No shortcuts
+All fields are manually curated and defined as best as possible to capture the intent of the specification. There are errata and ambiguous interpretations of data, thus not all fields will be perfect on first use. Please raise issues as needed.
+
 
 ## AIXM
 
-Coming soon, though should be easier as the schema is well defined and fits within XML parsing semantics nicely already
+Next step after ARINC 424 is done, though should be easier as the schema is well defined and fits within XML parsing semantics nicely already

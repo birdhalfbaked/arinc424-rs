@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["BLANK"],"struct":["FieldParseError"]};
+window.SIDEBAR_ITEMS = {"constant":["BLANK"],"struct":["FieldParseError"],"trait":["ParseableField"]};

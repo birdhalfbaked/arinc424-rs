@@ -15,7 +15,7 @@
 <a href=#15 id=15 data-nosnippet>15</a></span><span class="kw">use </span><span class="kw">super</span>::numerics::{AltitudeNumeric, UintNumeric};
 <a href=#16 id=16 data-nosnippet>16</a><span class="kw">use </span><span class="kw">crate</span>::parsers::arinc424::{
 <a href=#17 id=17 data-nosnippet>17</a>    definitions::MultiUnitAltitudeNumeric,
-<a href=#18 id=18 data-nosnippet>18</a>    fields::{BLANK, FieldParseError},
+<a href=#18 id=18 data-nosnippet>18</a>    fields::{BLANK, FieldParseError, ParseableField},
 <a href=#19 id=19 data-nosnippet>19</a>};
 <a href=#20 id=20 data-nosnippet>20</a>
 <a href=#21 id=21 data-nosnippet>21</a><span class="comment">// VHF Navaid Class
@@ -24,8 +24,8 @@
 <a href=#24 id=24 data-nosnippet>24</a>    VOR,
 <a href=#25 id=25 data-nosnippet>25</a>    Other,
 <a href=#26 id=26 data-nosnippet>26</a>}
-<a href=#27 id=27 data-nosnippet>27</a><span class="kw">impl </span>VHFNavaidType1 {
-<a href=#28 id=28 data-nosnippet>28</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#27 id=27 data-nosnippet>27</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>VHFNavaidType1 {
+<a href=#28 id=28 data-nosnippet>28</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#29 id=29 data-nosnippet>29</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#30 id=30 data-nosnippet>30</a>            <span class="string">b"V" </span>=&gt; VHFNavaidType1::VOR,
 <a href=#31 id=31 data-nosnippet>31</a>            [BLANK] =&gt; VHFNavaidType1::Other,
@@ -46,8 +46,8 @@
 <a href=#46 id=46 data-nosnippet>46</a>    MLSDMEN,
 <a href=#47 id=47 data-nosnippet>47</a>    MLSDMEP,
 <a href=#48 id=48 data-nosnippet>48</a>}
-<a href=#49 id=49 data-nosnippet>49</a><span class="kw">impl </span>VHFNavaidType2 {
-<a href=#50 id=50 data-nosnippet>50</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#49 id=49 data-nosnippet>49</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>VHFNavaidType2 {
+<a href=#50 id=50 data-nosnippet>50</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#51 id=51 data-nosnippet>51</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#52 id=52 data-nosnippet>52</a>            <span class="string">b"D" </span>=&gt; VHFNavaidType2::DME,
 <a href=#53 id=53 data-nosnippet>53</a>            <span class="string">b"T" </span>=&gt; VHFNavaidType2::TACAN,
@@ -72,7 +72,7 @@
 <a href=#72 id=72 data-nosnippet>72</a>    ILSTACAN,
 <a href=#73 id=73 data-nosnippet>73</a>}
 <a href=#74 id=74 data-nosnippet>74</a><span class="kw">impl </span>VHFRangePower {
-<a href=#75 id=75 data-nosnippet>75</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#75 id=75 data-nosnippet>75</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#76 id=76 data-nosnippet>76</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#77 id=77 data-nosnippet>77</a>            <span class="string">b"T" </span>=&gt; VHFRangePower::Terminal,
 <a href=#78 id=78 data-nosnippet>78</a>            <span class="string">b"L" </span>=&gt; VHFRangePower::LowAltitude,
@@ -98,7 +98,7 @@
 <a href=#98 id=98 data-nosnippet>98</a>}
 <a href=#99 id=99 data-nosnippet>99</a>
 <a href=#100 id=100 data-nosnippet>100</a><span class="kw">impl </span>VHFAdditionalInfo {
-<a href=#101 id=101 data-nosnippet>101</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#101 id=101 data-nosnippet>101</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#102 id=102 data-nosnippet>102</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#103 id=103 data-nosnippet>103</a>            <span class="string">b"D" </span>=&gt; VHFAdditionalInfo::BiasedILSDMEOrILSTACAN,
 <a href=#104 id=104 data-nosnippet>104</a>            <span class="string">b"A" </span>=&gt; VHFAdditionalInfo::AutomaticTranscribedWeatherBroadcast,
@@ -119,8 +119,8 @@
 <a href=#119 id=119 data-nosnippet>119</a>    NonCollocated,
 <a href=#120 id=120 data-nosnippet>120</a>}
 <a href=#121 id=121 data-nosnippet>121</a>
-<a href=#122 id=122 data-nosnippet>122</a><span class="kw">impl </span>Collocation {
-<a href=#123 id=123 data-nosnippet>123</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#122 id=122 data-nosnippet>122</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>Collocation {
+<a href=#123 id=123 data-nosnippet>123</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#124 id=124 data-nosnippet>124</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#125 id=125 data-nosnippet>125</a>            [BLANK] =&gt; Collocation::Collocated,
 <a href=#126 id=126 data-nosnippet>126</a>            <span class="string">b"N" </span>=&gt; Collocation::NonCollocated,
@@ -142,8 +142,8 @@
 <a href=#142 id=142 data-nosnippet>142</a>    VHFAdditionalInfo,
 <a href=#143 id=143 data-nosnippet>143</a>    Collocation,
 <a href=#144 id=144 data-nosnippet>144</a>);
-<a href=#145 id=145 data-nosnippet>145</a><span class="kw">impl </span>VHFNavaidClass {
-<a href=#146 id=146 data-nosnippet>146</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#145 id=145 data-nosnippet>145</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>VHFNavaidClass {
+<a href=#146 id=146 data-nosnippet>146</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#147 id=147 data-nosnippet>147</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(VHFNavaidClass(
 <a href=#148 id=148 data-nosnippet>148</a>            VHFNavaidType1::from_bytes(<span class="kw-2">&amp;</span>bytes[<span class="number">0</span>..<span class="number">1</span>])<span class="question-mark">?</span>.ok_or(FieldParseError {
 <a href=#149 id=149 data-nosnippet>149</a>                message: <span class="string">"Invalid Navaid Type 1"</span>.to_string(),
@@ -171,8 +171,8 @@
 <a href=#171 id=171 data-nosnippet>171</a>    SABH,
 <a href=#172 id=172 data-nosnippet>172</a>    MarineBeacon,
 <a href=#173 id=173 data-nosnippet>173</a>}
-<a href=#174 id=174 data-nosnippet>174</a><span class="kw">impl </span>NDBNavaidType1 {
-<a href=#175 id=175 data-nosnippet>175</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#174 id=174 data-nosnippet>174</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>NDBNavaidType1 {
+<a href=#175 id=175 data-nosnippet>175</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#176 id=176 data-nosnippet>176</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#177 id=177 data-nosnippet>177</a>            <span class="string">b"H" </span>=&gt; NDBNavaidType1::NDB,
 <a href=#178 id=178 data-nosnippet>178</a>            <span class="string">b"S" </span>=&gt; NDBNavaidType1::SABH,
@@ -193,8 +193,8 @@
 <a href=#193 id=193 data-nosnippet>193</a>    OuterMarker,
 <a href=#194 id=194 data-nosnippet>194</a>    BackMarker,
 <a href=#195 id=195 data-nosnippet>195</a>}
-<a href=#196 id=196 data-nosnippet>196</a><span class="kw">impl </span>NDBNavaidType2 {
-<a href=#197 id=197 data-nosnippet>197</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#196 id=196 data-nosnippet>196</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>NDBNavaidType2 {
+<a href=#197 id=197 data-nosnippet>197</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#198 id=198 data-nosnippet>198</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#199 id=199 data-nosnippet>199</a>            <span class="string">b"I" </span>=&gt; NDBNavaidType2::InnerMarker,
 <a href=#200 id=200 data-nosnippet>200</a>            <span class="string">b"M" </span>=&gt; NDBNavaidType2::MiddleMarker,
@@ -217,8 +217,8 @@
 <a href=#217 id=217 data-nosnippet>217</a>    Locator,
 <a href=#218 id=218 data-nosnippet>218</a>}
 <a href=#219 id=219 data-nosnippet>219</a>
-<a href=#220 id=220 data-nosnippet>220</a><span class="kw">impl </span>NDBRangePower {
-<a href=#221 id=221 data-nosnippet>221</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#220 id=220 data-nosnippet>220</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>NDBRangePower {
+<a href=#221 id=221 data-nosnippet>221</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#222 id=222 data-nosnippet>222</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#223 id=223 data-nosnippet>223</a>            <span class="string">b"H" </span>=&gt; NDBRangePower::HighPoweredNDB,
 <a href=#224 id=224 data-nosnippet>224</a>            [BLANK] =&gt; NDBRangePower::NDB,
@@ -240,8 +240,8 @@
 <a href=#240 id=240 data-nosnippet>240</a>    VoiceOnFrequency,
 <a href=#241 id=241 data-nosnippet>241</a>}
 <a href=#242 id=242 data-nosnippet>242</a>
-<a href=#243 id=243 data-nosnippet>243</a><span class="kw">impl </span>NDBAdditionalInfo {
-<a href=#244 id=244 data-nosnippet>244</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#243 id=243 data-nosnippet>243</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>NDBAdditionalInfo {
+<a href=#244 id=244 data-nosnippet>244</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#245 id=245 data-nosnippet>245</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#246 id=246 data-nosnippet>246</a>            <span class="string">b"A" </span>=&gt; NDBAdditionalInfo::AutomaticTranscribedWeatherBroadcast,
 <a href=#247 id=247 data-nosnippet>247</a>            <span class="string">b"B" </span>=&gt; NDBAdditionalInfo::ScheduledWeatherBroadcast,
@@ -262,8 +262,8 @@
 <a href=#262 id=262 data-nosnippet>262</a>    NonCollocated,
 <a href=#263 id=263 data-nosnippet>263</a>}
 <a href=#264 id=264 data-nosnippet>264</a>
-<a href=#265 id=265 data-nosnippet>265</a><span class="kw">impl </span>NDBCollocation {
-<a href=#266 id=266 data-nosnippet>266</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#265 id=265 data-nosnippet>265</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>NDBCollocation {
+<a href=#266 id=266 data-nosnippet>266</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#267 id=267 data-nosnippet>267</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#268 id=268 data-nosnippet>268</a>            <span class="string">b"B" </span>=&gt; NDBCollocation::BFOOperation,
 <a href=#269 id=269 data-nosnippet>269</a>            <span class="string">b"N" </span>=&gt; NDBCollocation::NonCollocated,
@@ -285,8 +285,8 @@
 <a href=#285 id=285 data-nosnippet>285</a>    NDBAdditionalInfo,
 <a href=#286 id=286 data-nosnippet>286</a>    NDBCollocation,
 <a href=#287 id=287 data-nosnippet>287</a>);
-<a href=#288 id=288 data-nosnippet>288</a><span class="kw">impl </span>NDBNavaidClass {
-<a href=#289 id=289 data-nosnippet>289</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#288 id=288 data-nosnippet>288</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>NDBNavaidClass {
+<a href=#289 id=289 data-nosnippet>289</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#290 id=290 data-nosnippet>290</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(NDBNavaidClass(
 <a href=#291 id=291 data-nosnippet>291</a>            NDBNavaidType1::from_bytes(<span class="kw-2">&amp;</span>bytes[<span class="number">0</span>..<span class="number">1</span>])<span class="question-mark">?</span>.ok_or(FieldParseError {
 <a href=#292 id=292 data-nosnippet>292</a>                message: <span class="string">"Invalid Navaid Type 1"</span>.to_string(),
@@ -316,8 +316,8 @@
 <a href=#316 id=316 data-nosnippet>316</a>    LocatorMarkerCollocated,
 <a href=#317 id=317 data-nosnippet>317</a>    LocatorMarkerNotCollocated,
 <a href=#318 id=318 data-nosnippet>318</a>}
-<a href=#319 id=319 data-nosnippet>319</a><span class="kw">impl </span>MarkerCollocation {
-<a href=#320 id=320 data-nosnippet>320</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#319 id=319 data-nosnippet>319</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>MarkerCollocation {
+<a href=#320 id=320 data-nosnippet>320</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#321 id=321 data-nosnippet>321</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#322 id=322 data-nosnippet>322</a>            <span class="string">b"B" </span>=&gt; MarkerCollocation::BFOOperation,
 <a href=#323 id=323 data-nosnippet>323</a>            <span class="string">b"A" </span>=&gt; MarkerCollocation::LocatorMarkerCollocated,
@@ -340,8 +340,8 @@
 <a href=#340 id=340 data-nosnippet>340</a>    NDBAdditionalInfo,
 <a href=#341 id=341 data-nosnippet>341</a>    MarkerCollocation,
 <a href=#342 id=342 data-nosnippet>342</a>);
-<a href=#343 id=343 data-nosnippet>343</a><span class="kw">impl </span>MarkerLocatorNavaidClass {
-<a href=#344 id=344 data-nosnippet>344</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#343 id=343 data-nosnippet>343</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>MarkerLocatorNavaidClass {
+<a href=#344 id=344 data-nosnippet>344</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#345 id=345 data-nosnippet>345</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(MarkerLocatorNavaidClass(
 <a href=#346 id=346 data-nosnippet>346</a>            NDBNavaidType1::from_bytes(<span class="kw-2">&amp;</span>bytes[<span class="number">0</span>..<span class="number">1</span>])<span class="question-mark">?</span>.ok_or(FieldParseError {
 <a href=#347 id=347 data-nosnippet>347</a>                message: <span class="string">"Invalid Navaid Type 1"</span>.to_string(),
@@ -377,8 +377,8 @@
 <a href=#377 id=377 data-nosnippet>377</a>    VFRWaypoint,
 <a href=#378 id=378 data-nosnippet>378</a>    RNAVWaypoint,
 <a href=#379 id=379 data-nosnippet>379</a>}
-<a href=#380 id=380 data-nosnippet>380</a><span class="kw">impl </span>PrimaryWaypointType {
-<a href=#381 id=381 data-nosnippet>381</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#380 id=380 data-nosnippet>380</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>PrimaryWaypointType {
+<a href=#381 id=381 data-nosnippet>381</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#382 id=382 data-nosnippet>382</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#383 id=383 data-nosnippet>383</a>            <span class="string">b"A" </span>=&gt; PrimaryWaypointType::ArcCenterFix,
 <a href=#384 id=384 data-nosnippet>384</a>            <span class="string">b"C" </span>=&gt; PrimaryWaypointType::CombinedNamedIntersectionAndOrDMEFixRNAVWaypoint,
@@ -422,8 +422,8 @@
 <a href=#422 id=422 data-nosnippet>422</a>    FullDegreeLatLongFix,
 <a href=#423 id=423 data-nosnippet>423</a>    HalfDegreeLatLongFix,
 <a href=#424 id=424 data-nosnippet>424</a>}
-<a href=#425 id=425 data-nosnippet>425</a><span class="kw">impl </span>SecondaryWaypointType {
-<a href=#426 id=426 data-nosnippet>426</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#425 id=425 data-nosnippet>425</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>SecondaryWaypointType {
+<a href=#426 id=426 data-nosnippet>426</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#427 id=427 data-nosnippet>427</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#428 id=428 data-nosnippet>428</a>            <span class="string">b"A" </span>=&gt; SecondaryWaypointType::FinalApproachFix,
 <a href=#429 id=429 data-nosnippet>429</a>            <span class="string">b"B" </span>=&gt; SecondaryWaypointType::InitialAndFinalApproachFix,
@@ -462,8 +462,8 @@
 <a href=#462 id=462 data-nosnippet>462</a>    PublishedForUseInMultipleTerminalProcedures,
 <a href=#463 id=463 data-nosnippet>463</a>}
 <a href=#464 id=464 data-nosnippet>464</a>
-<a href=#465 id=465 data-nosnippet>465</a><span class="kw">impl </span>PublishedUse {
-<a href=#466 id=466 data-nosnippet>466</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#465 id=465 data-nosnippet>465</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>PublishedUse {
+<a href=#466 id=466 data-nosnippet>466</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#467 id=467 data-nosnippet>467</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#468 id=468 data-nosnippet>468</a>            <span class="string">b"D" </span>=&gt; PublishedUse::PublishedForUseInSID,
 <a href=#469 id=469 data-nosnippet>469</a>            <span class="string">b"E" </span>=&gt; PublishedUse::PublishedForUseInSTAR,
@@ -481,8 +481,8 @@
 <a href=#481 id=481 data-nosnippet>481</a><span class="doccomment">/// 5.42 Waypoint Type (TYPE)
 <a href=#482 id=482 data-nosnippet>482</a></span><span class="attr">#[derive(Debug, PartialEq, Eq)]
 <a href=#483 id=483 data-nosnippet>483</a></span><span class="kw">pub struct </span>WaypointType(PrimaryWaypointType, SecondaryWaypointType, PublishedUse);
-<a href=#484 id=484 data-nosnippet>484</a><span class="kw">impl </span>WaypointType {
-<a href=#485 id=485 data-nosnippet>485</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#484 id=484 data-nosnippet>484</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>WaypointType {
+<a href=#485 id=485 data-nosnippet>485</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#486 id=486 data-nosnippet>486</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(WaypointType(
 <a href=#487 id=487 data-nosnippet>487</a>            PrimaryWaypointType::from_bytes(<span class="kw-2">&amp;</span>bytes[<span class="number">0</span>..<span class="number">1</span>])<span class="question-mark">?</span>.ok_or(FieldParseError {
 <a href=#488 id=488 data-nosnippet>488</a>                message: <span class="string">"Invalid Primary Waypoint Type"</span>.to_string(),
@@ -506,8 +506,8 @@
 <a href=#506 id=506 data-nosnippet>506</a>    Asynchronous,
 <a href=#507 id=507 data-nosnippet>507</a>    Unknown,
 <a href=#508 id=508 data-nosnippet>508</a>}
-<a href=#509 id=509 data-nosnippet>509</a><span class="kw">impl </span>FacilityCharacteristicsSynchronicity {
-<a href=#510 id=510 data-nosnippet>510</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#509 id=509 data-nosnippet>509</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>FacilityCharacteristicsSynchronicity {
+<a href=#510 id=510 data-nosnippet>510</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#511 id=511 data-nosnippet>511</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#512 id=512 data-nosnippet>512</a>            <span class="string">b"S" </span>=&gt; FacilityCharacteristicsSynchronicity::Synchronous,
 <a href=#513 id=513 data-nosnippet>513</a>            <span class="string">b"A" </span>=&gt; FacilityCharacteristicsSynchronicity::Asynchronous,
@@ -529,8 +529,8 @@
 <a href=#529 id=529 data-nosnippet>529</a>    NotApplicable,
 <a href=#530 id=530 data-nosnippet>530</a>}
 <a href=#531 id=531 data-nosnippet>531</a>
-<a href=#532 id=532 data-nosnippet>532</a><span class="kw">impl </span>FacilityCharacteristicsVoiceIdent {
-<a href=#533 id=533 data-nosnippet>533</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#532 id=532 data-nosnippet>532</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>FacilityCharacteristicsVoiceIdent {
+<a href=#533 id=533 data-nosnippet>533</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#534 id=534 data-nosnippet>534</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#535 id=535 data-nosnippet>535</a>            <span class="string">b"Y" </span>=&gt; FacilityCharacteristicsVoiceIdent::VoiceIdent,
 <a href=#536 id=536 data-nosnippet>536</a>            <span class="string">b"N" </span>=&gt; FacilityCharacteristicsVoiceIdent::NoVoiceIdent,
@@ -552,8 +552,8 @@
 <a href=#552 id=552 data-nosnippet>552</a>    NotApplicable,
 <a href=#553 id=553 data-nosnippet>553</a>}
 <a href=#554 id=554 data-nosnippet>554</a>
-<a href=#555 id=555 data-nosnippet>555</a><span class="kw">impl </span>FacilityCharacteristicsEmissionType {
-<a href=#556 id=556 data-nosnippet>556</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#555 id=555 data-nosnippet>555</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>FacilityCharacteristicsEmissionType {
+<a href=#556 id=556 data-nosnippet>556</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#557 id=557 data-nosnippet>557</a>        <span class="kw">if </span>bytes[<span class="number">0</span>] == BLANK {
 <a href=#558 id=558 data-nosnippet>558</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(FacilityCharacteristicsEmissionType::NotApplicable));
 <a href=#559 id=559 data-nosnippet>559</a>        }
@@ -581,8 +581,8 @@
 <a href=#581 id=581 data-nosnippet>581</a>    MLSHighRateAzimuthGuidance,
 <a href=#582 id=582 data-nosnippet>582</a>    NotApplicable,
 <a href=#583 id=583 data-nosnippet>583</a>}
-<a href=#584 id=584 data-nosnippet>584</a><span class="kw">impl </span>FacilityCharacteristicsFreqAndBackcourse {
-<a href=#585 id=585 data-nosnippet>585</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#584 id=584 data-nosnippet>584</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>FacilityCharacteristicsFreqAndBackcourse {
+<a href=#585 id=585 data-nosnippet>585</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#586 id=586 data-nosnippet>586</a>        <span class="kw">if </span>bytes[<span class="number">0</span>] == BLANK {
 <a href=#587 id=587 data-nosnippet>587</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(
 <a href=#588 id=588 data-nosnippet>588</a>                FacilityCharacteristicsFreqAndBackcourse::NotApplicable,
@@ -615,8 +615,8 @@
 <a href=#615 id=615 data-nosnippet>615</a>    NotApplicable,
 <a href=#616 id=616 data-nosnippet>616</a>    KnownRepetition(u8),
 <a href=#617 id=617 data-nosnippet>617</a>}
-<a href=#618 id=618 data-nosnippet>618</a><span class="kw">impl </span>FacilityCharacteristicsRepetitionAndCollocation {
-<a href=#619 id=619 data-nosnippet>619</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#618 id=618 data-nosnippet>618</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>FacilityCharacteristicsRepetitionAndCollocation {
+<a href=#619 id=619 data-nosnippet>619</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#620 id=620 data-nosnippet>620</a>        <span class="kw">if </span>bytes[<span class="number">0</span>] == BLANK {
 <a href=#621 id=621 data-nosnippet>621</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(
 <a href=#622 id=622 data-nosnippet>622</a>                FacilityCharacteristicsRepetitionAndCollocation::NotApplicable,
@@ -655,8 +655,8 @@
 <a href=#655 id=655 data-nosnippet>655</a>    FacilityCharacteristicsFreqAndBackcourse,
 <a href=#656 id=656 data-nosnippet>656</a>    FacilityCharacteristicsRepetitionAndCollocation,
 <a href=#657 id=657 data-nosnippet>657</a>);
-<a href=#658 id=658 data-nosnippet>658</a><span class="kw">impl </span>FacilityCharacteristics {
-<a href=#659 id=659 data-nosnippet>659</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#658 id=658 data-nosnippet>658</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>FacilityCharacteristics {
+<a href=#659 id=659 data-nosnippet>659</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#660 id=660 data-nosnippet>660</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(FacilityCharacteristics(
 <a href=#661 id=661 data-nosnippet>661</a>            FacilityCharacteristicsSynchronicity::from_bytes(<span class="kw-2">&amp;</span>bytes[<span class="number">0</span>..<span class="number">1</span>])<span class="question-mark">?</span>.ok_or(
 <a href=#662 id=662 data-nosnippet>662</a>                FieldParseError {
@@ -721,8 +721,8 @@
 <a href=#721 id=721 data-nosnippet>721</a>    Locator,
 <a href=#722 id=722 data-nosnippet>722</a>    NotApplicable,
 <a href=#723 id=723 data-nosnippet>723</a>}
-<a href=#724 id=724 data-nosnippet>724</a><span class="kw">impl </span>MarkerTypeLocator {
-<a href=#725 id=725 data-nosnippet>725</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#724 id=724 data-nosnippet>724</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>MarkerTypeLocator {
+<a href=#725 id=725 data-nosnippet>725</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#726 id=726 data-nosnippet>726</a>        <span class="kw">if </span>bytes[<span class="number">0</span>] == BLANK {
 <a href=#727 id=727 data-nosnippet>727</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(MarkerTypeLocator::NotApplicable));
 <a href=#728 id=728 data-nosnippet>728</a>        }
@@ -745,8 +745,8 @@
 <a href=#745 id=745 data-nosnippet>745</a>    Back,
 <a href=#746 id=746 data-nosnippet>746</a>    NotApplicable,
 <a href=#747 id=747 data-nosnippet>747</a>}
-<a href=#748 id=748 data-nosnippet>748</a><span class="kw">impl </span>MarkerTypeLocation {
-<a href=#749 id=749 data-nosnippet>749</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#748 id=748 data-nosnippet>748</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>MarkerTypeLocation {
+<a href=#749 id=749 data-nosnippet>749</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#750 id=750 data-nosnippet>750</a>        <span class="kw">if </span>bytes[<span class="number">0</span>] == BLANK {
 <a href=#751 id=751 data-nosnippet>751</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(MarkerTypeLocation::NotApplicable));
 <a href=#752 id=752 data-nosnippet>752</a>        }
@@ -769,8 +769,8 @@
 <a href=#769 id=769 data-nosnippet>769</a>    Marker,
 <a href=#770 id=770 data-nosnippet>770</a>    NotApplicable,
 <a href=#771 id=771 data-nosnippet>771</a>}
-<a href=#772 id=772 data-nosnippet>772</a><span class="kw">impl </span>MarkerTypeMarker {
-<a href=#773 id=773 data-nosnippet>773</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#772 id=772 data-nosnippet>772</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>MarkerTypeMarker {
+<a href=#773 id=773 data-nosnippet>773</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#774 id=774 data-nosnippet>774</a>        <span class="kw">if </span>bytes[<span class="number">0</span>] == BLANK {
 <a href=#775 id=775 data-nosnippet>775</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(MarkerTypeMarker::NotApplicable));
 <a href=#776 id=776 data-nosnippet>776</a>        }
@@ -788,8 +788,8 @@
 <a href=#788 id=788 data-nosnippet>788</a><span class="doccomment">/// 5.99 Marker Type
 <a href=#789 id=789 data-nosnippet>789</a></span><span class="attr">#[derive(Debug, PartialEq, Eq)]
 <a href=#790 id=790 data-nosnippet>790</a></span><span class="kw">pub struct </span>MarkerType(MarkerTypeLocator, MarkerTypeLocation, MarkerTypeMarker);
-<a href=#791 id=791 data-nosnippet>791</a><span class="kw">impl </span>MarkerType {
-<a href=#792 id=792 data-nosnippet>792</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#791 id=791 data-nosnippet>791</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>MarkerType {
+<a href=#792 id=792 data-nosnippet>792</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#793 id=793 data-nosnippet>793</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(MarkerType(
 <a href=#794 id=794 data-nosnippet>794</a>            MarkerTypeLocator::from_bytes(<span class="kw-2">&amp;</span>bytes[<span class="number">0</span>..<span class="number">1</span>])<span class="question-mark">?</span>.ok_or(FieldParseError {
 <a href=#795 id=795 data-nosnippet>795</a>                message: <span class="string">"Invalid Marker Type Locator"</span>.to_string(),
@@ -820,8 +820,8 @@
 <a href=#820 id=820 data-nosnippet>820</a>    NotApplicable,
 <a href=#821 id=821 data-nosnippet>821</a>}
 <a href=#822 id=822 data-nosnippet>822</a>
-<a href=#823 id=823 data-nosnippet>823</a><span class="kw">impl </span>AirportHeliportCommunicationsServiceIndicator1 {
-<a href=#824 id=824 data-nosnippet>824</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#823 id=823 data-nosnippet>823</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>AirportHeliportCommunicationsServiceIndicator1 {
+<a href=#824 id=824 data-nosnippet>824</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#825 id=825 data-nosnippet>825</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#826 id=826 data-nosnippet>826</a>            [BLANK] =&gt; AirportHeliportCommunicationsServiceIndicator1::NotApplicable,
 <a href=#827 id=827 data-nosnippet>827</a>            <span class="string">b"A" </span>=&gt; AirportHeliportCommunicationsServiceIndicator1::AirportAdvisoryService,
@@ -849,8 +849,8 @@
 <a href=#849 id=849 data-nosnippet>849</a>    SecondaryFrequency,
 <a href=#850 id=850 data-nosnippet>850</a>    NotApplicable,
 <a href=#851 id=851 data-nosnippet>851</a>}
-<a href=#852 id=852 data-nosnippet>852</a><span class="kw">impl </span>AirportHeliportCommunicationsServiceIndicator2 {
-<a href=#853 id=853 data-nosnippet>853</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#852 id=852 data-nosnippet>852</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>AirportHeliportCommunicationsServiceIndicator2 {
+<a href=#853 id=853 data-nosnippet>853</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#854 id=854 data-nosnippet>854</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#855 id=855 data-nosnippet>855</a>            [BLANK] =&gt; AirportHeliportCommunicationsServiceIndicator2::NotApplicable,
 <a href=#856 id=856 data-nosnippet>856</a>            <span class="string">b"A" </span>=&gt; AirportHeliportCommunicationsServiceIndicator2::AerodromeTrafficFrequency,
@@ -875,8 +875,8 @@
 <a href=#875 id=875 data-nosnippet>875</a>    PilotControlledLight,
 <a href=#876 id=876 data-nosnippet>876</a>    NotApplicable,
 <a href=#877 id=877 data-nosnippet>877</a>}
-<a href=#878 id=878 data-nosnippet>878</a><span class="kw">impl </span>AirportHeliportCommunicationsServiceIndicator3 {
-<a href=#879 id=879 data-nosnippet>879</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#878 id=878 data-nosnippet>878</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>AirportHeliportCommunicationsServiceIndicator3 {
+<a href=#879 id=879 data-nosnippet>879</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#880 id=880 data-nosnippet>880</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#881 id=881 data-nosnippet>881</a>            [BLANK] =&gt; AirportHeliportCommunicationsServiceIndicator3::NotApplicable,
 <a href=#882 id=882 data-nosnippet>882</a>            <span class="string">b"D" </span>=&gt; AirportHeliportCommunicationsServiceIndicator3::VHFDirectionFindingService,
@@ -900,8 +900,8 @@
 <a href=#900 id=900 data-nosnippet>900</a>    AirportHeliportCommunicationsServiceIndicator2,
 <a href=#901 id=901 data-nosnippet>901</a>    AirportHeliportCommunicationsServiceIndicator3,
 <a href=#902 id=902 data-nosnippet>902</a>);
-<a href=#903 id=903 data-nosnippet>903</a><span class="kw">impl </span>AirportHeliportCommunicationsServiceIndicator {
-<a href=#904 id=904 data-nosnippet>904</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#903 id=903 data-nosnippet>903</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>AirportHeliportCommunicationsServiceIndicator {
+<a href=#904 id=904 data-nosnippet>904</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#905 id=905 data-nosnippet>905</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(AirportHeliportCommunicationsServiceIndicator(
 <a href=#906 id=906 data-nosnippet>906</a>            AirportHeliportCommunicationsServiceIndicator1::from_bytes(<span class="kw-2">&amp;</span>bytes[<span class="number">0</span>..<span class="number">1</span>])<span class="question-mark">?</span>.ok_or(
 <a href=#907 id=907 data-nosnippet>907</a>                FieldParseError {
@@ -932,8 +932,8 @@
 <a href=#932 id=932 data-nosnippet>932</a>    FlightInformationService,
 <a href=#933 id=933 data-nosnippet>933</a>    NotApplicable,
 <a href=#934 id=934 data-nosnippet>934</a>}
-<a href=#935 id=935 data-nosnippet>935</a><span class="kw">impl </span>EnrouteCommunicationsServiceIndicator1 {
-<a href=#936 id=936 data-nosnippet>936</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#935 id=935 data-nosnippet>935</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>EnrouteCommunicationsServiceIndicator1 {
+<a href=#936 id=936 data-nosnippet>936</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#937 id=937 data-nosnippet>937</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#938 id=938 data-nosnippet>938</a>            [BLANK] =&gt; EnrouteCommunicationsServiceIndicator1::NotApplicable,
 <a href=#939 id=939 data-nosnippet>939</a>            <span class="string">b"A" </span>=&gt; EnrouteCommunicationsServiceIndicator1::AeronauticalEnrouteInformationService,
@@ -954,8 +954,8 @@
 <a href=#954 id=954 data-nosnippet>954</a>    SecondaryFrequency,
 <a href=#955 id=955 data-nosnippet>955</a>    NotApplicable,
 <a href=#956 id=956 data-nosnippet>956</a>}
-<a href=#957 id=957 data-nosnippet>957</a><span class="kw">impl </span>EnrouteCommunicationsServiceIndicator2 {
-<a href=#958 id=958 data-nosnippet>958</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#957 id=957 data-nosnippet>957</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>EnrouteCommunicationsServiceIndicator2 {
+<a href=#958 id=958 data-nosnippet>958</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#959 id=959 data-nosnippet>959</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#960 id=960 data-nosnippet>960</a>            [BLANK] =&gt; EnrouteCommunicationsServiceIndicator2::NotApplicable,
 <a href=#961 id=961 data-nosnippet>961</a>            <span class="string">b"A" </span>=&gt; EnrouteCommunicationsServiceIndicator2::AirGround,
@@ -977,8 +977,8 @@
 <a href=#977 id=977 data-nosnippet>977</a>    MilitaryUseFrequency,
 <a href=#978 id=978 data-nosnippet>978</a>    NotApplicable,
 <a href=#979 id=979 data-nosnippet>979</a>}
-<a href=#980 id=980 data-nosnippet>980</a><span class="kw">impl </span>EnrouteCommunicationsServiceIndicator3 {
-<a href=#981 id=981 data-nosnippet>981</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#980 id=980 data-nosnippet>980</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>EnrouteCommunicationsServiceIndicator3 {
+<a href=#981 id=981 data-nosnippet>981</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#982 id=982 data-nosnippet>982</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#983 id=983 data-nosnippet>983</a>            [BLANK] =&gt; EnrouteCommunicationsServiceIndicator3::NotApplicable,
 <a href=#984 id=984 data-nosnippet>984</a>            <span class="string">b"D" </span>=&gt; EnrouteCommunicationsServiceIndicator3::VHFDirectionFindingService,
@@ -1000,8 +1000,8 @@
 <a href=#1000 id=1000 data-nosnippet>1000</a>    EnrouteCommunicationsServiceIndicator2,
 <a href=#1001 id=1001 data-nosnippet>1001</a>    EnrouteCommunicationsServiceIndicator3,
 <a href=#1002 id=1002 data-nosnippet>1002</a>);
-<a href=#1003 id=1003 data-nosnippet>1003</a><span class="kw">impl </span>EnrouteCommunicationsServiceIndicator {
-<a href=#1004 id=1004 data-nosnippet>1004</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1003 id=1003 data-nosnippet>1003</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>EnrouteCommunicationsServiceIndicator {
+<a href=#1004 id=1004 data-nosnippet>1004</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1005 id=1005 data-nosnippet>1005</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(EnrouteCommunicationsServiceIndicator(
 <a href=#1006 id=1006 data-nosnippet>1006</a>            EnrouteCommunicationsServiceIndicator1::from_bytes(<span class="kw-2">&amp;</span>bytes[<span class="number">0</span>..<span class="number">1</span>])<span class="question-mark">?</span>.ok_or(
 <a href=#1007 id=1007 data-nosnippet>1007</a>                FieldParseError {
@@ -1037,8 +1037,8 @@
 <a href=#1037 id=1037 data-nosnippet>1037</a>    AllAltitude,
 <a href=#1038 id=1038 data-nosnippet>1038</a>}
 <a href=#1039 id=1039 data-nosnippet>1039</a>
-<a href=#1040 id=1040 data-nosnippet>1040</a><span class="kw">impl </span>DuplicateIndicatorAirspace {
-<a href=#1041 id=1041 data-nosnippet>1041</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1040 id=1040 data-nosnippet>1040</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>DuplicateIndicatorAirspace {
+<a href=#1041 id=1041 data-nosnippet>1041</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1042 id=1042 data-nosnippet>1042</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#1043 id=1043 data-nosnippet>1043</a>            <span class="string">b"0" </span>=&gt; DuplicateIndicatorAirspace::Undefined,
 <a href=#1044 id=1044 data-nosnippet>1044</a>            <span class="string">b"1" </span>=&gt; DuplicateIndicatorAirspace::HighAltitude,
@@ -1063,8 +1063,8 @@
 <a href=#1063 id=1063 data-nosnippet>1063</a><span class="doccomment">/// 5.114 Duplicate Indicator
 <a href=#1064 id=1064 data-nosnippet>1064</a></span><span class="attr">#[derive(Debug, PartialEq, Eq)]
 <a href=#1065 id=1065 data-nosnippet>1065</a></span><span class="kw">pub struct </span>DuplicateIndicator(DuplicateIndicatorAirspace, DuplicateIndicatorDuplicates);
-<a href=#1066 id=1066 data-nosnippet>1066</a><span class="kw">impl </span>DuplicateIndicator {
-<a href=#1067 id=1067 data-nosnippet>1067</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1066 id=1066 data-nosnippet>1066</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>DuplicateIndicator {
+<a href=#1067 id=1067 data-nosnippet>1067</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1068 id=1068 data-nosnippet>1068</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(DuplicateIndicator(
 <a href=#1069 id=1069 data-nosnippet>1069</a>            DuplicateIndicatorAirspace::from_bytes(<span class="kw-2">&amp;</span>bytes[<span class="number">0</span>..<span class="number">1</span>])<span class="question-mark">?</span>.ok_or(FieldParseError {
 <a href=#1070 id=1070 data-nosnippet>1070</a>                message: <span class="string">"Invalid duplicate indicator airspace"</span>.to_string(),
@@ -1085,7 +1085,7 @@
 <a href=#1085 id=1085 data-nosnippet>1085</a>    ClockwiseArc,
 <a href=#1086 id=1086 data-nosnippet>1086</a>}
 <a href=#1087 id=1087 data-nosnippet>1087</a><span class="kw">impl </span>BoundaryViaPathType {
-<a href=#1088 id=1088 data-nosnippet>1088</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1088 id=1088 data-nosnippet>1088</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1089 id=1089 data-nosnippet>1089</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#1090 id=1090 data-nosnippet>1090</a>            <span class="string">b"C" </span>=&gt; BoundaryViaPathType::Circle,
 <a href=#1091 id=1091 data-nosnippet>1091</a>            <span class="string">b"G" </span>=&gt; BoundaryViaPathType::GreatCircle,
@@ -1107,7 +1107,7 @@
 <a href=#1107 id=1107 data-nosnippet>1107</a>    Other,
 <a href=#1108 id=1108 data-nosnippet>1108</a>}
 <a href=#1109 id=1109 data-nosnippet>1109</a><span class="kw">impl </span>BoundaryViaEndPoint {
-<a href=#1110 id=1110 data-nosnippet>1110</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1110 id=1110 data-nosnippet>1110</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1111 id=1111 data-nosnippet>1111</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#1112 id=1112 data-nosnippet>1112</a>            <span class="string">b"E" </span>=&gt; BoundaryViaEndPoint::EndOfDescription,
 <a href=#1113 id=1113 data-nosnippet>1113</a>            [BLANK] =&gt; BoundaryViaEndPoint::Other,
@@ -1123,7 +1123,7 @@
 <a href=#1123 id=1123 data-nosnippet>1123</a></span><span class="attr">#[derive(Debug, PartialEq, Eq)]
 <a href=#1124 id=1124 data-nosnippet>1124</a></span><span class="kw">pub struct </span>BoundaryVia(BoundaryViaPathType, BoundaryViaEndPoint);
 <a href=#1125 id=1125 data-nosnippet>1125</a><span class="kw">impl </span>BoundaryVia {
-<a href=#1126 id=1126 data-nosnippet>1126</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1126 id=1126 data-nosnippet>1126</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1127 id=1127 data-nosnippet>1127</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(BoundaryVia(
 <a href=#1128 id=1128 data-nosnippet>1128</a>            BoundaryViaPathType::from_bytes(<span class="kw-2">&amp;</span>bytes[<span class="number">0</span>..<span class="number">1</span>])<span class="question-mark">?</span>.ok_or(FieldParseError {
 <a href=#1129 id=1129 data-nosnippet>1129</a>                message: <span class="string">"Invalid boundary via path type"</span>.to_string(),
@@ -1146,8 +1146,8 @@
 <a href=#1146 id=1146 data-nosnippet>1146</a>    SeeNOTAM,
 <a href=#1147 id=1147 data-nosnippet>1147</a>}
 <a href=#1148 id=1148 data-nosnippet>1148</a>
-<a href=#1149 id=1149 data-nosnippet>1149</a><span class="kw">impl </span>DescriptiveAltitudeLimits {
-<a href=#1150 id=1150 data-nosnippet>1150</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1149 id=1149 data-nosnippet>1149</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>DescriptiveAltitudeLimits {
+<a href=#1150 id=1150 data-nosnippet>1150</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1151 id=1151 data-nosnippet>1151</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#1152 id=1152 data-nosnippet>1152</a>            <span class="string">b"NOTSP" </span>=&gt; DescriptiveAltitudeLimits::NotSpecified,
 <a href=#1153 id=1153 data-nosnippet>1153</a>            <span class="string">b"UNLTD" </span>=&gt; DescriptiveAltitudeLimits::Unlimited,
@@ -1169,8 +1169,8 @@
 <a href=#1169 id=1169 data-nosnippet>1169</a>    Descriptive(DescriptiveAltitudeLimits),
 <a href=#1170 id=1170 data-nosnippet>1170</a>    Numeric(AltitudeNumeric),
 <a href=#1171 id=1171 data-nosnippet>1171</a>}
-<a href=#1172 id=1172 data-nosnippet>1172</a><span class="kw">impl </span>LowerUpperLimit {
-<a href=#1173 id=1173 data-nosnippet>1173</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1172 id=1172 data-nosnippet>1172</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>LowerUpperLimit {
+<a href=#1173 id=1173 data-nosnippet>1173</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1174 id=1174 data-nosnippet>1174</a>        <span class="comment">// try to parse as descriptive altitude limit first, on error handle as numeric altitude
 <a href=#1175 id=1175 data-nosnippet>1175</a>        </span><span class="kw">let </span>descriptive = DescriptiveAltitudeLimits::from_bytes(bytes);
 <a href=#1176 id=1176 data-nosnippet>1176</a>        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(descriptive)) = descriptive {
@@ -1221,8 +1221,8 @@
 <a href=#1221 id=1221 data-nosnippet>1221</a>    Descriptive(DescriptiveAltitudeLimits),
 <a href=#1222 id=1222 data-nosnippet>1222</a>    Numeric(AltitudeNumeric),
 <a href=#1223 id=1223 data-nosnippet>1223</a>}
-<a href=#1224 id=1224 data-nosnippet>1224</a><span class="kw">impl </span>MaximumAltitude {
-<a href=#1225 id=1225 data-nosnippet>1225</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1224 id=1224 data-nosnippet>1224</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>MaximumAltitude {
+<a href=#1225 id=1225 data-nosnippet>1225</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1226 id=1226 data-nosnippet>1226</a>        <span class="kw">let </span>descriptive = DescriptiveAltitudeLimits::from_bytes(bytes);
 <a href=#1227 id=1227 data-nosnippet>1227</a>        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(descriptive)) = descriptive {
 <a href=#1228 id=1228 data-nosnippet>1228</a>            <span class="comment">// we only allow unlimited as descriptive altitude limit
@@ -1255,8 +1255,8 @@
 <a href=#1255 id=1255 data-nosnippet>1255</a>    Descriptive(DescriptiveAltitudeLimits),
 <a href=#1256 id=1256 data-nosnippet>1256</a>    Numeric(MultiUnitAltitudeNumeric),
 <a href=#1257 id=1257 data-nosnippet>1257</a>}
-<a href=#1258 id=1258 data-nosnippet>1258</a><span class="kw">impl </span>CruiseLevelFromTo {
-<a href=#1259 id=1259 data-nosnippet>1259</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1258 id=1258 data-nosnippet>1258</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>CruiseLevelFromTo {
+<a href=#1259 id=1259 data-nosnippet>1259</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1260 id=1260 data-nosnippet>1260</a>        <span class="kw">let </span>descriptive = DescriptiveAltitudeLimits::from_bytes(bytes);
 <a href=#1261 id=1261 data-nosnippet>1261</a>        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(descriptive)) = descriptive {
 <a href=#1262 id=1262 data-nosnippet>1262</a>            <span class="comment">// we only allow unlimited as descriptive altitude limit
@@ -1307,8 +1307,8 @@
 <a href=#1307 id=1307 data-nosnippet>1307</a>    <span class="kw">pub </span>start_bearing: UintNumeric,
 <a href=#1308 id=1308 data-nosnippet>1308</a>    <span class="kw">pub </span>end_bearing: UintNumeric,
 <a href=#1309 id=1309 data-nosnippet>1309</a>}
-<a href=#1310 id=1310 data-nosnippet>1310</a><span class="kw">impl </span>SectorBearing {
-<a href=#1311 id=1311 data-nosnippet>1311</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1310 id=1310 data-nosnippet>1310</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>SectorBearing {
+<a href=#1311 id=1311 data-nosnippet>1311</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1312 id=1312 data-nosnippet>1312</a>        <span class="kw">if </span>bytes.trim_ascii_end().is_empty() {
 <a href=#1313 id=1313 data-nosnippet>1313</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
 <a href=#1314 id=1314 data-nosnippet>1314</a>        }
@@ -1331,8 +1331,8 @@
 <a href=#1331 id=1331 data-nosnippet>1331</a>    <span class="kw">pub </span>width: UintNumeric,
 <a href=#1332 id=1332 data-nosnippet>1332</a>    <span class="kw">pub </span>length: UintNumeric,
 <a href=#1333 id=1333 data-nosnippet>1333</a>}
-<a href=#1334 id=1334 data-nosnippet>1334</a><span class="kw">impl </span>RectangularPadDimensions {
-<a href=#1335 id=1335 data-nosnippet>1335</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1334 id=1334 data-nosnippet>1334</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>RectangularPadDimensions {
+<a href=#1335 id=1335 data-nosnippet>1335</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1336 id=1336 data-nosnippet>1336</a>        <span class="kw">if </span>bytes.trim_ascii_end().is_empty() {
 <a href=#1337 id=1337 data-nosnippet>1337</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
 <a href=#1338 id=1338 data-nosnippet>1338</a>        }
@@ -1351,7 +1351,7 @@
 <a href=#1351 id=1351 data-nosnippet>1351</a>    <span class="kw">pub </span>diameter: UintNumeric,
 <a href=#1352 id=1352 data-nosnippet>1352</a>}
 <a href=#1353 id=1353 data-nosnippet>1353</a><span class="kw">impl </span>CircularPadDimensions {
-<a href=#1354 id=1354 data-nosnippet>1354</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1354 id=1354 data-nosnippet>1354</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1355 id=1355 data-nosnippet>1355</a>        <span class="kw">if </span>bytes.trim_ascii_end().is_empty() {
 <a href=#1356 id=1356 data-nosnippet>1356</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
 <a href=#1357 id=1357 data-nosnippet>1357</a>        }
@@ -1405,8 +1405,8 @@
 <a href=#1405 id=1405 data-nosnippet>1405</a>    UTCPlus12,
 <a href=#1406 id=1406 data-nosnippet>1406</a>}
 <a href=#1407 id=1407 data-nosnippet>1407</a>
-<a href=#1408 id=1408 data-nosnippet>1408</a><span class="kw">impl </span>TimezoneZone {
-<a href=#1409 id=1409 data-nosnippet>1409</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1408 id=1408 data-nosnippet>1408</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>TimezoneZone {
+<a href=#1409 id=1409 data-nosnippet>1409</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1410 id=1410 data-nosnippet>1410</a>        <span class="kw">if </span>bytes.trim_ascii_end().is_empty() {
 <a href=#1411 id=1411 data-nosnippet>1411</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
 <a href=#1412 id=1412 data-nosnippet>1412</a>        }
@@ -1454,7 +1454,7 @@
 <a href=#1454 id=1454 data-nosnippet>1454</a>    <span class="kw">pub </span>minutes_offset: <span class="prelude-ty">Option</span>&lt;UintNumeric&gt;,
 <a href=#1455 id=1455 data-nosnippet>1455</a>}
 <a href=#1456 id=1456 data-nosnippet>1456</a><span class="kw">impl </span>Timezone {
-<a href=#1457 id=1457 data-nosnippet>1457</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1457 id=1457 data-nosnippet>1457</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1458 id=1458 data-nosnippet>1458</a>        <span class="kw">if </span>bytes.trim_ascii_end().is_empty() {
 <a href=#1459 id=1459 data-nosnippet>1459</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
 <a href=#1460 id=1460 data-nosnippet>1460</a>        }
@@ -1522,8 +1522,8 @@
 <a href=#1522 id=1522 data-nosnippet>1522</a>    VFRCheckpointReportingPointAsFix,
 <a href=#1523 id=1523 data-nosnippet>1523</a>}
 <a href=#1524 id=1524 data-nosnippet>1524</a>
-<a href=#1525 id=1525 data-nosnippet>1525</a><span class="kw">impl </span>NameFormatType1 {
-<a href=#1526 id=1526 data-nosnippet>1526</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1525 id=1525 data-nosnippet>1525</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>NameFormatType1 {
+<a href=#1526 id=1526 data-nosnippet>1526</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1527 id=1527 data-nosnippet>1527</a>        <span class="kw">if </span>bytes.trim_ascii_end().is_empty() {
 <a href=#1528 id=1528 data-nosnippet>1528</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
 <a href=#1529 id=1529 data-nosnippet>1529</a>        }
@@ -1559,7 +1559,7 @@
 <a href=#1559 id=1559 data-nosnippet>1559</a>    NotApplicable,
 <a href=#1560 id=1560 data-nosnippet>1560</a>}
 <a href=#1561 id=1561 data-nosnippet>1561</a><span class="kw">impl </span>NameFormatType2 {
-<a href=#1562 id=1562 data-nosnippet>1562</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1562 id=1562 data-nosnippet>1562</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1563 id=1563 data-nosnippet>1563</a>        <span class="kw">if </span>bytes.trim_ascii_end().is_empty() {
 <a href=#1564 id=1564 data-nosnippet>1564</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(NameFormatType2::NotApplicable));
 <a href=#1565 id=1565 data-nosnippet>1565</a>        }
@@ -1579,7 +1579,7 @@
 <a href=#1579 id=1579 data-nosnippet>1579</a></span><span class="attr">#[derive(Debug, PartialEq, Eq)]
 <a href=#1580 id=1580 data-nosnippet>1580</a></span><span class="kw">pub struct </span>NameFormat(NameFormatType1, NameFormatType2);
 <a href=#1581 id=1581 data-nosnippet>1581</a><span class="kw">impl </span>NameFormat {
-<a href=#1582 id=1582 data-nosnippet>1582</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1582 id=1582 data-nosnippet>1582</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1583 id=1583 data-nosnippet>1583</a>        <span class="kw">if </span>bytes.trim_ascii_end().is_empty() {
 <a href=#1584 id=1584 data-nosnippet>1584</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
 <a href=#1585 id=1585 data-nosnippet>1585</a>        }
@@ -1599,8 +1599,8 @@
 <a href=#1599 id=1599 data-nosnippet>1599</a>    <span class="kw">pub </span>from: Box&lt;str&gt;,
 <a href=#1600 id=1600 data-nosnippet>1600</a>    <span class="kw">pub </span>to: Box&lt;str&gt;,
 <a href=#1601 id=1601 data-nosnippet>1601</a>}
-<a href=#1602 id=1602 data-nosnippet>1602</a><span class="kw">impl </span>SectorFromTo {
-<a href=#1603 id=1603 data-nosnippet>1603</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1602 id=1602 data-nosnippet>1602</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>SectorFromTo {
+<a href=#1603 id=1603 data-nosnippet>1603</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1604 id=1604 data-nosnippet>1604</a>        <span class="kw">if </span>bytes.trim_ascii_end().is_empty() {
 <a href=#1605 id=1605 data-nosnippet>1605</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
 <a href=#1606 id=1606 data-nosnippet>1606</a>        }
@@ -1635,8 +1635,8 @@
 <a href=#1635 id=1635 data-nosnippet>1635</a>    <span class="kw">pub </span>second_limit: UintNumeric,
 <a href=#1636 id=1636 data-nosnippet>1636</a>}
 <a href=#1637 id=1637 data-nosnippet>1637</a>
-<a href=#1638 id=1638 data-nosnippet>1638</a><span class="kw">impl </span>NavaidDistanceLimitation {
-<a href=#1639 id=1639 data-nosnippet>1639</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1638 id=1638 data-nosnippet>1638</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>NavaidDistanceLimitation {
+<a href=#1639 id=1639 data-nosnippet>1639</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1640 id=1640 data-nosnippet>1640</a>        <span class="kw">if </span>bytes.trim_ascii_end().is_empty() {
 <a href=#1641 id=1641 data-nosnippet>1641</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
 <a href=#1642 id=1642 data-nosnippet>1642</a>        }
@@ -1664,8 +1664,8 @@
 <a href=#1664 id=1664 data-nosnippet>1664</a>    <span class="kw">pub </span>second_limit: UintNumeric,
 <a href=#1665 id=1665 data-nosnippet>1665</a>}
 <a href=#1666 id=1666 data-nosnippet>1666</a>
-<a href=#1667 id=1667 data-nosnippet>1667</a><span class="kw">impl </span>NavaidAltitudeLimitation {
-<a href=#1668 id=1668 data-nosnippet>1668</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1667 id=1667 data-nosnippet>1667</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>NavaidAltitudeLimitation {
+<a href=#1668 id=1668 data-nosnippet>1668</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1669 id=1669 data-nosnippet>1669</a>        <span class="kw">if </span>bytes.trim_ascii_end().is_empty() {
 <a href=#1670 id=1670 data-nosnippet>1670</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
 <a href=#1671 id=1671 data-nosnippet>1671</a>        }
@@ -1693,7 +1693,7 @@
 <a href=#1693 id=1693 data-nosnippet>1693</a>    AreaToArea,
 <a href=#1694 id=1694 data-nosnippet>1694</a>}
 <a href=#1695 id=1695 data-nosnippet>1695</a><span class="kw">impl </span>PreferredRouteType {
-<a href=#1696 id=1696 data-nosnippet>1696</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1696 id=1696 data-nosnippet>1696</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1697 id=1697 data-nosnippet>1697</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#1698 id=1698 data-nosnippet>1698</a>            <span class="string">b"P" </span>=&gt; PreferredRouteType::PointToPoint,
 <a href=#1699 id=1699 data-nosnippet>1699</a>            <span class="string">b"A" </span>=&gt; PreferredRouteType::AreaToArea,
@@ -1713,7 +1713,7 @@
 <a href=#1713 id=1713 data-nosnippet>1713</a>}
 <a href=#1714 id=1714 data-nosnippet>1714</a>
 <a href=#1715 id=1715 data-nosnippet>1715</a><span class="kw">impl </span>PreferredRouteRNAVRequirement {
-<a href=#1716 id=1716 data-nosnippet>1716</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1716 id=1716 data-nosnippet>1716</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1717 id=1717 data-nosnippet>1717</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#1718 id=1718 data-nosnippet>1718</a>            <span class="string">b"R" </span>=&gt; PreferredRouteRNAVRequirement::RNAVRequired,
 <a href=#1719 id=1719 data-nosnippet>1719</a>            <span class="string">b"N" </span>=&gt; PreferredRouteRNAVRequirement::RNAVNotRequired,
@@ -1730,7 +1730,7 @@
 <a href=#1730 id=1730 data-nosnippet>1730</a></span><span class="attr">#[derive(Debug, PartialEq, Eq)]
 <a href=#1731 id=1731 data-nosnippet>1731</a></span><span class="kw">pub struct </span>PreferredRouteUseIndicator(PreferredRouteType, PreferredRouteRNAVRequirement);
 <a href=#1732 id=1732 data-nosnippet>1732</a><span class="kw">impl </span>PreferredRouteUseIndicator {
-<a href=#1733 id=1733 data-nosnippet>1733</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1733 id=1733 data-nosnippet>1733</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1734 id=1734 data-nosnippet>1734</a>        <span class="kw">if </span>bytes.trim_ascii_end().is_empty() {
 <a href=#1735 id=1735 data-nosnippet>1735</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
 <a href=#1736 id=1736 data-nosnippet>1736</a>        }
@@ -1770,8 +1770,8 @@
 <a href=#1770 id=1770 data-nosnippet>1770</a>    TwinEngine,
 <a href=#1771 id=1771 data-nosnippet>1771</a>}
 <a href=#1772 id=1772 data-nosnippet>1772</a>
-<a href=#1773 id=1773 data-nosnippet>1773</a><span class="kw">impl </span>AircraftUseGroup {
-<a href=#1774 id=1774 data-nosnippet>1774</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1773 id=1773 data-nosnippet>1773</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>AircraftUseGroup {
+<a href=#1774 id=1774 data-nosnippet>1774</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1775 id=1775 data-nosnippet>1775</a>        <span class="kw">if </span>bytes.trim_ascii_end().is_empty() {
 <a href=#1776 id=1776 data-nosnippet>1776</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
 <a href=#1777 id=1777 data-nosnippet>1777</a>        }
@@ -1803,7 +1803,7 @@
 <a href=#1803 id=1803 data-nosnippet>1803</a></span><span class="attr">#[derive(Debug, PartialEq, Eq)]
 <a href=#1804 id=1804 data-nosnippet>1804</a></span><span class="kw">pub struct </span>AircraftUseGroupIndicator(AircraftUseGroup, <span class="prelude-ty">Option</span>&lt;AircraftUseGroup&gt;);
 <a href=#1805 id=1805 data-nosnippet>1805</a><span class="kw">impl </span>AircraftUseGroupIndicator {
-<a href=#1806 id=1806 data-nosnippet>1806</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1806 id=1806 data-nosnippet>1806</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1807 id=1807 data-nosnippet>1807</a>        <span class="kw">if </span>bytes.trim_ascii_end().is_empty() {
 <a href=#1808 id=1808 data-nosnippet>1808</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
 <a href=#1809 id=1809 data-nosnippet>1809</a>        }
@@ -1830,8 +1830,8 @@
 <a href=#1830 id=1830 data-nosnippet>1830</a>    Restricted,
 <a href=#1831 id=1831 data-nosnippet>1831</a>    NotRestricted,
 <a href=#1832 id=1832 data-nosnippet>1832</a>}
-<a href=#1833 id=1833 data-nosnippet>1833</a><span class="kw">impl </span>NumberOfEnginesRestrictionIndicator {
-<a href=#1834 id=1834 data-nosnippet>1834</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1833 id=1833 data-nosnippet>1833</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>NumberOfEnginesRestrictionIndicator {
+<a href=#1834 id=1834 data-nosnippet>1834</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1835 id=1835 data-nosnippet>1835</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#1836 id=1836 data-nosnippet>1836</a>            <span class="string">b"Y" </span>=&gt; NumberOfEnginesRestrictionIndicator::Restricted,
 <a href=#1837 id=1837 data-nosnippet>1837</a>            <span class="string">b"N" </span>=&gt; NumberOfEnginesRestrictionIndicator::NotRestricted,
@@ -1852,8 +1852,8 @@
 <a href=#1852 id=1852 data-nosnippet>1852</a>    NumberOfEnginesRestrictionIndicator,
 <a href=#1853 id=1853 data-nosnippet>1853</a>    NumberOfEnginesRestrictionIndicator,
 <a href=#1854 id=1854 data-nosnippet>1854</a>);
-<a href=#1855 id=1855 data-nosnippet>1855</a><span class="kw">impl </span>NumberOfEnginesRestriction {
-<a href=#1856 id=1856 data-nosnippet>1856</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1855 id=1855 data-nosnippet>1855</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>NumberOfEnginesRestriction {
+<a href=#1856 id=1856 data-nosnippet>1856</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1857 id=1857 data-nosnippet>1857</a>        <span class="kw">if </span>bytes.trim_ascii_end().is_empty() {
 <a href=#1858 id=1858 data-nosnippet>1858</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
 <a href=#1859 id=1859 data-nosnippet>1859</a>        }
@@ -1885,8 +1885,8 @@
 <a href=#1885 id=1885 data-nosnippet>1885</a>    CurvedLine,
 <a href=#1886 id=1886 data-nosnippet>1886</a>}
 <a href=#1887 id=1887 data-nosnippet>1887</a>
-<a href=#1888 id=1888 data-nosnippet>1888</a><span class="kw">impl </span>LegTypePath {
-<a href=#1889 id=1889 data-nosnippet>1889</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1888 id=1888 data-nosnippet>1888</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>LegTypePath {
+<a href=#1889 id=1889 data-nosnippet>1889</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1890 id=1890 data-nosnippet>1890</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#1891 id=1891 data-nosnippet>1891</a>            <span class="string">b"S" </span>=&gt; LegTypePath::PointToPoint,
 <a href=#1892 id=1892 data-nosnippet>1892</a>            <span class="string">b"C" </span>=&gt; LegTypePath::CurvedLine,
@@ -1905,8 +1905,8 @@
 <a href=#1905 id=1905 data-nosnippet>1905</a>    Right,
 <a href=#1906 id=1906 data-nosnippet>1906</a>}
 <a href=#1907 id=1907 data-nosnippet>1907</a>
-<a href=#1908 id=1908 data-nosnippet>1908</a><span class="kw">impl </span>LegTypeTurnIndication {
-<a href=#1909 id=1909 data-nosnippet>1909</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1908 id=1908 data-nosnippet>1908</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>LegTypeTurnIndication {
+<a href=#1909 id=1909 data-nosnippet>1909</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1910 id=1910 data-nosnippet>1910</a>        <span class="kw">if </span>bytes.trim_ascii_end().is_empty() {
 <a href=#1911 id=1911 data-nosnippet>1911</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
 <a href=#1912 id=1912 data-nosnippet>1912</a>        }
@@ -1924,8 +1924,8 @@
 <a href=#1924 id=1924 data-nosnippet>1924</a>
 <a href=#1925 id=1925 data-nosnippet>1925</a><span class="attr">#[derive(Debug, PartialEq, Eq)]
 <a href=#1926 id=1926 data-nosnippet>1926</a></span><span class="kw">pub struct </span>LegTypeCode(LegTypePath, <span class="prelude-ty">Option</span>&lt;LegTypeTurnIndication&gt;);
-<a href=#1927 id=1927 data-nosnippet>1927</a><span class="kw">impl </span>LegTypeCode {
-<a href=#1928 id=1928 data-nosnippet>1928</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1927 id=1927 data-nosnippet>1927</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>LegTypeCode {
+<a href=#1928 id=1928 data-nosnippet>1928</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1929 id=1929 data-nosnippet>1929</a>        <span class="kw">if </span>bytes.trim_ascii_end().is_empty() {
 <a href=#1930 id=1930 data-nosnippet>1930</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
 <a href=#1931 id=1931 data-nosnippet>1931</a>        }
@@ -1949,8 +1949,8 @@
 <a href=#1949 id=1949 data-nosnippet>1949</a>    SCAT1Station,
 <a href=#1950 id=1950 data-nosnippet>1950</a>}
 <a href=#1951 id=1951 data-nosnippet>1951</a>
-<a href=#1952 id=1952 data-nosnippet>1952</a><span class="kw">impl </span>GLSStationType1 {
-<a href=#1953 id=1953 data-nosnippet>1953</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1952 id=1952 data-nosnippet>1952</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>GLSStationType1 {
+<a href=#1953 id=1953 data-nosnippet>1953</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1954 id=1954 data-nosnippet>1954</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#1955 id=1955 data-nosnippet>1955</a>            <span class="string">b"LAAS" </span>=&gt; GLSStationType1::LAASOrGLSGroundStation,
 <a href=#1956 id=1956 data-nosnippet>1956</a>            <span class="string">b"SCAT1" </span>=&gt; GLSStationType1::SCAT1Station,
@@ -1977,8 +1977,8 @@
 <a href=#1977 id=1977 data-nosnippet>1977</a>    <span class="prelude-ty">Option</span>&lt;GLSStationType2&gt;,
 <a href=#1978 id=1978 data-nosnippet>1978</a>    <span class="prelude-ty">Option</span>&lt;GLSStationType3&gt;,
 <a href=#1979 id=1979 data-nosnippet>1979</a>);
-<a href=#1980 id=1980 data-nosnippet>1980</a><span class="kw">impl </span>GLSStationType {
-<a href=#1981 id=1981 data-nosnippet>1981</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#1980 id=1980 data-nosnippet>1980</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>GLSStationType {
+<a href=#1981 id=1981 data-nosnippet>1981</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#1982 id=1982 data-nosnippet>1982</a>        <span class="kw">if </span>bytes.trim_ascii_end().is_empty() {
 <a href=#1983 id=1983 data-nosnippet>1983</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
 <a href=#1984 id=1984 data-nosnippet>1984</a>        }
@@ -1998,8 +1998,8 @@
 <a href=#1998 id=1998 data-nosnippet>1998</a>    <span class="kw">pub </span>start_radius: UintNumeric,
 <a href=#1999 id=1999 data-nosnippet>1999</a>    <span class="kw">pub </span>end_radius: UintNumeric,
 <a href=#2000 id=2000 data-nosnippet>2000</a>}
-<a href=#2001 id=2001 data-nosnippet>2001</a><span class="kw">impl </span>TaaSectorRadius {
-<a href=#2002 id=2002 data-nosnippet>2002</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#2001 id=2001 data-nosnippet>2001</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>TaaSectorRadius {
+<a href=#2002 id=2002 data-nosnippet>2002</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#2003 id=2003 data-nosnippet>2003</a>        <span class="kw">if </span>bytes.trim_ascii_end().is_empty() {
 <a href=#2004 id=2004 data-nosnippet>2004</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
 <a href=#2005 id=2005 data-nosnippet>2005</a>        }
@@ -2026,8 +2026,8 @@
 <a href=#2026 id=2026 data-nosnippet>2026</a>    Unknown,
 <a href=#2027 id=2027 data-nosnippet>2027</a>}
 <a href=#2028 id=2028 data-nosnippet>2028</a>
-<a href=#2029 id=2029 data-nosnippet>2029</a><span class="kw">impl </span>SpecialActivityTimesDayIndicator {
-<a href=#2030 id=2030 data-nosnippet>2030</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#2029 id=2029 data-nosnippet>2029</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>SpecialActivityTimesDayIndicator {
+<a href=#2030 id=2030 data-nosnippet>2030</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#2031 id=2031 data-nosnippet>2031</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#2032 id=2032 data-nosnippet>2032</a>            <span class="string">b"C" </span>=&gt; SpecialActivityTimesDayIndicator::WeekdaysAndWeekends,
 <a href=#2033 id=2033 data-nosnippet>2033</a>            <span class="string">b"D" </span>=&gt; SpecialActivityTimesDayIndicator::WeekdaysOnly,
@@ -2050,8 +2050,8 @@
 <a href=#2050 id=2050 data-nosnippet>2050</a>    Unknown,
 <a href=#2051 id=2051 data-nosnippet>2051</a>}
 <a href=#2052 id=2052 data-nosnippet>2052</a>
-<a href=#2053 id=2053 data-nosnippet>2053</a><span class="kw">impl </span>SpecialActivityTimesHolidayIndicator {
-<a href=#2054 id=2054 data-nosnippet>2054</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#2053 id=2053 data-nosnippet>2053</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>SpecialActivityTimesHolidayIndicator {
+<a href=#2054 id=2054 data-nosnippet>2054</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#2055 id=2055 data-nosnippet>2055</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#2056 id=2056 data-nosnippet>2056</a>            <span class="string">b"H" </span>=&gt; SpecialActivityTimesHolidayIndicator::IncludingHolidays,
 <a href=#2057 id=2057 data-nosnippet>2057</a>            <span class="string">b"X" </span>=&gt; SpecialActivityTimesHolidayIndicator::ExcludingHolidays,
@@ -2072,8 +2072,8 @@
 <a href=#2072 id=2072 data-nosnippet>2072</a>    ActiveByNotam,
 <a href=#2073 id=2073 data-nosnippet>2073</a>}
 <a href=#2074 id=2074 data-nosnippet>2074</a>
-<a href=#2075 id=2075 data-nosnippet>2075</a><span class="kw">impl </span>SpecialActivityTimesTimeIndicator {
-<a href=#2076 id=2076 data-nosnippet>2076</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#2075 id=2075 data-nosnippet>2075</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>SpecialActivityTimesTimeIndicator {
+<a href=#2076 id=2076 data-nosnippet>2076</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#2077 id=2077 data-nosnippet>2077</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">match </span>bytes {
 <a href=#2078 id=2078 data-nosnippet>2078</a>            <span class="string">b"D" </span>=&gt; SpecialActivityTimesTimeIndicator::SunriseOrSunset,
 <a href=#2079 id=2079 data-nosnippet>2079</a>            <span class="string">b"N" </span>=&gt; SpecialActivityTimesTimeIndicator::NightUse,
@@ -2095,8 +2095,8 @@
 <a href=#2095 id=2095 data-nosnippet>2095</a>    SpecialActivityTimesHolidayIndicator,
 <a href=#2096 id=2096 data-nosnippet>2096</a>    SpecialActivityTimesTimeIndicator,
 <a href=#2097 id=2097 data-nosnippet>2097</a>);
-<a href=#2098 id=2098 data-nosnippet>2098</a><span class="kw">impl </span>SpecialActivityTimes {
-<a href=#2099 id=2099 data-nosnippet>2099</a>    <span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
+<a href=#2098 id=2098 data-nosnippet>2098</a><span class="kw">impl </span>ParseableField <span class="kw">for </span>SpecialActivityTimes {
+<a href=#2099 id=2099 data-nosnippet>2099</a>    <span class="kw">fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, FieldParseError&gt; {
 <a href=#2100 id=2100 data-nosnippet>2100</a>        <span class="kw">if </span>bytes.trim_ascii_end().is_empty() {
 <a href=#2101 id=2101 data-nosnippet>2101</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
 <a href=#2102 id=2102 data-nosnippet>2102</a>        }
