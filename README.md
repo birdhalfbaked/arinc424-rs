@@ -19,6 +19,8 @@ Parsing and definitions follow **ARINC 424-23** (Specification 424, Change 23).
 
 All fields are manually curated and defined as best as possible to capture the intent of the specification. There are errata and ambiguous interpretations of data, thus not all fields will be perfect on first use. Please raise issues as needed.
 
+As of now all of the records under the scope of the specification are defined and should work, though I am actively working on getting dumps from major providers which would allow me to verify correctness
+
 
 ## AIXM
 

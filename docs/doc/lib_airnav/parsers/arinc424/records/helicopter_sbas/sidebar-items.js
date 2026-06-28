@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["HelicopterFinalApproachCourseAsRunwaySBASPathPointContinuationRecord","HelicopterFinalApproachCourseAsRunwaySBASPathPointPrimaryRecord","HelicopterRunwaySBASPathPointContinuationRecord","HelicopterRunwaySBASPathPointPrimaryRecord"]};
