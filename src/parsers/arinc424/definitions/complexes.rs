@@ -331,7 +331,7 @@ impl ParseableField for MarkerCollocation {
     }
 }
 
-/// 5.36(C) Localizer Marker/Locator Navaid Class
+/// 5.35(C) Localizer Marker/Locator Navaid Class
 #[derive(Debug, PartialEq, Eq)]
 pub struct MarkerLocatorNavaidClass(
     NDBNavaidType1,
@@ -1122,7 +1122,7 @@ impl BoundaryViaEndPoint {
 /// 5.118 Boundary Via
 #[derive(Debug, PartialEq, Eq)]
 pub struct BoundaryVia(BoundaryViaPathType, BoundaryViaEndPoint);
-impl BoundaryVia {
+impl ParseableField for BoundaryVia {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(BoundaryVia(
             BoundaryViaPathType::from_bytes(&bytes[0..1])?.ok_or(FieldParseError {
@@ -1350,7 +1350,7 @@ impl ParseableField for RectangularPadDimensions {
 pub struct CircularPadDimensions {
     pub diameter: UintNumeric,
 }
-impl CircularPadDimensions {
+impl ParseableField for CircularPadDimensions {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
@@ -1453,7 +1453,7 @@ pub struct Timezone {
     pub zone: TimezoneZone,
     pub minutes_offset: Option<UintNumeric>,
 }
-impl Timezone {
+impl ParseableField for Timezone {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
@@ -1578,7 +1578,7 @@ impl NameFormatType2 {
 /// 5.196 Name Format Indicator
 #[derive(Debug, PartialEq, Eq)]
 pub struct NameFormat(NameFormatType1, NameFormatType2);
-impl NameFormat {
+impl ParseableField for NameFormat {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
@@ -1729,7 +1729,7 @@ impl PreferredRouteRNAVRequirement {
 /// 5.220 Preferred Route Use Indicator
 #[derive(Debug, PartialEq, Eq)]
 pub struct PreferredRouteUseIndicator(PreferredRouteType, PreferredRouteRNAVRequirement);
-impl PreferredRouteUseIndicator {
+impl ParseableField for PreferredRouteUseIndicator {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
@@ -1802,7 +1802,7 @@ impl ParseableField for AircraftUseGroup {
 /// 5.221 Aircraft Use Group Indicator
 #[derive(Debug, PartialEq, Eq)]
 pub struct AircraftUseGroupIndicator(AircraftUseGroup, Option<AircraftUseGroup>);
-impl AircraftUseGroupIndicator {
+impl ParseableField for AircraftUseGroupIndicator {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
@@ -1922,6 +1922,7 @@ impl ParseableField for LegTypeTurnIndication {
     }
 }
 
+/// 5.238 Leg Type Code
 #[derive(Debug, PartialEq, Eq)]
 pub struct LegTypeCode(LegTypePath, Option<LegTypeTurnIndication>);
 impl ParseableField for LegTypeCode {
@@ -1994,6 +1995,7 @@ impl ParseableField for GLSStationType {
 }
 
 /// 5.274 TAA Sector Radius
+#[derive(Debug, PartialEq, Eq)]
 pub struct TaaSectorRadius {
     pub start_radius: UintNumeric,
     pub end_radius: UintNumeric,

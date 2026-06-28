@@ -65,6 +65,12 @@ impl<const LEN: usize, const EXACT: bool> Into<String> for LengthLimitedIdentifi
     }
 }
 
+/// 5.5 Generic subsection code
+///
+/// Note: This is necessary because some records need to validate across several sets of valid subsection codes.
+/// For most cases you should validate against the specific subsection code enum for the appropriate record section instead.
+pub type GenericSubsection = LengthLimitedIdentifier<1, true>;
+
 /// 5.6 Airport/Heliport Identifier
 pub type AirportHeliportIdentifier = LengthLimitedIdentifier<4, false>;
 
@@ -138,15 +144,21 @@ pub type Notes = LengthLimitedIdentifier<102, false>;
 pub type NameOfFacility = LengthLimitedIdentifier<25, false>;
 
 /// 5.75 From/To Airport/Heliport/Fix (FROM/TO AIRPORT/HELIPORT/FIX)
+///
+/// Note: This warrants some change from the spec, because what this is actually referring to is the origin/end point that
+/// the route builds between. Suggestion: TerminusAirportHeliportFix
 pub type FromToAirportHeliportFix = LengthLimitedIdentifier<5, false>;
 
 /// 5.76 Company Route Ident
 pub type CompanyRouteIdent = LengthLimitedIdentifier<10, false>;
 
 /// 5.78 SID/STAR/App/AWY (S/S/A/AWY), SID/STAR/AWY (S/S/AWY)
-pub type SidStarApproachAirway = LengthLimitedIdentifier<6, false>;
+pub type SidStarApproachAirwayIdentifier = LengthLimitedIdentifier<6, false>;
 
 /// 5.83 To Fix
+///
+/// Note: This warrants some change from the spec, because what this is actually referring to is the fix that is the next
+/// immediate point within the route that the specific record refers to. Suggestion: NextFix
 pub type ToFix = LengthLimitedIdentifier<5, false>;
 
 /// 5.84 Runway Transition
@@ -198,13 +210,14 @@ pub type MoraStartingLatitude = LengthLimitedIdentifier<3, false>;
 pub type MoraStartingLongitude = LengthLimitedIdentifier<4, false>;
 
 /// 5.143 Grid MORA
+#[derive(Debug, PartialEq, Eq)]
 pub enum GridMora {
     Mapped(LengthLimitedIdentifier<3, false>),
     UnknownOrUnmapped,
 }
 
-impl GridMora {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+impl ParseableField for GridMora {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }

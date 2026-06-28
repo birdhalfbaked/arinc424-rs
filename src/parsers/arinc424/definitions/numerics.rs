@@ -523,21 +523,21 @@ pub type InboundCourse = FloatNumeric<-1>;
 
 /// 5.30 Altitude / Minimum Altitude
 #[derive(Debug, PartialEq, Eq)]
-pub enum AltitudeMinimumAltitude {
+pub enum MinimumAltitude {
     Established(AltitudeNumeric),
     Unknown,
     NotEstablished,
 }
 
-impl ParseableField for AltitudeMinimumAltitude {
+impl ParseableField for MinimumAltitude {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         match bytes {
-            b"UNKNN" => Ok(Some(AltitudeMinimumAltitude::Unknown)),
-            b"NESTB" => Ok(Some(AltitudeMinimumAltitude::NotEstablished)),
+            b"UNKNN" => Ok(Some(MinimumAltitude::Unknown)),
+            b"NESTB" => Ok(Some(MinimumAltitude::NotEstablished)),
             _ => {
                 let altitude = AltitudeNumeric::from_bytes(&bytes)?;
                 if let Some(altitude) = altitude {
-                    Ok(Some(AltitudeMinimumAltitude::Established(altitude)))
+                    Ok(Some(MinimumAltitude::Established(altitude)))
                 } else {
                     Ok(None)
                 }
@@ -548,14 +548,14 @@ impl ParseableField for AltitudeMinimumAltitude {
 
 #[test]
 pub fn test_altitude_minimum_altitude() {
-    let r = AltitudeMinimumAltitude::from_bytes(&[b'F', b'L', b'1', b'0', b'0']);
-    if let Ok(Some(AltitudeMinimumAltitude::Established(altitude))) = r {
+    let r = MinimumAltitude::from_bytes(&[b'F', b'L', b'1', b'0', b'0']);
+    if let Ok(Some(MinimumAltitude::Established(altitude))) = r {
         assert_eq!(altitude, AltitudeNumeric(10000));
     } else {
         panic!("Failed to parse altitude minimum altitude");
     }
-    let r = AltitudeMinimumAltitude::from_bytes(&[b'-', b'1', b'1', b'0', b'0']);
-    if let Ok(Some(AltitudeMinimumAltitude::Established(altitude))) = r {
+    let r = MinimumAltitude::from_bytes(&[b'-', b'1', b'1', b'0', b'0']);
+    if let Ok(Some(MinimumAltitude::Established(altitude))) = r {
         assert_eq!(altitude, AltitudeNumeric(-1100));
     } else {
         panic!("Failed to parse altitude minimum altitude");
@@ -598,16 +598,16 @@ pub type GlideslopePosition = IntNumeric;
 /// 5.51 Localizer Width (LOC WIDTH)
 pub type LocalizerWidth = FloatNumeric<-1>;
 
-/// Glideslope angle (GS ANGLE) Minimum Elevation Angle (MIN ELEV ANGLE)
+/// 5.52 Glideslope angle (GS ANGLE) Minimum Elevation Angle (MIN ELEV ANGLE)
 pub type GlideslopeAngle = FloatNumeric<-2>;
 
-/// 5.52 Transition Altitude/Level (TRANS ALTITUDE/LEVEL)
+/// 5.53 Transition Altitude/Level (TRANS ALTITUDE/LEVEL)
 pub type TransitionAltitudeLevel = IntNumeric;
 
-/// 5.53 Longest Runway (LONGEST RWY)
+/// 5.54 Longest Runway (LONGEST RWY)
 pub type LongestRunway = UintNumeric;
 
-/// 5.54 Airport/Heliport Elevation (ELEV)
+/// 5.55 Airport/Heliport Elevation (ELEV)
 pub type AirportHeliportElevation = IntNumeric;
 
 /// 5.57 Runway Length (RUNWAY LENGTH)
@@ -679,16 +679,22 @@ pub type TouchdownZoneElevation = IntNumeric;
 /// 5.100 Minor Axis Bearing
 pub type MinorAxisBearing = FloatNumeric<-1>;
 
-/// 5.104 Communications Frequency
+// Communications Frequency
+
+pub type HighFrequencyCommunicationsFrequency = FloatNumeric<-2>;
+pub type VeryHighFrequencyCommunicationsFrequency = FloatNumeric<-3>;
+pub type UltraHighFrequencyCommunicationsFrequency = FloatNumeric<-2>;
+
+/// 5.103 Communications Frequency
 ///
 /// This enum is needed since this is one of the few fields we need to perform a
 /// lookup on the record as we parse the value out to know how to handle the value properly.
 /// As such this does not have a from_bytes method, but rather the value using this is manually constructed
 #[derive(Debug, PartialEq)]
 pub enum CommunicationsFrequency {
-    HighFrequency(FloatNumeric<-2>),
-    VeryHighFrequency(FloatNumeric<-3>),
-    UltraHighFrequency(FloatNumeric<-2>),
+    HighFrequency(HighFrequencyCommunicationsFrequency),
+    VeryHighFrequency(VeryHighFrequencyCommunicationsFrequency),
+    UltraHighFrequency(UltraHighFrequencyCommunicationsFrequency),
 }
 
 /// 5.109 Runway Width
@@ -829,13 +835,17 @@ pub type HorizontalAlertLimit = FloatNumeric<-1>;
 /// 5.264 Vertical Alert Limit
 pub type VerticalAlertLimit = FloatNumeric<-1>;
 
+// Path Point TCH
+pub type PathPointTCHFeet = FloatNumeric<-1>;
+pub type PathPointTCHMeters = FloatNumeric<-2>;
+
 /// 5.265 Path Point TCH
 ///
 /// Note: This must be manually constructed as its value handling depends on another field's value.
 #[derive(Debug, PartialEq)]
 pub enum PathPointTCH {
-    Feet(FloatNumeric<-1>),
-    Meters(FloatNumeric<-2>),
+    Feet(PathPointTCHFeet),
+    Meters(PathPointTCHMeters),
 }
 
 /// 5.267 High Precision Latitude
@@ -871,6 +881,7 @@ pub type RNPLevelOfService = VariableFloatNumeric<-1>;
 /// 5.299 Final Approach Course as Runway
 ///
 /// Note: This is a very odd field, but one that seems to benefit specifically Path Point approaches
+#[derive(Debug)]
 pub struct FinalApproachCourseAsRunway(u64);
 impl ParseableField for FinalApproachCourseAsRunway {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
@@ -891,8 +902,8 @@ impl Into<u64> for FinalApproachCourseAsRunway {
 /// 5.309 Maximum Allowable Helicopter Weight
 pub type MaximumAllowableHelicopterWeight = UintNumeric;
 
-/// 5.312 Runway StartCOLer Extension
-pub type RunwayStartCOLerExtension = UintNumeric;
+/// 5.312 Runway Starter Extension
+pub type RunwayStarterExtension = UintNumeric;
 
 /// 5.313 TORA
 pub type TORA = UintNumeric;

@@ -1,256 +1,9 @@
-//! # ARINC 424 Records
-//! This module contains the record types for the ARINC 424 data.
-//! Records are the top-level container for the ARINC 424 data.
-//! They are used to group together related data into a single entity.
-//!
-
 use crate::parsers::arinc424::definitions::*;
-use crate::parsers::arinc424::fields::{BLANK, FieldParseError, ParseableField};
-#[derive(Debug)]
-pub struct RecordParseError {
-    pub message: String,
-}
-impl From<FieldParseError> for RecordParseError {
-    fn from(error: FieldParseError) -> Self {
-        Self {
-            message: format!("Record parse error: {}", error.message),
-        }
-    }
-}
-
-#[derive(Debug)]
-pub struct RecordField<'a, T> {
-    pub raw_bytes: &'a [u8],
-    pub value: Option<T>,
-}
-impl<'a, T: ParseableField> RecordField<'a, T> {
-    pub fn from_bytes(
-        input: &'a [u8],
-        column: usize,
-        length: usize,
-    ) -> Result<Self, FieldParseError> {
-        // to make it 1:1 with the spec, let's use 1-indexed columns
-        let value = T::from_bytes(&input[column - 1..column - 1 + length])?;
-        Ok(Self {
-            raw_bytes: &input[column - 1..column - 1 + length],
-            value,
-        })
-    }
-}
-
-/// Placeholder field is used to represent a field that is not yet implemented.
-#[deprecated(note = "Replace this field with the appropriate record field type")]
-#[derive(Debug)]
-pub struct PlaceholderField {}
-impl PlaceholderField {
-    pub fn from_bytes(_bytes: &[u8]) -> Result<Self, RecordParseError> {
-        Ok(Self {})
-    }
-}
-
-/// ARINC 424 Record Sum Type for all possible record types.
-#[derive(Debug)]
-pub enum ARINCRecord<'a> {
-    VHFNavaidPrimary(VHFNavaidPrimaryRecord<'a>),
-    VHFNavaidContinuation(VHFNavaidContinuationRecord<'a>),
-    VHFNavaidSimulationContinuation(VHFNavaidSimulationContinuationRecord<'a>),
-    VHFNavaidFlightPlanningContinuation(VHFNavaidFlightPlanningContinuationRecord<'a>),
-    VHFNavaidLimitationContinuation(VHFNavaidLimitationContinuationRecord<'a>),
-
-    NDBNavaidPrimary,
-    NDBNavaidContinuation,
-    NDBNavaidSimulationContinuation,
-    NDBNavaidFlightPlanningContinuation,
-    NDBNavaidLimitationContinuation,
-
-    WaypointPrimary,
-    WaypointContinuation,
-    WaypointSimulationContinuation,
-
-    HoldingPatternPrimary,
-    HoldingPatternContinuation,
-    HoldingPatternPrimaryExtensionContinuation,
-
-    EnrouteAirwaysPrimary,
-    EnrouteAirwaysContinuation,
-    EnrouteAirwaysFlightPlanningContinuation,
-
-    AirportPrimary,
-    AirportContinuation,
-    AirportFlightPlanningContinuation,
-
-    AirportGatePrimary,
-    AirportGateContinuation,
-
-    AirportSIDSTARApproachPrimary,
-    AirportSIDSTARApproachPrimaryExtensionContinuation,
-    AirportSIDSTARApproachFlightPlanningContinuation,
-    AirportProcedureDataContinuation,
-    AirportSIDSTARApproachProcedureNameContinuation,
-
-    RunwayPrimary,
-    RunwayContinuation,
-    RunwaySimulationContinuation,
-
-    LocalizerGlideslopePrimary,
-    LocalizerGlideslopeContinuation,
-    LocalizerGlideslopeSimulationContinuation,
-
-    CompanyRoutePrimary,
-
-    LocalizerMarkerPrimary,
-    LocalizerMarkerContinuation,
-
-    AirportCommsPrimary,
-    AirportCommsPrimaryExtensionContinuation,
-    AirportCommsSectorNarrativeContinuation,
-    AirportCommsFormattedTimeContinuation,
-    AirportCommsNarrativeTimeContinuation,
-    AirportCommsAdditionalSectorizationContinuation,
-
-    AirwaysMarkerPrimary,
-    AirwaysMarkerContinuation,
-
-    CruisingTablePrimary,
-
-    FIRUIRPrimary,
-    FIRUIRContinuation,
-
-    RestrictiveAirspacePrimary,
-    RestrictiveAirspaceFormattedTimeContinuation,
-    RestrictiveAirspaceNarrativeTimeContinuation,
-
-    GridMORAPrimary,
-
-    AirportMSAPrimary,
-    AirportMSAPrimaryExtensionContinuation,
-    AirportMSAContinuation,
-
-    EnrouteAirwayRestrictionAltitudePrimary,
-    EnrouteAirwayRestrictionAltitudeContinuation,
-    EnrouteAirwayRestrictionFormattedTimeContinuation,
-    EnrouteAirwayRestrictionNarrativeTimeContinuation,
-
-    EnrouteAirwayRestrictionNoteRestrictionPrimary,
-    EnrouteAirwayRestrictionNoteRestrictionContinuation,
-
-    EnrouteAirwayRestrictionSeasonalClosurePrimary,
-    EnrouteAirwayRestrictionSeasonalClosureFormattedTimeContinuation,
-    EnrouteAirwayRestrictionSeasonalClosureNarrativeTimeContinuation,
-
-    EnrouteAirwayRestrictionCruisingTableReplacementPrimary,
-    EnrouteAirwayRestrictionCruisingTableReplacementFormattedTimeContinuation,
-    EnrouteAirwayRestrictionCruisingTableReplacementNarrativeTimeContinuation,
-
-    MLSPrimary,
-    MLSContinuation,
-
-    EnrouteCommsPrimary,
-    EnrouteCommsPrimaryExtensionContinuation,
-    EnrouteCommsFormattedTimeContinuation,
-    EnrouteCommsNarrativeTimeContinuation,
-
-    PreferredRoutePrimary,
-    PreferredRouteFormattedTimeContinuation,
-    PreferredRouteNotesContinuation,
-    PreferredRouteNarrativeTimeContinuation,
-
-    ControlledAirspacePrimary,
-    ControlledAirspaceFormattedTimeContinuation,
-    ControlledAirspacePrimaryExtension,
-    ControlledAirspaceNarrativeTimeContinuation,
-    ControlledAirspaceControllingAgencyContinuation,
-
-    GeographicalReferenceTablePrimary,
-    GeographicalReferenceTableContinuation,
-
-    FlightPlanningPrimary,
-    FlightPlanningPrimaryExtensionContinuation,
-    FlightPlanningFormattedTimeContinuation,
-    FlightPlanningNarrativeTimeContinuation,
-
-    SBASPathPointPrimary,
-    SBASPathPointContinuation,
-
-    GLSPrimary,
-    GLSContinuation,
-
-    AlternatePrimary,
-
-    TAAPrimary,
-    TAAContinuation,
-
-    TACANOnlyNavaidPrimary,
-    TACANOnlyNavaidContinuation,
-    TACANOnlyNavaidSimulationContinuation,
-    TACANOnlyNavaidFlightPlanningContinuation,
-    TACANOnlyNavaidLimitationContinuation,
-
-    SpecialActivityAreaPrimary,
-
-    CommunicationTypeTranslationPrimary,
-
-    GBASPathPointPrimary,
-    GBASPathPointContinuation,
-
-    AirportHelipadPrimary,
-
-    ATNDataPrimary,
-
-    HeliportPrimary,
-    HeliportContinuation,
-    HeliportFlightPlanningContinuation,
-
-    HeliportTerminalWaypointPrimary,
-    HeliportTerminalWaypointContinuation,
-    HeliportTerminalWaypointFlightPlanningContinuation,
-
-    HeliportSIDSTARApproachPrimary,
-    HeliportSIDSTARApproachPrimaryExtensionContinuation,
-    HeliportSIDSTARApproachFlightPlanningContinuation,
-    HeliportProcedureDataContinuation,
-    HeliportSIDSTARApproachProcedureNameContinuation,
-
-    HeliportMSAPrimary,
-    HelportMSAPrimaryExtensionContinuation,
-    HeliportMSAContinuation,
-
-    HeliportCommsPrimary,
-    HeliportCommsPrimaryExtensionContinuation,
-    HeliportCommsSectorNarrativeContinuation,
-    HeliportCommsFormattedTimeContinuation,
-    HeliportCommsNarrativeTimeContinuation,
-    HeliportCommsAdditionalSectorizationContinuation,
-
-    HeliportTAAPrimary,
-    HeliportTAAContinuation,
-
-    HelicopterCompanyRoutePrimary,
-
-    HelicopterSBASPathPointPrimary,
-    HelicopterSBASPathPointContinuation,
-
-    HeliportHelipadPrimary,
-}
-
-impl<'a> ARINCRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
-        match input[4..6] {
-            [b'D', BLANK] => VHFNavaidRecords::parse(input),
-            _ => Err(RecordParseError {
-                message: "Invalid record type".to_string(),
-            }),
-        }
-    }
-}
-
-// Layout dispatch helpers
-
-fn is_primary_record(input: &[u8], continuation_column: usize) -> bool {
-    matches!(input[continuation_column - 1], b'0' | b'1' | BLANK)
-}
-
-struct VHFNavaidRecords;
+use crate::parsers::arinc424::fields::ParseableField;
+use crate::parsers::arinc424::records::record::{
+    ARINCRecord, RecordField, RecordParseError, is_primary_record,
+};
+pub(super) struct VHFNavaidRecords;
 impl VHFNavaidRecords {
     const CONTINUATION_COLUMN: usize = 22;
     const CONTINUATION_APPLICATION_COLUMN: usize = 23;
@@ -262,13 +15,13 @@ impl VHFNavaidRecords {
             ))
         } else {
             match ContinuationRecordApplicationType::from_bytes(
-                &input[Self::CONTINUATION_APPLICATION_COLUMN
-                    ..Self::CONTINUATION_APPLICATION_COLUMN + 1],
+                &input[Self::CONTINUATION_APPLICATION_COLUMN - 1
+                    ..Self::CONTINUATION_APPLICATION_COLUMN],
             )? {
                 Some(ContinuationRecordApplicationType::StandardContinuation) => Ok(
                     ARINCRecord::VHFNavaidContinuation(VHFNavaidContinuationRecord::parse(input)?),
                 ),
-                Some(ContinuationRecordApplicationType::FlightPlanningApplicationContinuation) => {
+                Some(ContinuationRecordApplicationType::FlightPlanningContinuation) => {
                     Ok(ARINCRecord::VHFNavaidFlightPlanningContinuation(
                         VHFNavaidFlightPlanningContinuationRecord::parse(input)?,
                     ))
@@ -278,7 +31,7 @@ impl VHFNavaidRecords {
                         VHFNavaidLimitationContinuationRecord::parse(input)?,
                     ))
                 }
-                Some(ContinuationRecordApplicationType::SimulationApplicationContinuation) => {
+                Some(ContinuationRecordApplicationType::SimulationContinuation) => {
                     Ok(ARINCRecord::VHFNavaidSimulationContinuation(
                         VHFNavaidSimulationContinuationRecord::parse(input)?,
                     ))
