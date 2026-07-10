@@ -2,3 +2,6 @@
 specs/
 
 target/
+
+data/*
+!data/.gitkeep
