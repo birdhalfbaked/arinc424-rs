@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["ARINCRecord"],"struct":["RecordField","RecordParseError"]};

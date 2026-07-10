@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["definitions","fields","parser","records"]};
+window.SIDEBAR_ITEMS = {"mod":["rev23","types"]};
