@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["AirportApproachFlightPlanningContinuationRecord","AirportApproachMSACenterFixPrimaryRecord","AirportApproachPrimaryExtensionContinuationRecord","AirportApproachProcedureDataContinuationRecord","AirportApproachProcedureNameContinuationRecord","AirportApproachTAAPrimaryRecord"]};

@@ -1,4 +1,4 @@
-use crate::parsers::arinc424::definitions::*;
+use crate::parsers::arinc424::rev23::definitions::*;
 use crate::parsers::arinc424::rev23::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::records::{RecordField, RecordParseError};
 pub(super) struct AlternateRecords;

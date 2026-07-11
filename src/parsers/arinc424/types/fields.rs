@@ -1,26 +1,12 @@
 //! # ARINC 424 Field Parsers
-//! This module contains the parsers for the ARINC 424 field types.
+//! This module contains the core type converters for the ARINC 424 field types.
 //!
-//! ## Field Types
-//! - Alpha
-//! - Alphanumeric
-//! - Numeric
+//! Not all types can be used commonly, so we allow version specifications to derive their own in that
+//! revision package.
 //!
-//! ## Field Parsers
-//! - FieldRaw
-//! - FieldParseError
+//! Later improvements could be to find more commonality but it won't be prio'd now since it generally
+//! will get things forward in a stable manner without worry about breakage across revisions.
 //!
-//! ## Raw Fields
-//! We define raw field types that do a minimum data validation for first pass data loading.
-//! Since Generative LLMs were used to help generate the field names, there may be errors in what the field is supposed to be.
-//! To ensure quality, human-verified raw fields are denoted with ✅
-//!
-//! ### Variants
-//!
-//! Variants are denoted with (A), (B), (C), (D), etc.
-//! They are used ONLY when the length between records is necessarily different.
-//! If there are conditionally Numeric AND Alpha fields, it is preferred to use the Alphanumeric field type.
-//! and validate on record level later on.
 #[cfg(test)]
 use crate::test_util::assert_within_epsilon;
 use std::convert::Into;

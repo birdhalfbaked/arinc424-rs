@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["VHFNavaidContinuationRecord","VHFNavaidFlightPlanningContinuationRecord","VHFNavaidLimitationContinuationRecord","VHFNavaidPrimaryRecord","VHFNavaidSimulationContinuationRecord"]};

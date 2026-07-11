@@ -1,7 +1,7 @@
-use crate::parsers::arinc424::definitions::*;
 use crate::parsers::arinc424::rev23::records::ARINCRecord;
 use crate::parsers::arinc424::types::fields::{BLANK, ParseableField};
 use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+use crate::parsers::arinc424::rev23::definitions::*;
 pub(super) struct AirportApproachRecords;
 impl AirportApproachRecords {
     const CONTINUATION_COLUMN: usize = 39;

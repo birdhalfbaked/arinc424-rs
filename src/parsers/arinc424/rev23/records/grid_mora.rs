@@ -1,6 +1,7 @@
-use crate::parsers::arinc424::definitions::*;
+
 use crate::parsers::arinc424::rev23::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::records::{RecordField, RecordParseError};
+use crate::parsers::arinc424::rev23::definitions::*;
 pub(super) struct GridMORARecords;
 impl GridMORARecords {
     pub fn parse(input: &[u8]) -> Result<ARINCRecord<'_>, RecordParseError> {

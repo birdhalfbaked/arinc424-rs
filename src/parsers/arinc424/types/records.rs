@@ -1,5 +1,9 @@
 //! # ARINC 424 Common types in the scope of records when parsing
 //! This module contains the common record parsing types for the ARINC 424 data. These are used in all versions of the parser
+//!
+//! The is_primary_record function is used to determine if a record is a primary record but is also
+//! fairly misplaced imo. Will leave it here for now as it is not the highest of prios to refactor this.
+//! Core prio is stability across revisions.
 
 use crate::parsers::arinc424::types::fields::{BLANK, FieldParseError, ParseableField};
 use std::any::type_name;

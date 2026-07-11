@@ -1,4 +1,4 @@
-use crate::parsers::arinc424::definitions::*;
+use crate::parsers::arinc424::rev23::definitions::*;
 use crate::parsers::arinc424::rev23::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
 use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};

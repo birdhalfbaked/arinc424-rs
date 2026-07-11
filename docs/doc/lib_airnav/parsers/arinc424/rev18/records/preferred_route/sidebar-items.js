@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["PreferredAirwayRoutePrimaryRecord","PreferredGeneralRoutePrimaryRecord","PreferredRouteContinuationRecord","PreferredRouteFormattedTimeContinuationRecord","PreferredRouteNarrativeTimeContinuationRecord","PreferredSIDRoutePrimaryRecord","PreferredSTARRoutePrimaryRecord"]};
