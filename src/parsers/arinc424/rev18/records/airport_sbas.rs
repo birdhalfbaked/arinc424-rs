@@ -1,7 +1,7 @@
+use crate::parsers::arinc424::rev18::definitions::*;
 use crate::parsers::arinc424::rev18::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
 use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
-use crate::parsers::arinc424::rev18::definitions::*;
 pub(super) struct AirportSBASRecords;
 impl AirportSBASRecords {
     const CONTINUATION_COLUMN: usize = 27;
@@ -107,7 +107,7 @@ pub struct AirportRunwaySBASPathPointPrimaryRecord<'a> {
     pub runway_identifier: RecordField<'a, RunwayIdentifier>,
     pub operation_type: RecordField<'a, SBASOperationType>,
     pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
-    pub route_indicator: RecordField<'a, SBASGBASRouteIndicator>,
+    pub route_indicator: RecordField<'a, RouteIndicator>,
     pub sbas_service_provider_identifier: RecordField<'a, SbasServiceProviderIdentifier>,
     pub reference_path_data_selector: RecordField<'a, ReferencePathDataSelector>,
     pub reference_path_identifier: RecordField<'a, ReferencePathIdentifier>,
@@ -181,7 +181,7 @@ pub struct AirportFinalApproachCourseAsRunwaySBASPathPointPrimaryRecord<'a> {
     pub final_approach_course_as_runway: RecordField<'a, FinalApproachCourseAsRunway>,
     pub operation_type: RecordField<'a, SBASOperationType>,
     pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
-    pub route_indicator: RecordField<'a, SBASGBASRouteIndicator>,
+    pub route_indicator: RecordField<'a, RouteIndicator>,
     pub sbas_service_provider_identifier: RecordField<'a, SbasServiceProviderIdentifier>,
     pub reference_path_data_selector: RecordField<'a, ReferencePathDataSelector>,
     pub reference_path_identifier: RecordField<'a, ReferencePathIdentifier>,

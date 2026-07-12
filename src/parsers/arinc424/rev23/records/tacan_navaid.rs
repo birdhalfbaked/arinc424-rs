@@ -1,8 +1,7 @@
-
+use crate::parsers::arinc424::rev23::definitions::*;
 use crate::parsers::arinc424::rev23::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
 use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
-use crate::parsers::arinc424::rev23::definitions::*;
 pub(super) struct TACANOnlyNavaidRecords;
 impl TACANOnlyNavaidRecords {
     const CONTINUATION_COLUMN: usize = 22;
@@ -57,7 +56,7 @@ pub struct TACANOnlyNavaidPrimaryRecord<'a> {
     pub airport_icao_code: RecordField<'a, IcaoCode>,
     pub vor_identifier: RecordField<'a, VORNDBIdentifier>,
     pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
-    pub vor_frequency: RecordField<'a, VORNDBFrequency>,
+    pub vor_frequency: RecordField<'a, VORFrequency>,
     pub navaid_class: RecordField<'a, VHFNavaidClass>,
     pub tacan_identifier: RecordField<'a, DMEIdentifier>,
     pub tacan_latitude: RecordField<'a, Latitude>,

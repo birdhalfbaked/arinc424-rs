@@ -15,12 +15,14 @@ pub enum ARINCRecord<'a> {
     VHFNavaidContinuation(VHFNavaidContinuationRecord<'a>),
     VHFNavaidSimulationContinuation(VHFNavaidSimulationContinuationRecord<'a>),
     VHFNavaidFlightPlanningContinuation(VHFNavaidFlightPlanningContinuationRecord<'a>),
+    VHFNavaidChangedDataContinuation(VHFNavaidChangedDataContinuationRecord<'a>),
     VHFNavaidLimitationContinuation(VHFNavaidLimitationContinuationRecord<'a>),
 
     NDBNavaidPrimary(NDBNavaidPrimaryRecord<'a>),
     NDBNavaidContinuation(NDBNavaidContinuationRecord<'a>),
     NDBNavaidSimulationContinuation(NDBNavaidSimulationContinuationRecord<'a>),
     NDBNavaidFlightPlanningContinuation(NDBNavaidFlightPlanningContinuationRecord<'a>),
+    NDBNavaidChangedDataContinuation(NDBNavaidChangedDataContinuationRecord<'a>),
 
     TerminalNDBNavaidPrimary(TerminalNDBNavaidPrimaryRecord<'a>),
     TerminalNDBNavaidContinuation(TerminalNDBNavaidContinuationRecord<'a>),
@@ -28,30 +30,32 @@ pub enum ARINCRecord<'a> {
     TerminalNDBNavaidFlightPlanningContinuation(
         TerminalNDBNavaidFlightPlanningContinuationRecord<'a>,
     ),
+    TerminalNDBNavaidChangedDataContinuation(TerminalNDBNavaidChangedDataContinuationRecord<'a>),
 
     EnrouteWaypointPrimary(EnrouteWaypointPrimaryRecord<'a>),
     EnrouteWaypointContinuation(EnrouteWaypointContinuationRecord<'a>),
     EnrouteWaypointFlightPlanningContinuation(EnrouteWaypointFlightPlanningContinuationRecord<'a>),
+    EnrouteWaypointChangedDataContinuation(EnrouteWaypointChangedDataContinuationRecord<'a>),
 
     TerminalWaypointPrimary(TerminalWaypointPrimaryRecord<'a>),
     TerminalWaypointContinuation(TerminalWaypointContinuationRecord<'a>),
     TerminalWaypointFlightPlanningContinuation(
         TerminalWaypointFlightPlanningContinuationRecord<'a>,
     ),
+    TerminalWaypointChangedDataContinuation(TerminalWaypointChangedDataContinuationRecord<'a>),
 
     HoldingPatternPrimary(HoldingPatternPrimaryRecord<'a>),
     HoldingPatternContinuation(HoldingPatternContinuationRecord<'a>),
-    HoldingPatternPrimaryExtensionContinuation(
-        HoldingPatternPrimaryExtensionContinuationRecord<'a>,
-    ),
 
     EnrouteAirwayPrimary(EnrouteAirwayPrimaryRecord<'a>),
     EnrouteAirwayContinuation(EnrouteAirwayContinuationRecord<'a>),
     EnrouteAirwayFlightPlanningContinuation(EnrouteAirwayFlightPlanningContinuationRecord<'a>),
+    EnrouteAirwayChangedDataContinuation(EnrouteAirwayChangedDataContinuationRecord<'a>),
 
     AirportPrimary(AirportPrimaryRecord<'a>),
     AirportContinuation(AirportContinuationRecord<'a>),
     AirportFlightPlanningContinuation(AirportFlightPlanningContinuationRecord<'a>),
+    AirportChangedDataContinuation(AirportChangedDataContinuationRecord<'a>),
 
     AirportGatePrimary(AirportGatePrimaryRecord<'a>),
     AirportGateContinuation(AirportGateContinuationRecord<'a>),
@@ -59,12 +63,12 @@ pub enum ARINCRecord<'a> {
     AirportSIDPrimary(AirportSIDPrimaryRecord<'a>),
     AirportSIDPrimaryExtensionContinuation(AirportSIDPrimaryExtensionContinuationRecord<'a>),
     AirportSIDFlightPlanningContinuation(AirportSIDFlightPlanningContinuationRecord<'a>),
-    AirportSIDProcedureNameContinuation(AirportSIDProcedureNameContinuationRecord<'a>),
+    AirportSIDChangedDataContinuation(AirportSIDChangedDataContinuationRecord<'a>),
 
     AirportSTARPrimary(AirportSTARPrimaryRecord<'a>),
     AirportSTARPrimaryExtensionContinuation(AirportSTARPrimaryExtensionContinuationRecord<'a>),
     AirportSTARFlightPlanningContinuation(AirportSTARFlightPlanningContinuationRecord<'a>),
-    AirportSTARProcedureNameContinuation(AirportSTARProcedureNameContinuationRecord<'a>),
+    AirportSTARChangedDataContinuation(AirportSTARChangedDataContinuationRecord<'a>),
 
     AirportApproachMSACenterFixPrimary(AirportApproachMSACenterFixPrimaryRecord<'a>),
     AirportApproachTAAPrimary(AirportApproachTAAPrimaryRecord<'a>),
@@ -72,37 +76,27 @@ pub enum ARINCRecord<'a> {
         AirportApproachPrimaryExtensionContinuationRecord<'a>,
     ),
     AirportApproachFlightPlanningContinuation(AirportApproachFlightPlanningContinuationRecord<'a>),
-    AirportApproachProcedureNameContinuation(AirportApproachProcedureNameContinuationRecord<'a>),
+    AirportApproachChangedDataContinuation(AirportApproachChangedDataContinuationRecord<'a>),
     AirportApproachProcedureDataContinuation(AirportApproachProcedureDataContinuationRecord<'a>),
 
     RunwayPrimary(RunwayPrimaryRecord<'a>),
     RunwayContinuation(RunwayContinuationRecord<'a>),
     RunwaySimulationContinuation(RunwaySimulationContinuationRecord<'a>),
 
-    AirportLocalizerGlideslopePrimary(AirportLocalizerGlideslopePrimaryRecord<'a>),
-    HeliportLocalizerGlideslopePrimary(HeliportLocalizerGlideslopePrimaryRecord<'a>),
+    AirportHeliportLocalizerGlideslopePrimary(AirportHeliportLocalizerGlideslopePrimaryRecord<'a>),
     LocalizerGlideslopeContinuation(LocalizerGlideslopeContinuationRecord<'a>),
     LocalizerGlideslopeSimulationContinuation(LocalizerGlideslopeSimulationContinuationRecord<'a>),
 
-    CompanySIDRoutePrimary(CompanySIDRoutePrimaryRecord<'a>),
-    CompanySTARRoutePrimary(CompanySTARRoutePrimaryRecord<'a>),
-    CompanyApproachRoutePrimary(CompanyApproachRoutePrimaryRecord<'a>),
-    CompanyAirwayRoutePrimary(CompanyAirwayRoutePrimaryRecord<'a>),
-    CompanyGeneralRoutePrimary(CompanyGeneralRoutePrimaryRecord<'a>),
+    CompanyRoutePrimary(CompanyRoutePrimaryRecord<'a>),
 
-    AirportLocalizerMarkerPrimary(AirportLocalizerMarkerPrimaryRecord<'a>),
-    HeliportLocalizerMarkerPrimary(HeliportLocalizerMarkerPrimaryRecord<'a>),
-    AirportLocalizerMarkerContinuation(AirportLocalizerMarkerContinuationRecord<'a>),
-    HeliportLocalizerMarkerContinuation(HeliportLocalizerMarkerContinuationRecord<'a>),
+    AirportHeliportLocalizerMarkerPrimary(AirportHeliportLocalizerMarkerPrimaryRecord<'a>),
+    AirportHeliportLocalizerMarkerContinuation(
+        AirportHeliportLocalizerMarkerContinuationRecord<'a>,
+    ),
 
     AirportCommsPrimary(AirportCommsPrimaryRecord<'a>),
-    AirportCommsPrimaryExtensionContinuation(AirportCommsPrimaryExtensionContinuationRecord<'a>),
-    AirportCommsSectorNarrativeContinuation(AirportCommsSectorNarrativeContinuationRecord<'a>),
-    AirportCommsFormattedTimeContinuation(AirportCommsFormattedTimeContinuationRecord<'a>),
-    AirportCommsNarrativeTimeContinuation(AirportCommsNarrativeTimeContinuationRecord<'a>),
-    AirportCommsAdditionalSectorizationContinuation(
-        AirportCommsAdditionalSectorizationContinuationRecord<'a>,
-    ),
+    AirportCommsContinuation(AirportCommsContinuationRecord<'a>),
+    AirportCommsAdditionalContinuation(AirportCommsAdditionalContinuationRecord<'a>),
 
     AirwaysMarkerPrimary(AirwaysMarkerPrimaryRecord<'a>),
     AirwaysMarkerContinuation(AirwaysMarkerContinuationRecord<'a>),
@@ -113,33 +107,21 @@ pub enum ARINCRecord<'a> {
     FIRUIRContinuation(FIRUIRContinuationRecord<'a>),
 
     RestrictiveAirspacePrimary(RestrictiveAirspacePrimaryRecord<'a>),
-    RestrictiveAirspaceFormattedTimeContinuation(
-        RestrictiveAirspaceFormattedTimeContinuationRecord<'a>,
-    ),
-    RestrictiveAirspaceNarrativeTimeContinuation(
-        RestrictiveAirspaceNarrativeTimeContinuationRecord<'a>,
-    ),
-    RestrictiveAirspaceControllingAgencyContinuation(
-        RestrictiveAirspaceControllingAgencyContinuationRecord<'a>,
+    RestrictiveAirspaceContinuation(RestrictiveAirspaceContinuationRecord<'a>),
+    RestrictiveAirspaceFlightPlanningContinuation(
+        RestrictiveAirspaceFlightPlanningContinuationRecord<'a>,
     ),
 
     GridMORAPrimary(GridMORAPrimaryRecord<'a>),
 
     AirportMSAPrimary(AirportMSAPrimaryRecord<'a>),
-    AirportMSAPrimaryExtensionContinuation(AirportMSAPrimaryExtensionContinuationRecord<'a>),
     AirportMSAContinuation(AirportMSAContinuationRecord<'a>),
 
     EnrouteAirwayRestrictionAltitudeExclusionPrimary(
         EnrouteAirwayRestrictionAltitudeExclusionPrimaryRecord<'a>,
     ),
-    EnrouteAirwayRestrictionAltitudeExclusionPrimaryExtensionContinuation(
-        EnrouteAirwayRestrictionAltitudeExclusionPrimaryExtensionContinuationRecord<'a>,
-    ),
-    EnrouteAirwayRestrictionAltitudeExclusionFormattedTimeContinuation(
-        EnrouteAirwayRestrictionAltitudeExclusionFormattedTimeContinuationRecord<'a>,
-    ),
-    EnrouteAirwayRestrictionAltitudeExclusionNarrativeTimeContinuation(
-        EnrouteAirwayRestrictionAltitudeExclusionNarrativeTimeContinuationRecord<'a>,
+    EnrouteAirwayRestrictionAltitudeExclusionContinuation(
+        EnrouteAirwayRestrictionAltitudeExclusionContinuationRecord<'a>,
     ),
 
     EnrouteAirwayRestrictionNoteRestrictionPrimary(
@@ -152,21 +134,12 @@ pub enum ARINCRecord<'a> {
     EnrouteAirwayRestrictionSeasonalClosurePrimary(
         EnrouteAirwayRestrictionSeasonalClosurePrimaryRecord<'a>,
     ),
-    EnrouteAirwayRestrictionSeasonalClosureFormattedTimeContinuation(
-        EnrouteAirwayRestrictionSeasonalClosureFormattedTimeContinuationRecord<'a>,
-    ),
-    EnrouteAirwayRestrictionSeasonalClosureNarrativeTimeContinuation(
-        EnrouteAirwayRestrictionSeasonalClosureNarrativeTimeContinuationRecord<'a>,
-    ),
 
     EnrouteAirwayRestrictionCruisingTableReplacementPrimary(
         EnrouteAirwayRestrictionCruisingTableReplacementPrimaryRecord<'a>,
     ),
-    EnrouteAirwayRestrictionCruisingTableReplacementFormattedTimeContinuation(
+    EnrouteAirwayRestrictionCruisingTableReplacementContinuation(
         EnrouteAirwayRestrictionCruisingTableReplacementFormattedTimeContinuationRecord<'a>,
-    ),
-    EnrouteAirwayRestrictionCruisingTableReplacementNarrativeTimeContinuation(
-        EnrouteAirwayRestrictionCruisingTableReplacementNarrativeTimeContinuationRecord<'a>,
     ),
 
     MLSPrimary(MLSPrimaryRecord<'a>),
@@ -174,105 +147,50 @@ pub enum ARINCRecord<'a> {
 
     EnrouteCommsPrimary(EnrouteCommsPrimaryRecord<'a>),
     EnrouteCommsPrimaryExtensionContinuation(EnrouteCommsPrimaryExtensionContinuationRecord<'a>),
-    EnrouteCommsFormattedTimeContinuation(EnrouteCommsFormattedTimeContinuationRecord<'a>),
-    EnrouteCommsNarrativeTimeContinuation(EnrouteCommsNarrativeTimeContinuationRecord<'a>),
+    EnrouteCommsTimeContinuation(EnrouteCommsTimeContinuationRecord<'a>),
 
     PreferredSIDRoutePrimary(PreferredSIDRoutePrimaryRecord<'a>),
     PreferredSTARRoutePrimary(PreferredSTARRoutePrimaryRecord<'a>),
     PreferredAirwayRoutePrimary(PreferredAirwayRoutePrimaryRecord<'a>),
     PreferredGeneralRoutePrimary(PreferredGeneralRoutePrimaryRecord<'a>),
-    PreferredRouteFormattedTimeContinuation(PreferredRouteFormattedTimeContinuationRecord<'a>),
     PreferredRouteContinuation(PreferredRouteContinuationRecord<'a>),
-    PreferredRouteNarrativeTimeContinuation(PreferredRouteNarrativeTimeContinuationRecord<'a>),
+    PreferredRouteTimeContinuation(PreferredRouteTimeContinuationRecord<'a>),
 
     ControlledAirspacePrimary(ControlledAirspacePrimaryRecord<'a>),
-    ControlledAirspaceFormattedTimeContinuation(
-        ControlledAirspaceFormattedTimeContinuationRecord<'a>,
-    ),
-    ControlledAirspacePrimaryExtensionContinuation(
-        ControlledAirspacePrimaryExtensionContinuationRecord<'a>,
-    ),
-    ControlledAirspaceNarrativeTimeContinuation(
-        ControlledAirspaceNarrativeTimeContinuationRecord<'a>,
-    ),
-    ControlledAirspaceControllingAgencyContinuation(
-        ControlledAirspaceControllingAgencyContinuationRecord<'a>,
-    ),
+    ControlledAirspaceTimeContinuation(ControlledAirspaceFormattedTimeContinuationRecord<'a>),
 
     GeographicalReferenceTablePrimary(GeographicalReferenceTablePrimaryRecord<'a>),
     GeographicalReferenceTableContinuation(GeographicalReferenceTableContinuationRecord<'a>),
 
-    FlightPlanningSIDSTARDataPrimary(FlightPlanningSIDSTARDataPrimaryRecord<'a>),
-    FlightPlanningSIDSTARDataPrimaryExtensionContinuation(
+    FlightPlanningPrimary(FlightPlanningPrimaryRecord<'a>),
+    FlightPlanningPrimaryExtensionContinuation(
         FlightPlanningSIDSTARPrimaryExtensionContinuationRecord<'a>,
     ),
-    FlightPlanningSIDSTARDataFormattedTimeContinuation(
-        FlightPlanningSIDSTARFormattedTimeContinuationRecord<'a>,
-    ),
-    FlightPlanningSIDSTARDataNarrativeTimeContinuation(
-        FlightPlanningSIDSTARNarrativeTimeContinuationRecord<'a>,
-    ),
-    FlightPlanningApproachDataPrimary(FlightPlanningApproachDataPrimaryRecord<'a>),
-    FlightPlanningApproachDataPrimaryExtensionContinuation(
-        FlightPlanningApproachPrimaryExtensionContinuationRecord<'a>,
-    ),
-    FlightPlanningApproachDataFormattedTimeContinuation(
-        FlightPlanningApproachFormattedTimeContinuationRecord<'a>,
-    ),
-    FlightPlanningApproachDataNarrativeTimeContinuation(
-        FlightPlanningApproachNarrativeTimeContinuationRecord<'a>,
-    ),
+    FlightPlanningTimeContinuation(FlightPlanningTimeContinuationRecord<'a>),
+    FlightPlanningNarrativeTimeContinuation(FlightPlanningNarrativeTimeContinuationRecord<'a>),
 
-    AirportRunwaySBASPathPointPrimary(AirportRunwaySBASPathPointPrimaryRecord<'a>),
-    AirportFinalApproachCourseAsRunwaySBASPathPointPrimary(
-        AirportFinalApproachCourseAsRunwaySBASPathPointPrimaryRecord<'a>,
-    ),
-    AirportRunwaySBASPathPointContinuation(AirportRunwaySBASPathPointContinuationRecord<'a>),
-    AirportFinalApproachCourseAsRunwaySBASPathPointContinuation(
-        AirportFinalApproachCourseAsRunwaySBASPathPointContinuationRecord<'a>,
-    ),
+    AirportPathPointPrimary(AirportPathPointPrimaryRecord<'a>),
+    AirportPathPointContinuation(AirportPathPointContinuationRecord<'a>),
+    HeliportPathPointPrimary(HeliportPathPointPrimaryRecord<'a>),
+    HeliportPathPointContinuation(HeliportPathPointContinuationRecord<'a>),
 
-    AirportGLSPrimary(AirportGLSPrimaryRecord<'a>),
-    AirportGLSContinuation(AirportGLSContinuationRecord<'a>),
-    HeliportGLSPrimary(HeliportGLSPrimaryRecord<'a>),
-    HeliportGLSContinuation(HeliportGLSContinuationRecord<'a>),
+    GLSPrimary(GLSPrimaryRecord<'a>),
+    GLSContinuation(GLSContinuationRecord<'a>),
 
     AlternatePrimary(AlternatePrimaryRecord<'a>),
 
     AirportTAAPrimary(AirportTAAPrimaryRecord<'a>),
     AirportTAAContinuation(AirportTAAContinuationRecord<'a>),
 
-    TACANOnlyNavaidPrimary(TACANOnlyNavaidPrimaryRecord<'a>),
-    TACANOnlyNavaidContinuation(TACANOnlyNavaidContinuationRecord<'a>),
-    TACANOnlyNavaidSimulationContinuation(TACANOnlyNavaidSimulationContinuationRecord<'a>),
-    TACANOnlyNavaidFlightPlanningContinuation(TACANOnlyNavaidFlightPlanningContinuationRecord<'a>),
-    TACANOnlyNavaidLimitationContinuation(TACANOnlyNavaidLimitationContinuationRecord<'a>),
-
-    SpecialActivityAreaPrimary(SpecialActivityAreaPrimaryRecord<'a>),
-
-    CommunicationTypeTranslationPrimary(CommunicationTypeTranslationPrimaryRecord<'a>),
-
-    AirportRunwayGBASPathPointPrimary(AirportRunwayGBASPathPointPrimaryRecord<'a>),
-    AirportFinalApproachCourseAsRunwayGBASPathPointPrimary(
-        AirportFinalApproachCourseAsRunwayGBASPathPointPrimaryRecord<'a>,
-    ),
-    AirportRunwayGBASPathPointContinuation(AirportRunwayGBASPathPointContinuationRecord<'a>),
-    AirportFinalApproachCourseAsRunwayGBASPathPointContinuation(
-        AirportFinalApproachCourseAsRunwayGBASPathPointContinuationRecord<'a>,
-    ),
-
-    AirportHelipadPrimary(HelipadPrimaryRecord<'a>),
-
-    ATNDataPrimary(ATNDataPrimaryRecord<'a>),
-
     HeliportPrimary(HeliportPrimaryRecord<'a>),
     HeliportContinuation(HeliportContinuationRecord<'a>),
     HeliportFlightPlanningContinuation(HeliportFlightPlanningContinuationRecord<'a>),
+    HeliportControlledAirspaceContinuation(HeliportControlledAirspaceContinuationRecord<'a>),
 
     HeliportTerminalWaypointPrimary(HeliportTerminalWaypointPrimaryRecord<'a>),
     HeliportTerminalWaypointContinuation(HeliportTerminalWaypointContinuationRecord<'a>),
-    HeliportTerminalWaypointFlightPlanningContinuation(
-        HeliportTerminalWaypointFlightPlanningContinuationRecord<'a>,
+    HeliportTerminalWaypointChangedDataContinuation(
+        HeliportTerminalWaypointChangedDataContinuationRecord<'a>,
     ),
 
     HeliportSIDPrimary(HeliportSIDPrimaryRecord<'a>),
@@ -283,7 +201,7 @@ pub enum ARINCRecord<'a> {
     HeliportSTARPrimary(HeliportSTARPrimaryRecord<'a>),
     HeliportSTARPrimaryExtensionContinuation(HeliportSTARPrimaryExtensionContinuationRecord<'a>),
     HeliportSTARFlightPlanningContinuation(HeliportSTARFlightPlanningContinuationRecord<'a>),
-    HeliportSTARProcedureNameContinuation(HeliportSTARProcedureNameContinuationRecord<'a>),
+    HeliportSTARChangedDataContinuation(HeliportSTARChangedDataContinuationRecord<'a>),
 
     HeliportApproachMSACenterFixPrimary(HeliportApproachMSACenterFixPrimaryRecord<'a>),
     HeliportApproachTAAPrimary(HeliportApproachTAAPrimaryRecord<'a>),
@@ -293,41 +211,18 @@ pub enum ARINCRecord<'a> {
     HeliportApproachFlightPlanningContinuation(
         HeliportApproachFlightPlanningContinuationRecord<'a>,
     ),
-    HeliportApproachProcedureNameContinuation(HeliportApproachProcedureNameContinuationRecord<'a>),
+    HeliportApproachChangedDataContinuation(HeliportApproachChangedDataContinuationRecord<'a>),
     HeliportApproachProcedureDataContinuation(HeliportApproachProcedureDataContinuationRecord<'a>),
 
     HeliportMSAPrimary(HeliportMSAPrimaryRecord<'a>),
-    HeliportMSAPrimaryExtensionContinuation(HeliportMSAPrimaryExtensionContinuationRecord<'a>),
     HeliportMSAContinuation(HeliportMSAContinuationRecord<'a>),
 
     HeliportCommsPrimary(HeliportCommsPrimaryRecord<'a>),
-    HeliportCommsPrimaryExtensionContinuation(HeliportCommsPrimaryExtensionContinuationRecord<'a>),
-    HeliportCommsSectorNarrativeContinuation(HeliportCommsSectorNarrativeContinuationRecord<'a>),
-    HeliportCommsFormattedTimeContinuation(HeliportCommsFormattedTimeContinuationRecord<'a>),
-    HeliportCommsNarrativeTimeContinuation(HeliportCommsNarrativeTimeContinuationRecord<'a>),
-    HeliportCommsAdditionalSectorizationContinuation(
-        HeliportCommsAdditionalSectorizationContinuationRecord<'a>,
-    ),
+    HeliportCommsContinuation(HeliportCommsContinuationRecord<'a>),
+    HeliportCommsTimeContinuation(HeliportCommsTimeContinuationRecord<'a>),
 
     HeliportTAAPrimary(HeliportTAAPrimaryRecord<'a>),
     HeliportTAAContinuation(HeliportTAAContinuationRecord<'a>),
-
-    HelicopterCompanySIDRoutePrimary(HelicopterCompanySIDRoutePrimaryRecord<'a>),
-    HelicopterCompanySTARRoutePrimary(HelicopterCompanySTARRoutePrimaryRecord<'a>),
-    HelicopterCompanyApproachRoutePrimary(HelicopterCompanyApproachRoutePrimaryRecord<'a>),
-    HelicopterCompanyAirwayRoutePrimary(HelicopterCompanyAirwayRoutePrimaryRecord<'a>),
-    HelicopterCompanyGeneralRoutePrimary(HelicopterCompanyGeneralRoutePrimaryRecord<'a>),
-
-    HelicopterRunwaySBASPathPointPrimary(HelicopterRunwaySBASPathPointPrimaryRecord<'a>),
-    HelicopterFinalApproachCourseAsRunwaySBASPathPointPrimary(
-        HelicopterFinalApproachCourseAsRunwaySBASPathPointPrimaryRecord<'a>,
-    ),
-    HelicopterRunwaySBASPathPointContinuation(HelicopterRunwaySBASPathPointContinuationRecord<'a>),
-    HelicopterFinalApproachCourseAsRunwaySBASPathPointContinuation(
-        HelicopterFinalApproachCourseAsRunwaySBASPathPointContinuationRecord<'a>,
-    ),
-
-    HeliportHelipadPrimary(HeliportHelipadPrimaryRecord<'a>),
 }
 
 impl<'a> ARINCRecord<'a> {
@@ -351,7 +246,6 @@ impl<'a> ARINCRecord<'a> {
             [b'E', b'M'] => AirwaysMarkerRecords::parse(input),
             [b'E', b'P'] => HoldingPatternRecords::parse(input),
             [b'E', b'R'] => EnrouteAirwayRecords::parse(input),
-            [b'E', b'S'] => SpecialActivityRecords::parse(input),
             [b'E', b'T'] => PreferredRouteRecords::parse(input),
             [b'E', b'U'] => EnrouteAirwayRestrictionRecords::parse(input),
             [b'E', b'V'] => EnrouteCommsRecords::parse(input),
@@ -389,8 +283,6 @@ impl<'a> ARINCRecord<'a> {
             [b'R', b'H'] => HelicopterCompanyRouteRecords::parse(input),
             [b'T', b'C'] => CruisingTableRecords::parse(input),
             [b'T', b'G'] => GeographicalReferenceTableRecords::parse(input),
-            [b'T', b'L'] => ATNRecords::parse(input),
-            [b'T', b'V'] => CommunicationTypeTranslationRecords::parse(input),
             [b'U', b'C'] => ControlledAirspaceRecords::parse(input),
             [b'U', b'F'] => FIRUIRRecords::parse(input),
             [b'U', b'R'] => RestrictiveAirspaceRecords::parse(input),

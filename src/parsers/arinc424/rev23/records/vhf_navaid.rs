@@ -1,8 +1,7 @@
-
+use crate::parsers::arinc424::rev23::definitions::*;
 use crate::parsers::arinc424::rev23::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
 use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
-use crate::parsers::arinc424::rev23::definitions::*;
 pub(super) struct VHFNavaidRecords;
 impl VHFNavaidRecords {
     const CONTINUATION_COLUMN: usize = 22;
@@ -58,7 +57,7 @@ pub struct VHFNavaidPrimaryRecord<'a> {
     pub vor_identifier: RecordField<'a, VORNDBIdentifier>,
     pub vor_icao_code: RecordField<'a, IcaoCode>,
     pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
-    pub vor_frequency: RecordField<'a, VORNDBFrequency>,
+    pub vor_frequency: RecordField<'a, VORFrequency>,
     pub navaid_class: RecordField<'a, VHFNavaidClass>,
     pub vor_latitude: RecordField<'a, Latitude>,
     pub vor_longitude: RecordField<'a, Longitude>,

@@ -6,6 +6,7 @@
 //! Example is 5.4 - Section Code which describes the major section of the record.
 use crate::parsers::arinc424::types::fields::{BLANK, FieldParseError, ParseableField};
 
+/// 5.2 Record Type Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum RecordType {
     Standard,
@@ -14,15 +15,57 @@ pub enum RecordType {
 
 impl ParseableField for RecordType {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
         Ok(Some(match bytes {
             b"S" => RecordType::Standard,
             b"T" => RecordType::Tailored,
             _ => {
                 return Err(FieldParseError::new("Invalid record type".to_string()));
             }
+        }))
+    }
+}
+
+/// 5.3 Customer/Area Code
+#[derive(Debug, PartialEq, Eq)]
+pub enum CustomerAreaCode {
+    Africa,
+    Canada,
+    EasternEurope,
+    Europe,
+    LatinAmerica,
+    MiddleEast,
+    Pacific,
+    SouthAmerica,
+    SouthPacific,
+    USA,
+    Customer(String),
+}
+
+impl ParseableField for CustomerAreaCode {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.len() != 3 {
+            return Err(FieldParseError::new(
+                "Customer area code must be 3 characters long".to_string(),
+            ));
+        }
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"EEU" => CustomerAreaCode::EasternEurope,
+            b"EUR" => CustomerAreaCode::Europe,
+            b"USA" => CustomerAreaCode::USA,
+            b"CAN" => CustomerAreaCode::Canada,
+            b"PAC" => CustomerAreaCode::Pacific,
+            b"AFR" => CustomerAreaCode::Africa,
+            b"LAM" => CustomerAreaCode::LatinAmerica,
+            b"MES" => CustomerAreaCode::MiddleEast,
+            b"SAM" => CustomerAreaCode::SouthAmerica,
+            b"SPA" => CustomerAreaCode::SouthPacific,
+            _ => CustomerAreaCode::Customer(
+                String::from_utf8(bytes.to_vec())
+                    .map_err(|e| FieldParseError::new(e.to_string()))?,
+            ),
         }))
     }
 }
@@ -71,9 +114,6 @@ pub enum MORASubsection {
 
 impl ParseableField for MORASubsection {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
         Ok(Some(match bytes {
             b"S" => MORASubsection::GridMORA,
             _ => {
@@ -90,7 +130,6 @@ impl ParseableField for MORASubsection {
 pub enum NavaidSubsection {
     VHFNavaid,
     NDBNavaid,
-    TACANDuplicates,
 }
 
 impl ParseableField for NavaidSubsection {
@@ -98,7 +137,6 @@ impl ParseableField for NavaidSubsection {
         Ok(Some(match bytes {
             [BLANK] => NavaidSubsection::VHFNavaid,
             b"B" => NavaidSubsection::NDBNavaid,
-            b"T" => NavaidSubsection::TACANDuplicates,
             _ => {
                 return Err(FieldParseError::new(
                     "Invalid Navaid subsection code".to_string(),
@@ -115,7 +153,6 @@ pub enum EnrouteSubsection {
     AirwayMarkers,
     HoldingPatterns,
     AirwaysAndRoutes,
-    SpecialActivityAreas,
     PreferredRoutes,
     AirwayRestrictions,
     Communications,
@@ -123,15 +160,11 @@ pub enum EnrouteSubsection {
 
 impl ParseableField for EnrouteSubsection {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
         Ok(Some(match bytes {
             b"A" => EnrouteSubsection::Waypoints,
             b"M" => EnrouteSubsection::AirwayMarkers,
             b"P" => EnrouteSubsection::HoldingPatterns,
             b"R" => EnrouteSubsection::AirwaysAndRoutes,
-            b"S" => EnrouteSubsection::SpecialActivityAreas,
             b"T" => EnrouteSubsection::PreferredRoutes,
             b"U" => EnrouteSubsection::AirwayRestrictions,
             b"V" => EnrouteSubsection::Communications,
@@ -147,33 +180,26 @@ impl ParseableField for EnrouteSubsection {
 /// 5.6(B) Heliport Subsection Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum HeliportSubsection {
-    ReferencePoints,
+    Pads,
     TerminalWaypoints,
     SIDS,
     STARS,
     ApproachProcedures,
-    Helipads,
     TAA,
     MSA,
-    SBASPathPoint,
     Communications,
 }
 
 impl ParseableField for HeliportSubsection {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
         Ok(Some(match bytes {
-            b"A" => HeliportSubsection::ReferencePoints,
+            b"A" => HeliportSubsection::Pads,
             b"C" => HeliportSubsection::TerminalWaypoints,
             b"D" => HeliportSubsection::SIDS,
             b"E" => HeliportSubsection::STARS,
             b"F" => HeliportSubsection::ApproachProcedures,
-            b"H" => HeliportSubsection::Helipads,
             b"K" => HeliportSubsection::TAA,
             b"S" => HeliportSubsection::MSA,
-            b"P" => HeliportSubsection::SBASPathPoint,
             b"V" => HeliportSubsection::Communications,
             _ => {
                 return Err(FieldParseError::new(
@@ -194,14 +220,12 @@ pub enum AirportSubsection {
     STARS,
     ApproachProcedures,
     Runways,
-    Helipads,
     LocalizerGlideslope,
     TAA,
     MLS,
     LocalizerMarker,
     TerminalNDB,
-    SBASPathPoint,
-    GBASPathPoint,
+    PathPoint,
     FlightPlanningARRDEP,
     MSA,
     GLSStation,
@@ -210,9 +234,6 @@ pub enum AirportSubsection {
 
 impl ParseableField for AirportSubsection {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
         Ok(Some(match bytes {
             b"A" => AirportSubsection::ReferencePoints,
             b"B" => AirportSubsection::Gates,
@@ -221,14 +242,12 @@ impl ParseableField for AirportSubsection {
             b"E" => AirportSubsection::STARS,
             b"F" => AirportSubsection::ApproachProcedures,
             b"G" => AirportSubsection::Runways,
-            b"H" => AirportSubsection::Helipads,
             b"I" => AirportSubsection::LocalizerGlideslope,
             b"K" => AirportSubsection::TAA,
             b"L" => AirportSubsection::MLS,
             b"M" => AirportSubsection::LocalizerMarker,
             b"N" => AirportSubsection::TerminalNDB,
-            b"P" => AirportSubsection::SBASPathPoint,
-            b"Q" => AirportSubsection::GBASPathPoint,
+            b"P" => AirportSubsection::PathPoint,
             b"R" => AirportSubsection::FlightPlanningARRDEP,
             b"S" => AirportSubsection::MSA,
             b"T" => AirportSubsection::GLSStation,
@@ -247,7 +266,6 @@ impl ParseableField for AirportSubsection {
 pub enum CompanyRoutesSubsection {
     CompanyRoutes,
     AlternateRecords,
-    HelicopterOperationRoutes,
 }
 
 impl ParseableField for CompanyRoutesSubsection {
@@ -255,7 +273,6 @@ impl ParseableField for CompanyRoutesSubsection {
         Ok(Some(match bytes {
             [BLANK] => CompanyRoutesSubsection::CompanyRoutes,
             b"A" => CompanyRoutesSubsection::AlternateRecords,
-            b"H" => CompanyRoutesSubsection::HelicopterOperationRoutes,
             _ => {
                 return Err(FieldParseError::new(
                     "Invalid Company Routes subsection code".to_string(),
@@ -270,20 +287,15 @@ impl ParseableField for CompanyRoutesSubsection {
 pub enum TablesSubsection {
     CruisingTables,
     GeographicalReference,
-    ATNData,
-    CommunicationType,
+    RNAVNameTable,
 }
 
 impl ParseableField for TablesSubsection {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
         Ok(Some(match bytes {
             b"C" => TablesSubsection::CruisingTables,
             b"G" => TablesSubsection::GeographicalReference,
-            b"L" => TablesSubsection::ATNData,
-            b"V" => TablesSubsection::CommunicationType,
+            b"N" => TablesSubsection::RNAVNameTable,
             _ => {
                 return Err(FieldParseError::new(
                     "Invalid Tables subsection code".to_string(),
@@ -303,9 +315,6 @@ pub enum AirspaceSubsection {
 
 impl ParseableField for AirspaceSubsection {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
         Ok(Some(match bytes {
             b"C" => AirspaceSubsection::ControlledAirspace,
             b"F" => AirspaceSubsection::FIRUIR,
@@ -319,7 +328,7 @@ impl ParseableField for AirspaceSubsection {
     }
 }
 
-/// 5.7(A) Enroute Airway Route Type
+/// 5.7.1(A) Enroute Airway Route Type
 #[derive(Debug, PartialEq, Eq)]
 pub enum EnrouteAirwayRouteType {
     AirlineAirway,
@@ -327,9 +336,8 @@ pub enum EnrouteAirwayRouteType {
     DirectRoute,
     HelicopterAirway,
     DesignatedAirway,
-    RNAVRNPAirway,
+    RNAVAirway,
     UndesignatedATSRoute,
-    TACANAirway,
 }
 
 impl ParseableField for EnrouteAirwayRouteType {
@@ -343,9 +351,8 @@ impl ParseableField for EnrouteAirwayRouteType {
             b"D" => EnrouteAirwayRouteType::DirectRoute,
             b"H" => EnrouteAirwayRouteType::HelicopterAirway,
             b"O" => EnrouteAirwayRouteType::DesignatedAirway,
-            b"R" => EnrouteAirwayRouteType::RNAVRNPAirway,
+            b"R" => EnrouteAirwayRouteType::RNAVAirway,
             b"S" => EnrouteAirwayRouteType::UndesignatedATSRoute,
-            b"T" => EnrouteAirwayRouteType::TACANAirway,
             _ => {
                 return Err(FieldParseError::new(
                     "Invalid enroute airway route type".to_string(),
@@ -355,107 +362,7 @@ impl ParseableField for EnrouteAirwayRouteType {
     }
 }
 
-/// 5.7(A.1) Enroute Airway Route Type Qualifier 1
-#[derive(Debug, PartialEq, Eq)]
-pub enum EnrouteAirwayRouteTypeQualifier1 {
-    GNSSRequired,
-    GNSSOrDMEDMEIRURequired,
-    GNSSOrDMEDMEIRUOrDMEDMERequired,
-    EquipmentRequirementsUnspecified,
-}
-impl ParseableField for EnrouteAirwayRouteTypeQualifier1 {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(match bytes {
-            b"G" => EnrouteAirwayRouteTypeQualifier1::GNSSRequired,
-            b"F" => EnrouteAirwayRouteTypeQualifier1::GNSSOrDMEDMEIRURequired,
-            b"A" => EnrouteAirwayRouteTypeQualifier1::GNSSOrDMEDMEIRUOrDMEDMERequired,
-            b"U" => EnrouteAirwayRouteTypeQualifier1::EquipmentRequirementsUnspecified,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid Enroute Airway Route Type Qualifier 1".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.7(A.2) Enroute Airway Route Type Qualifier 2
-#[derive(Debug, PartialEq, Eq)]
-pub enum EnrouteAirwayRouteTypeQualifier2 {
-    FRTRequired,
-    ParallelOffsetRequired,
-    TOACRequired,
-}
-impl ParseableField for EnrouteAirwayRouteTypeQualifier2 {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(match bytes {
-            b"R" => EnrouteAirwayRouteTypeQualifier2::FRTRequired,
-            b"P" => EnrouteAirwayRouteTypeQualifier2::ParallelOffsetRequired,
-            b"T" => EnrouteAirwayRouteTypeQualifier2::TOACRequired,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid Enroute Airway Route Type Capability Requirement".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.7(A.3) Enroute Airway Route Type Qualifier 3
-#[derive(Debug, PartialEq, Eq)]
-pub enum EnrouteAirwayRouteTypeQualifier3 {
-    RNAV10,
-    RNAV5,
-    RNAV2,
-    RNAV1,
-    BRNAV,
-    PRNAV,
-    RNP4,
-    RNP2,
-    RNP1,
-    ARNP,
-    RNP0_3,
-    Unspecified,
-    VORDMERNAV,
-    NonRNAVRNPSegment,
-}
-
-impl ParseableField for EnrouteAirwayRouteTypeQualifier3 {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(match bytes {
-            b"W" => EnrouteAirwayRouteTypeQualifier3::RNAV10,
-            b"Z" => EnrouteAirwayRouteTypeQualifier3::RNAV5,
-            b"Y" => EnrouteAirwayRouteTypeQualifier3::RNAV2,
-            b"X" => EnrouteAirwayRouteTypeQualifier3::RNAV1,
-            b"B" => EnrouteAirwayRouteTypeQualifier3::BRNAV,
-            b"P" => EnrouteAirwayRouteTypeQualifier3::PRNAV,
-            b"C" => EnrouteAirwayRouteTypeQualifier3::RNP4,
-            b"D" => EnrouteAirwayRouteTypeQualifier3::RNP2,
-            b"E" => EnrouteAirwayRouteTypeQualifier3::RNP1,
-            b"A" => EnrouteAirwayRouteTypeQualifier3::ARNP,
-            b"G" => EnrouteAirwayRouteTypeQualifier3::RNP0_3,
-            b"U" => EnrouteAirwayRouteTypeQualifier3::Unspecified,
-            b"V" => EnrouteAirwayRouteTypeQualifier3::VORDMERNAV,
-            b"N" => EnrouteAirwayRouteTypeQualifier3::NonRNAVRNPSegment,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid Enroute Airway Route Type PBN".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.7(B) Preferred Route Route Type
+/// 5.7.1(B) Preferred Route Route Type
 #[derive(Debug, PartialEq, Eq)]
 pub enum PreferredRouteRouteType {
     NACommonRoute,
@@ -493,7 +400,7 @@ impl ParseableField for PreferredRouteRouteType {
     }
 }
 
-/// 5.7(C) SID Route Type
+/// 5.7.1(C) SID Route Type
 #[derive(Debug, PartialEq, Eq)]
 pub enum SIDRouteType {
     EngineOut,
@@ -535,113 +442,7 @@ impl ParseableField for SIDRouteType {
     }
 }
 
-/// 5.7(C.1) Airport/Heliport SID Route Type Qualifier 1
-#[derive(Debug, PartialEq, Eq)]
-pub enum AirportHeliportSIDRouteTypeQualifier1 {
-    DMERequired,
-    GNSSRequired,
-    RadarRequired,
-    HelicopterSIDFromRunway,
-    PointInSpaceSID,
-}
-impl ParseableField for AirportHeliportSIDRouteTypeQualifier1 {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(match bytes {
-            b"D" => AirportHeliportSIDRouteTypeQualifier1::DMERequired,
-            b"G" => AirportHeliportSIDRouteTypeQualifier1::GNSSRequired,
-            b"R" => AirportHeliportSIDRouteTypeQualifier1::RadarRequired,
-            b"H" => AirportHeliportSIDRouteTypeQualifier1::HelicopterSIDFromRunway,
-            b"P" => AirportHeliportSIDRouteTypeQualifier1::PointInSpaceSID,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid Airport Heliport SID Route Type Qualifier 1".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.7(C.2) Airport/Heliport SID Route Type Qualifier 2
-#[derive(Debug, PartialEq, Eq)]
-pub enum AirportHeliportSIDRouteTypeQualifier2 {
-    RNAV,
-    RNP,
-    FMSRequired,
-    ConventionalDepartures,
-    PointInSpaceDepartureProceedVisually,
-    PointInSpaceDepartureProceedVFR,
-}
-
-impl ParseableField for AirportHeliportSIDRouteTypeQualifier2 {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(match bytes {
-            b"D" => AirportHeliportSIDRouteTypeQualifier2::RNAV,
-            b"E" => AirportHeliportSIDRouteTypeQualifier2::RNP,
-            b"F" => AirportHeliportSIDRouteTypeQualifier2::FMSRequired,
-            b"G" => AirportHeliportSIDRouteTypeQualifier2::ConventionalDepartures,
-            b"W" => AirportHeliportSIDRouteTypeQualifier2::PointInSpaceDepartureProceedVisually,
-            b"X" => AirportHeliportSIDRouteTypeQualifier2::PointInSpaceDepartureProceedVFR,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid Airport Heliport SID Route Type Qualifier 2".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.7(C.3) Airport/Heliport SID Route Type Qualifier 3
-#[derive(Debug, PartialEq, Eq)]
-pub enum AirportHeliportSIDRouteTypeQualifier3 {
-    RNAV5,
-    RNAV2,
-    RNAV1,
-    BRNAV,
-    PRNAV,
-    RNP2,
-    RNP1,
-    RNPAR,
-    ARNP,
-    RNP0_3,
-    RNP1OrRNAV1,
-    Unspecified,
-    VORDMERNAV,
-}
-impl ParseableField for AirportHeliportSIDRouteTypeQualifier3 {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(match bytes {
-            b"Z" => AirportHeliportSIDRouteTypeQualifier3::RNAV5,
-            b"Y" => AirportHeliportSIDRouteTypeQualifier3::RNAV2,
-            b"X" => AirportHeliportSIDRouteTypeQualifier3::RNAV1,
-            b"B" => AirportHeliportSIDRouteTypeQualifier3::BRNAV,
-            b"P" => AirportHeliportSIDRouteTypeQualifier3::PRNAV,
-            b"D" => AirportHeliportSIDRouteTypeQualifier3::RNP2,
-            b"E" => AirportHeliportSIDRouteTypeQualifier3::RNP1,
-            b"F" => AirportHeliportSIDRouteTypeQualifier3::RNPAR,
-            b"A" => AirportHeliportSIDRouteTypeQualifier3::ARNP,
-            b"G" => AirportHeliportSIDRouteTypeQualifier3::RNP0_3,
-            b"M" => AirportHeliportSIDRouteTypeQualifier3::RNP1OrRNAV1,
-            b"U" => AirportHeliportSIDRouteTypeQualifier3::Unspecified,
-            b"V" => AirportHeliportSIDRouteTypeQualifier3::VORDMERNAV,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid Airport Heliport SID Route Type Qualifier 3".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.7(D) STAR Route Type
+/// 5.7.1(D) STAR Route Type
 #[derive(Debug, PartialEq, Eq)]
 pub enum STARRouteType {
     EnrouteTransition,
@@ -686,111 +487,7 @@ impl ParseableField for STARRouteType {
     }
 }
 
-/// 5.7(D.1) STAR Route Type Qualifier 1
-#[derive(Debug, PartialEq, Eq)]
-pub enum AirportHeliportSTARRouteTypeQualifier1 {
-    DMERequired,
-    RadarRequired,
-    GNSSRequired,
-    HelicopterSTARToRunway,
-    ContinuousDescentSTAR,
-}
-
-impl ParseableField for AirportHeliportSTARRouteTypeQualifier1 {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(match bytes {
-            b"D" => AirportHeliportSTARRouteTypeQualifier1::DMERequired,
-            b"R" => AirportHeliportSTARRouteTypeQualifier1::RadarRequired,
-            b"G" => AirportHeliportSTARRouteTypeQualifier1::GNSSRequired,
-            b"H" => AirportHeliportSTARRouteTypeQualifier1::HelicopterSTARToRunway,
-            b"P" => AirportHeliportSTARRouteTypeQualifier1::ContinuousDescentSTAR,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid Airport Heliport STAR Route Type Qualifier 1".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.7(D.2) STAR Route Type Qualifier 2
-#[derive(Debug, PartialEq, Eq)]
-pub enum AirportHeliportSTARRouteTypeQualifier2 {
-    RNAV,
-    RNP,
-    FMSRequired,
-    ConventionalArrivals,
-    NotApplicable,
-}
-impl ParseableField for AirportHeliportSTARRouteTypeQualifier2 {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(match bytes {
-            b"D" => AirportHeliportSTARRouteTypeQualifier2::RNAV,
-            b"E" => AirportHeliportSTARRouteTypeQualifier2::RNP,
-            b"F" => AirportHeliportSTARRouteTypeQualifier2::FMSRequired,
-            b"G" => AirportHeliportSTARRouteTypeQualifier2::ConventionalArrivals,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid Airport Heliport STAR Route Type Qualifier 2".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.7(D.3) STAR Route Type Qualifier 3
-#[derive(Debug, PartialEq, Eq)]
-pub enum AirportHeliportSTARRouteTypeQualifier3 {
-    RNAV5,
-    RNAV2,
-    RNAV1,
-    BRNAV,
-    PRNAV,
-    RNP2,
-    RNP1,
-    RNPAR,
-    ARNP,
-    RNP0_3,
-    RNP1OrRNAV1,
-    Unspecified,
-    VORDMERNAV,
-    NotApplicable,
-}
-impl ParseableField for AirportHeliportSTARRouteTypeQualifier3 {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(Some(AirportHeliportSTARRouteTypeQualifier3::NotApplicable));
-        }
-        Ok(Some(match bytes {
-            b"Z" => AirportHeliportSTARRouteTypeQualifier3::RNAV5,
-            b"Y" => AirportHeliportSTARRouteTypeQualifier3::RNAV2,
-            b"X" => AirportHeliportSTARRouteTypeQualifier3::RNAV1,
-            b"B" => AirportHeliportSTARRouteTypeQualifier3::BRNAV,
-            b"P" => AirportHeliportSTARRouteTypeQualifier3::PRNAV,
-            b"D" => AirportHeliportSTARRouteTypeQualifier3::RNP2,
-            b"E" => AirportHeliportSTARRouteTypeQualifier3::RNP1,
-            b"F" => AirportHeliportSTARRouteTypeQualifier3::RNPAR,
-            b"A" => AirportHeliportSTARRouteTypeQualifier3::ARNP,
-            b"G" => AirportHeliportSTARRouteTypeQualifier3::RNP0_3,
-            b"M" => AirportHeliportSTARRouteTypeQualifier3::RNP1OrRNAV1,
-            b"U" => AirportHeliportSTARRouteTypeQualifier3::Unspecified,
-            b"V" => AirportHeliportSTARRouteTypeQualifier3::VORDMERNAV,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid Airport Heliport STAR Route Type Qualifier 3".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.7(E) Airport Heliport Approach Route Type
+/// 5.7.1(E) Airport Heliport Approach Route Type
 #[derive(Debug, PartialEq, Eq)]
 pub enum AirportHeliportApproachRouteType {
     ApproachTransition,
@@ -798,7 +495,6 @@ pub enum AirportHeliportApproachRouteType {
     VORDMEApproach,
     FMSApproach,
     IGSApproach,
-    RNAVRNPApproach,
     ILSApproach,
     GLSApproach,
     LOCApproach,
@@ -813,7 +509,7 @@ pub enum AirportHeliportApproachRouteType {
     VORApproach,
     MLSTypeAApproach,
     LDAApproach,
-    RFApproachTransition,
+    MLSTypeBCApproach,
     MissedApproach,
 }
 
@@ -828,7 +524,6 @@ impl ParseableField for AirportHeliportApproachRouteType {
             b"D" => AirportHeliportApproachRouteType::VORDMEApproach,
             b"F" => AirportHeliportApproachRouteType::FMSApproach,
             b"G" => AirportHeliportApproachRouteType::IGSApproach,
-            b"H" => AirportHeliportApproachRouteType::RNAVRNPApproach,
             b"I" => AirportHeliportApproachRouteType::ILSApproach,
             b"J" => AirportHeliportApproachRouteType::GLSApproach,
             b"L" => AirportHeliportApproachRouteType::LOCApproach,
@@ -843,7 +538,7 @@ impl ParseableField for AirportHeliportApproachRouteType {
             b"V" => AirportHeliportApproachRouteType::VORApproach,
             b"W" => AirportHeliportApproachRouteType::MLSTypeAApproach,
             b"X" => AirportHeliportApproachRouteType::LDAApproach,
-            b"Y" => AirportHeliportApproachRouteType::RFApproachTransition,
+            b"Y" => AirportHeliportApproachRouteType::MLSTypeBCApproach,
             b"Z" => AirportHeliportApproachRouteType::MissedApproach,
             _ => {
                 return Err(FieldParseError::new(
@@ -854,164 +549,71 @@ impl ParseableField for AirportHeliportApproachRouteType {
     }
 }
 
-/// 5.7(E.1) Approach Route Type Qualifier 1
+/// 5.7.2 Route Type Qualifier 1
 #[derive(Debug, PartialEq, Eq)]
-pub enum AirportHeliportApproachRouteTypeQualifier1 {
+pub enum RouteTypeQualifier1 {
     DMERequired,
-    GNSSRequiredDMEDMENotAuthorized,
+    GPSRequiredNoDMEDME,
     GBASProcedure,
     DMENotRequired,
     GNSSRequired,
-    GNSSOrDMEDMERequired,
+    GPSOrDMEDMERequired,
     DMEDMERequired,
-    RNAVOrRNP,
+    GeneralRNAV,
     VORDMERNAV,
-    SBASFASRequired,
-    UnknownAllowedValue,
+    RNAVWithFAS,
 }
-impl ParseableField for AirportHeliportApproachRouteTypeQualifier1 {
+
+impl ParseableField for RouteTypeQualifier1 {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
         Ok(Some(match bytes {
-            b"D" => AirportHeliportApproachRouteTypeQualifier1::DMERequired,
-            b"F" => AirportHeliportApproachRouteTypeQualifier1::UnknownAllowedValue,
-            b"J" => AirportHeliportApproachRouteTypeQualifier1::GNSSRequiredDMEDMENotAuthorized,
-            b"L" => AirportHeliportApproachRouteTypeQualifier1::GBASProcedure,
-            b"N" => AirportHeliportApproachRouteTypeQualifier1::DMENotRequired,
-            b"P" => AirportHeliportApproachRouteTypeQualifier1::GNSSRequired,
-            b"R" => AirportHeliportApproachRouteTypeQualifier1::GNSSOrDMEDMERequired,
-            b"T" => AirportHeliportApproachRouteTypeQualifier1::DMEDMERequired,
-            b"U" => AirportHeliportApproachRouteTypeQualifier1::RNAVOrRNP,
-            b"V" => AirportHeliportApproachRouteTypeQualifier1::VORDMERNAV,
-            b"W" => AirportHeliportApproachRouteTypeQualifier1::SBASFASRequired,
+            b"D" => RouteTypeQualifier1::DMERequired,
+            b"J" => RouteTypeQualifier1::GPSRequiredNoDMEDME,
+            b"L" => RouteTypeQualifier1::GBASProcedure,
+            b"N" => RouteTypeQualifier1::DMENotRequired,
+            b"P" => RouteTypeQualifier1::GNSSRequired,
+            b"R" => RouteTypeQualifier1::GPSOrDMEDMERequired,
+            b"T" => RouteTypeQualifier1::DMEDMERequired,
+            b"U" => RouteTypeQualifier1::GeneralRNAV,
+            b"V" => RouteTypeQualifier1::VORDMERNAV,
+            b"W" => RouteTypeQualifier1::RNAVWithFAS,
             _ => {
                 return Err(FieldParseError::new(
-                    "Invalid Approach Route Type Qualifier 1".to_string(),
+                    format!("Invalid route qualifier 1: {}", bytes[0] as char).to_string(),
                 ));
             }
         }))
     }
 }
-
-/// 5.7(E.2) Approach Route Type Qualifier 2
+/// 5.7.3 Route Type Qualifier 2
 #[derive(Debug, PartialEq, Eq)]
-pub enum AirportHeliportApproachRouteTypeQualifier2 {
+pub enum RouteTypeQualifier2 {
     PrimaryMissedApproach,
     SecondaryMissedApproach,
     EngineOutMissedApproach,
-    CircleToLandMinimums,
-    HelicopterStraightInMinimums,
-    HelicopterCircleToLandMinimums,
-    HelicopterLandingMinimums,
-    StraightInMinimums,
-    VMCMinimums,
-    PointInSpaceProceedVisually,
-    PointInSpaceProceedVFR,
+    ProcedureWithoutStraightInMinimums,
+    ProcedureWithStraightInMinimums,
 }
 
-impl ParseableField for AirportHeliportApproachRouteTypeQualifier2 {
+impl ParseableField for RouteTypeQualifier2 {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
         Ok(Some(match bytes {
-            b"A" => AirportHeliportApproachRouteTypeQualifier2::PrimaryMissedApproach,
-            b"B" => AirportHeliportApproachRouteTypeQualifier2::SecondaryMissedApproach,
-            b"E" => AirportHeliportApproachRouteTypeQualifier2::EngineOutMissedApproach,
-            b"C" => AirportHeliportApproachRouteTypeQualifier2::CircleToLandMinimums,
-            b"H" => AirportHeliportApproachRouteTypeQualifier2::HelicopterStraightInMinimums,
-            b"I" => AirportHeliportApproachRouteTypeQualifier2::HelicopterCircleToLandMinimums,
-            b"L" => AirportHeliportApproachRouteTypeQualifier2::HelicopterLandingMinimums,
-            b"S" => AirportHeliportApproachRouteTypeQualifier2::StraightInMinimums,
-            b"V" => AirportHeliportApproachRouteTypeQualifier2::VMCMinimums,
-            b"W" => AirportHeliportApproachRouteTypeQualifier2::PointInSpaceProceedVisually,
-            b"X" => AirportHeliportApproachRouteTypeQualifier2::PointInSpaceProceedVFR,
+            b"A" => RouteTypeQualifier2::PrimaryMissedApproach,
+            b"B" => RouteTypeQualifier2::SecondaryMissedApproach,
+            b"E" => RouteTypeQualifier2::EngineOutMissedApproach,
+            b"C" => RouteTypeQualifier2::ProcedureWithoutStraightInMinimums,
+            b"S" => RouteTypeQualifier2::ProcedureWithStraightInMinimums,
             _ => {
                 return Err(FieldParseError::new(
-                    "Invalid Approach Route Type Qualifier 2".to_string(),
+                    format!("Invalid route qualifier 2: {}", bytes[0] as char).to_string(),
                 ));
             }
-        }))
-    }
-}
-
-/// 5.7(E.3) Approach Route Type Qualifier 3
-#[derive(Debug, PartialEq, Eq)]
-pub enum AirportHeliportApproachRouteTypeQualifier3 {
-    RNAV1,
-    RNP1,
-    RNPApproach,
-    RNP0_3,
-    ARNP,
-    RNPAR,
-    RNAVVisual,
-}
-
-impl ParseableField for AirportHeliportApproachRouteTypeQualifier3 {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(match bytes {
-            b"X" => AirportHeliportApproachRouteTypeQualifier3::RNAV1,
-            b"E" => AirportHeliportApproachRouteTypeQualifier3::RNP1,
-            b"H" => AirportHeliportApproachRouteTypeQualifier3::RNPApproach,
-            b"G" => AirportHeliportApproachRouteTypeQualifier3::RNP0_3,
-            b"A" => AirportHeliportApproachRouteTypeQualifier3::ARNP,
-            b"F" => AirportHeliportApproachRouteTypeQualifier3::RNPAR,
-            b"B" => AirportHeliportApproachRouteTypeQualifier3::RNAVVisual,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid Approach Route Type Qualifier 3".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.8 Customer/Area Code
-#[derive(Debug, PartialEq, Eq)]
-pub enum CustomerAreaCode {
-    Africa,
-    Canada,
-    EasternEurope,
-    Europe,
-    LatinAmerica,
-    MiddleEast,
-    Pacific,
-    SouthAmerica,
-    SouthPacific,
-    USA,
-    Customer(String),
-}
-
-impl ParseableField for CustomerAreaCode {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.len() != 3 {
-            return Err(FieldParseError::new(
-                "Customer area code must be 3 characters long".to_string(),
-            ));
-        }
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(match bytes {
-            b"EEU" => CustomerAreaCode::EasternEurope,
-            b"EUR" => CustomerAreaCode::Europe,
-            b"USA" => CustomerAreaCode::USA,
-            b"CAN" => CustomerAreaCode::Canada,
-            b"PAC" => CustomerAreaCode::Pacific,
-            b"AFR" => CustomerAreaCode::Africa,
-            b"LAM" => CustomerAreaCode::LatinAmerica,
-            b"MES" => CustomerAreaCode::MiddleEast,
-            b"SAM" => CustomerAreaCode::SouthAmerica,
-            b"SPA" => CustomerAreaCode::SouthPacific,
-            _ => CustomerAreaCode::Customer(
-                String::from_utf8(bytes.to_vec())
-                    .map_err(|e| FieldParseError::new(e.to_string()))?,
-            ),
         }))
     }
 }
@@ -1113,11 +715,9 @@ pub enum TurnDirectionValid {
 
 impl ParseableField for TurnDirectionValid {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
         Ok(Some(match bytes {
             b"Y" => TurnDirectionValid::Yes,
+            [BLANK] => TurnDirectionValid::No,
             _ => {
                 return Err(FieldParseError::new(
                     "Invalid turn direction valid".to_string(),
@@ -1134,12 +734,15 @@ pub enum CrossingAltitudeDescription {
     AtOrBelow,
     At,
     Between,
-    ConditionalAtOrAboveEarliest,
-    ConditionalAtOrAboveLatest,
-    GlideslopeAltitude,
-    GlideslopeInterceptAltitude,
+    AtOrAboveSecondAltitude,
+    GlideslopeWithAtAltitude,
+    GlideslopeWithAtOrAboveAltitude,
+    GlideslopeInterceptWithAtAltitude,
+    GlideslopeInterceptWithAtOrAboveAltitude,
     AtUntilInbound,
-    AtVerticalAngle,
+    AtOrAboveStepDown,
+    AtStepDown,
+    AtOrBelowStepDown,
 }
 
 impl ParseableField for CrossingAltitudeDescription {
@@ -1152,12 +755,14 @@ impl ParseableField for CrossingAltitudeDescription {
             b"-" => CrossingAltitudeDescription::AtOrBelow,
             b"@" => CrossingAltitudeDescription::At,
             b"B" => CrossingAltitudeDescription::Between,
-            b"C" => CrossingAltitudeDescription::ConditionalAtOrAboveEarliest,
-            b"D" => CrossingAltitudeDescription::ConditionalAtOrAboveLatest,
-            b"G" | b"H" => CrossingAltitudeDescription::GlideslopeAltitude,
-            b"I" | b"J" => CrossingAltitudeDescription::GlideslopeInterceptAltitude,
-            b"O" => CrossingAltitudeDescription::AtUntilInbound,
-            b"V" | b"X" | b"Y" => CrossingAltitudeDescription::AtVerticalAngle,
+            b"C" => CrossingAltitudeDescription::AtOrAboveSecondAltitude,
+            b"G" => CrossingAltitudeDescription::GlideslopeWithAtAltitude,
+            b"H" => CrossingAltitudeDescription::GlideslopeWithAtOrAboveAltitude,
+            b"I" => CrossingAltitudeDescription::GlideslopeInterceptWithAtAltitude,
+            b"J" => CrossingAltitudeDescription::GlideslopeInterceptWithAtOrAboveAltitude,
+            b"V" => CrossingAltitudeDescription::AtOrAboveStepDown,
+            b"X" => CrossingAltitudeDescription::AtStepDown,
+            b"Y" => CrossingAltitudeDescription::AtOrBelowStepDown,
             _ => {
                 return Err(FieldParseError::new(format!(
                     "Invalid crossing altitude description: {}",
@@ -1203,9 +808,6 @@ pub enum Turn {
 
 impl ParseableField for Turn {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
         Ok(Some(match bytes {
             b"L" => Turn::Left,
             b"R" => Turn::Right,
@@ -1221,7 +823,6 @@ impl ParseableField for Turn {
 pub enum CompanyRouteVIACode {
     AlternateAirport,
     ApproachRoute,
-    ApproachTransition,
     DesignatedAirway,
     DirectToFix,
     InitialFix,
@@ -1242,7 +843,6 @@ impl ParseableField for CompanyRouteVIACode {
         Ok(Some(match bytes {
             b"ALT" => CompanyRouteVIACode::AlternateAirport,
             b"APP" => CompanyRouteVIACode::ApproachRoute,
-            b"APT" => CompanyRouteVIACode::ApproachTransition,
             b"AWY" => CompanyRouteVIACode::DesignatedAirway,
             b"DIR" => CompanyRouteVIACode::DirectToFix,
             b"INT" => CompanyRouteVIACode::InitialFix,
@@ -1344,9 +944,6 @@ pub enum AtcIndicator {
 
 impl ParseableField for AtcIndicator {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
         Ok(Some(match bytes {
             b"A" => AtcIndicator::ATCAssignmentOptional,
             b"S" => AtcIndicator::ATCAssignmentRequired,
@@ -1357,44 +954,22 @@ impl ParseableField for AtcIndicator {
     }
 }
 
-/// 5.82 Waypoint Usage
-#[derive(Debug, PartialEq, Eq)]
-pub enum WaypointUsage {
-    HIAndLo,
-    Hi,
-    Lo,
-    TerminalOnly,
-}
-
-impl ParseableField for WaypointUsage {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        Ok(Some(match bytes {
-            b"B" => WaypointUsage::HIAndLo,
-            b"H" => WaypointUsage::Hi,
-            b"L" => WaypointUsage::Lo,
-            [BLANK] => WaypointUsage::TerminalOnly,
-            _ => {
-                return Err(FieldParseError::new("Invalid waypoint usage".to_string()));
-            }
-        }))
-    }
-}
-
 /// 5.91 Continuation Record Application Type (APPL)
 #[derive(Debug, PartialEq, Eq)]
 pub enum ContinuationRecordApplicationType {
     StandardContinuation,
+    CombinedControllingAgencyFormattedTimeOfOperationsContinuation,
     ControllingAgencyContinuation,
     PrimaryRecordExtension,
-    AdditionalSectorizationContinuation,
-    VHFNavaidTACANOnlyNavaidLimitationContinuation,
+    VHFNavaidNavaidLimitationContinuation,
     SectorNarrativeContinuation,
-    FlightPlanningContinuation,
-    SimulationContinuation,
     FormattedTimeOfOperationsContinuation,
     NarrativeTimeOfOperationsContinuation,
+    StartEndDateTimeOfOperationsContinuation,
+    FlightPlanningContinuation,
+    FlightPlanningPrimaryDataContinuation,
+    SimulationContinuation,
     AirportHeliportProcedureDataContinuation,
-    AirportSIDSTARApproachProcedureNameContinuation,
 }
 
 impl ParseableField for ContinuationRecordApplicationType {
@@ -1404,21 +979,20 @@ impl ParseableField for ContinuationRecordApplicationType {
         }
         Ok(Some(match bytes {
             b"A" => ContinuationRecordApplicationType::StandardContinuation,
+            b"B" => ContinuationRecordApplicationType::CombinedControllingAgencyFormattedTimeOfOperationsContinuation,
             b"C" => ContinuationRecordApplicationType::ControllingAgencyContinuation,
             b"E" => ContinuationRecordApplicationType::PrimaryRecordExtension,
-            b"F" => ContinuationRecordApplicationType::AdditionalSectorizationContinuation,
             b"L" => {
-                ContinuationRecordApplicationType::VHFNavaidTACANOnlyNavaidLimitationContinuation
+                ContinuationRecordApplicationType::VHFNavaidNavaidLimitationContinuation
             }
             b"N" => ContinuationRecordApplicationType::SectorNarrativeContinuation,
-            b"P" => ContinuationRecordApplicationType::FlightPlanningContinuation,
-            b"S" => ContinuationRecordApplicationType::SimulationContinuation,
             b"T" => ContinuationRecordApplicationType::FormattedTimeOfOperationsContinuation,
             b"U" => ContinuationRecordApplicationType::NarrativeTimeOfOperationsContinuation,
+            b"V" => ContinuationRecordApplicationType::StartEndDateTimeOfOperationsContinuation,
+            b"P" => ContinuationRecordApplicationType::FlightPlanningContinuation,
+            b"Q" => ContinuationRecordApplicationType::FlightPlanningPrimaryDataContinuation,
+            b"S" => ContinuationRecordApplicationType::SimulationContinuation,
             b"W" => ContinuationRecordApplicationType::AirportHeliportProcedureDataContinuation,
-            b"Y" => {
-                ContinuationRecordApplicationType::AirportSIDSTARApproachProcedureNameContinuation
-            }
             _ => {
                 return Err(FieldParseError::new(
                     "Invalid continuation record application type".to_string(),
@@ -1433,7 +1007,6 @@ impl ParseableField for ContinuationRecordApplicationType {
 pub enum GovernmentSource {
     OfficialGovernment,
     OtherSource,
-    OnlyTrue,
 }
 
 impl ParseableField for GovernmentSource {
@@ -1442,9 +1015,8 @@ impl ParseableField for GovernmentSource {
             return Ok(None);
         }
         Ok(Some(match bytes {
-            b"O" => GovernmentSource::OfficialGovernment,
-            b"R" => GovernmentSource::OtherSource,
-            b"T" => GovernmentSource::OnlyTrue,
+            b"Y" => GovernmentSource::OfficialGovernment,
+            b"N" => GovernmentSource::OtherSource,
             _ => {
                 return Err(FieldParseError::new(
                     "Invalid government source".to_string(),
@@ -1459,8 +1031,7 @@ impl ParseableField for GovernmentSource {
 pub enum ElevationType {
     AirportHeliportElevation,
     LandingThresholdElevation,
-    DisplacedThresholdRunwayEndElevation,
-    TouchdownZoneElevation,
+    GovernmentSourced,
 }
 
 impl ParseableField for ElevationType {
@@ -1471,8 +1042,7 @@ impl ParseableField for ElevationType {
         Ok(Some(match bytes {
             b"A" => ElevationType::AirportHeliportElevation,
             b"L" => ElevationType::LandingThresholdElevation,
-            b"R" => ElevationType::DisplacedThresholdRunwayEndElevation,
-            b"T" => ElevationType::TouchdownZoneElevation,
+            b"G" => ElevationType::GovernmentSourced,
             _ => {
                 return Err(FieldParseError::new("Invalid elevation type".to_string()));
             }
@@ -1481,6 +1051,8 @@ impl ParseableField for ElevationType {
 }
 
 /// 5.101 Communications Type
+/// Note: Technically there are only some valid values depending on Enroute vs Airport/Heliport comms
+///     for now we skip this
 #[derive(Debug, PartialEq, Eq)]
 pub enum CommunicationsType {
     AreaControlCenter,
@@ -1493,12 +1065,9 @@ pub enum CommunicationsType {
     AWIB,
     AWOS,
     AWIS,
-    ClassBAirspace,
-    ClassCAirspace,
     ClearanceDelivery,
     ClearancePreTaxi,
     TerminalControlArea,
-    CTAF,
     Control,
     DepartureControl,
     ApproachControlRadarDirector,
@@ -1510,7 +1079,6 @@ pub enum CommunicationsType {
     GateControl,
     HelicopterFrequency,
     Information,
-    MandatoryBroadcastZone,
     MilitaryFrequency,
     Multicom,
     Operations,
@@ -1544,15 +1112,12 @@ impl ParseableField for CommunicationsType {
             b"ARR" => CommunicationsType::ArrivalControl,
             b"ASO" => CommunicationsType::ASOS,
             b"ATI" => CommunicationsType::ATIS,
-            b"AWB" => CommunicationsType::AWIB,
+            b"AWI" => CommunicationsType::AWIB,
             b"AWO" => CommunicationsType::AWOS,
             b"AWS" => CommunicationsType::AWIS,
-            b"CBA" => CommunicationsType::ClassBAirspace,
-            b"CCA" => CommunicationsType::ClassCAirspace,
             b"CLD" => CommunicationsType::ClearanceDelivery,
             b"CPT" => CommunicationsType::ClearancePreTaxi,
             b"CTA" => CommunicationsType::TerminalControlArea,
-            b"CTF" => CommunicationsType::CTAF,
             b"CTL" => CommunicationsType::Control,
             b"DEP" => CommunicationsType::DepartureControl,
             b"DIR" => CommunicationsType::ApproachControlRadarDirector,
@@ -1564,7 +1129,6 @@ impl ParseableField for CommunicationsType {
             b"GTE" => CommunicationsType::GateControl,
             b"HEL" => CommunicationsType::HelicopterFrequency,
             b"INF" => CommunicationsType::Information,
-            b"MBZ" => CommunicationsType::MandatoryBroadcastZone,
             b"MIL" => CommunicationsType::MilitaryFrequency,
             b"MUL" => CommunicationsType::Multicom,
             b"OPS" => CommunicationsType::Operations,
@@ -1597,18 +1161,16 @@ impl ParseableField for CommunicationsType {
 pub enum Radar {
     Radar,
     NonRadar,
-    Unknown,
 }
 
 impl ParseableField for Radar {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes[0] == BLANK {
-            return Ok(Some(Radar::NonRadar));
+            return Ok(None);
         }
         Ok(Some(match bytes {
             b"R" => Radar::Radar,
             b"N" => Radar::NonRadar,
-            b"U" => Radar::Unknown,
             _ => {
                 return Err(FieldParseError::new("Invalid radar".to_string()));
             }
@@ -1619,16 +1181,10 @@ impl ParseableField for Radar {
 /// 5.104 Frequency Units
 #[derive(Debug, PartialEq, Eq)]
 pub enum FrequencyUnits {
-    DigitalService,
-    LF,
-    MF,
     HF,
-    VHF100KHzSpacing,
-    VHF50KHzSpacing,
-    VHF25KHzSpacing,
-    VHF8_33KHzSpacing,
-    VHFNonStandardSpacing,
+    VHF,
     UHF,
+    VHF8_33KHzSpacing,
 }
 
 impl ParseableField for FrequencyUnits {
@@ -1637,16 +1193,10 @@ impl ParseableField for FrequencyUnits {
             return Ok(None);
         }
         Ok(Some(match bytes {
-            b"D" => FrequencyUnits::DigitalService,
-            b"L" => FrequencyUnits::LF,
-            b"M" => FrequencyUnits::MF,
             b"H" => FrequencyUnits::HF,
-            b"K" => FrequencyUnits::VHF100KHzSpacing,
-            b"F" => FrequencyUnits::VHF50KHzSpacing,
-            b"T" => FrequencyUnits::VHF25KHzSpacing,
-            b"C" => FrequencyUnits::VHF8_33KHzSpacing,
-            b"V" => FrequencyUnits::VHFNonStandardSpacing,
+            b"V" => FrequencyUnits::VHF,
             b"U" => FrequencyUnits::UHF,
+            b"C" => FrequencyUnits::VHF8_33KHzSpacing,
             _ => {
                 return Err(FieldParseError::new("Invalid frequency units".to_string()));
             }
@@ -1886,7 +1436,6 @@ pub enum RestrictiveAirspaceType {
     Alert,
     Caution,
     Danger,
-    LongTermTFR,
     MilitaryOperationsArea,
     NationalSecurityArea,
     Prohibited,
@@ -1902,7 +1451,6 @@ impl ParseableField for RestrictiveAirspaceType {
             b"A" => RestrictiveAirspaceType::Alert,
             b"C" => RestrictiveAirspaceType::Caution,
             b"D" => RestrictiveAirspaceType::Danger,
-            b"L" => RestrictiveAirspaceType::LongTermTFR,
             b"M" => RestrictiveAirspaceType::MilitaryOperationsArea,
             b"N" => RestrictiveAirspaceType::NationalSecurityArea,
             b"P" => RestrictiveAirspaceType::Prohibited,
@@ -1919,27 +1467,25 @@ impl ParseableField for RestrictiveAirspaceType {
     }
 }
 
-/// 5.131(A) Primary Record Time Code
+/// 5.131(A).1 Standard Primary Record Time Code
 #[derive(Debug, PartialEq, Eq)]
-pub enum PrimaryRecordTimeCode {
+pub enum StandardPrimaryRecordTimeCode {
     ActiveContinuouslyIncludingHolidays,
     ActiveContinuouslyExcludingHolidays,
     ActiveNonContinuously,
     ActiveDuringNOTAM,
-    NotSpecified,
 }
 
-impl ParseableField for PrimaryRecordTimeCode {
+impl ParseableField for StandardPrimaryRecordTimeCode {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
         Ok(Some(match bytes {
-            b"C" => PrimaryRecordTimeCode::ActiveContinuouslyIncludingHolidays,
-            b"H" => PrimaryRecordTimeCode::ActiveContinuouslyExcludingHolidays,
-            b"N" => PrimaryRecordTimeCode::ActiveNonContinuously,
-            b"P" => PrimaryRecordTimeCode::ActiveDuringNOTAM,
-            b"U" => PrimaryRecordTimeCode::NotSpecified,
+            b"C" => StandardPrimaryRecordTimeCode::ActiveContinuouslyIncludingHolidays,
+            b"H" => StandardPrimaryRecordTimeCode::ActiveContinuouslyExcludingHolidays,
+            b"N" => StandardPrimaryRecordTimeCode::ActiveNonContinuously,
+            [BLANK] => StandardPrimaryRecordTimeCode::ActiveDuringNOTAM,
             _ => {
                 return Err(FieldParseError::new(
                     "Invalid primary record time code".to_string(),
@@ -1949,24 +1495,54 @@ impl ParseableField for PrimaryRecordTimeCode {
     }
 }
 
-/// 5.131(B) Continuation Record Time Code
+/// 5.131(A).2 Standard Continuation Record Time Code
 #[derive(Debug, PartialEq, Eq)]
-pub enum ContinuationRecordTimeCode {
+pub enum StandardContinuationRecordTimeCode {
     ExcludingHolidays,
     IncludingHolidays,
+    NoteForm,
 }
 
-impl ParseableField for ContinuationRecordTimeCode {
+impl ParseableField for StandardContinuationRecordTimeCode {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
         Ok(Some(match bytes {
-            b"H" => ContinuationRecordTimeCode::ExcludingHolidays,
-            b"T" => ContinuationRecordTimeCode::IncludingHolidays,
+            b"H" => StandardContinuationRecordTimeCode::ExcludingHolidays,
+            b"T" => StandardContinuationRecordTimeCode::IncludingHolidays,
+            b"N" => StandardContinuationRecordTimeCode::NoteForm,
             _ => {
                 return Err(FieldParseError::new(
                     "Invalid continuation record time code".to_string(),
+                ));
+            }
+        }))
+    }
+}
+
+/// 5.131(B) Enroute Airway Restriction Record Time Code
+#[derive(Debug, PartialEq, Eq)]
+pub enum EnrouteAirwayRestrictionTimeCode {
+    ActiveContinuouslyIncludingHolidays,
+    ActiveContinuouslyExcludingHolidays,
+    ActiveNonContinuouslyExcludingHolidays,
+    ActiveNonContinuouslyIncludingHolidays,
+}
+
+impl ParseableField for EnrouteAirwayRestrictionTimeCode {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"C" => EnrouteAirwayRestrictionTimeCode::ActiveContinuouslyIncludingHolidays,
+            b"H" => EnrouteAirwayRestrictionTimeCode::ActiveContinuouslyExcludingHolidays,
+            b"S" => EnrouteAirwayRestrictionTimeCode::ActiveNonContinuouslyExcludingHolidays,
+            b"T" => EnrouteAirwayRestrictionTimeCode::ActiveNonContinuouslyIncludingHolidays,
+            _ => {
+                return Err(FieldParseError::new(
+                    "Invalid primary record time code".to_string(),
                 ));
             }
         }))
@@ -2062,20 +1638,15 @@ impl ParseableField for CruiseTableIdentifier {
 pub enum TimeIndicator {
     LocalTimeWithDST,
     LocalTimeWithoutDST,
-    UTCWithDST,
-    UTCWithoutDST,
+    UTC,
 }
 
 impl ParseableField for TimeIndicator {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
         Ok(Some(match bytes {
-            b"T" => TimeIndicator::LocalTimeWithDST,
-            b"L" => TimeIndicator::LocalTimeWithoutDST,
-            b"S" => TimeIndicator::UTCWithDST,
-            b"Z" => TimeIndicator::UTCWithoutDST,
+            b"T" => TimeIndicator::LocalTimeWithoutDST,
+            b"S" => TimeIndicator::LocalTimeWithDST,
+            [BLANK] => TimeIndicator::UTC,
             _ => {
                 return Err(FieldParseError::new("Invalid time indicator".to_string()));
             }
@@ -2083,9 +1654,9 @@ impl ParseableField for TimeIndicator {
     }
 }
 
-/// 5.149 NavaidUsableRange
+/// 5.149 Figure of Merit
 #[derive(Debug, PartialEq, Eq)]
-pub enum NavaidUsableRange {
+pub enum FigureOfMerit {
     Terminal,
     LowAltitude,
     HighAltitude,
@@ -2094,85 +1665,20 @@ pub enum NavaidUsableRange {
     NavaidOutOfService,
 }
 
-impl ParseableField for NavaidUsableRange {
+impl ParseableField for FigureOfMerit {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
         }
         Ok(Some(match bytes {
-            b"0" => NavaidUsableRange::Terminal,
-            b"1" => NavaidUsableRange::LowAltitude,
-            b"2" => NavaidUsableRange::HighAltitude,
-            b"3" => NavaidUsableRange::ExtendedHighAltitude,
-            b"7" => NavaidUsableRange::NavaidNotCivil,
-            b"9" => NavaidUsableRange::NavaidOutOfService,
+            b"0" => FigureOfMerit::Terminal,
+            b"1" => FigureOfMerit::LowAltitude,
+            b"2" => FigureOfMerit::HighAltitude,
+            b"3" => FigureOfMerit::ExtendedHighAltitude,
+            b"7" => FigureOfMerit::NavaidNotCivil,
+            b"9" => FigureOfMerit::NavaidOutOfService,
             _ => {
-                return Err(FieldParseError::new(
-                    "Invalid Navaid usable range".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.155 BARO-VNAV Authorization
-#[derive(Debug, PartialEq, Eq)]
-pub enum BaroVnavAuthorization {
-    Authorized,
-    NotAuthorized,
-}
-
-impl ParseableField for BaroVnavAuthorization {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        Ok(Some(match bytes {
-            b"X" => BaroVnavAuthorization::Authorized,
-            [BLANK] => BaroVnavAuthorization::NotAuthorized,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid BARO-VNAV authorization flag".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.158 VFR Checkpoint Flag
-#[derive(Debug, PartialEq, Eq)]
-pub enum VFRCheckpointFlag {
-    Yes,
-    No,
-}
-
-impl ParseableField for VFRCheckpointFlag {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        Ok(Some(match bytes {
-            b"Y" => VFRCheckpointFlag::Yes,
-            [BLANK] => VFRCheckpointFlag::No,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid VFR checkpoint flag".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.159 ATC Assigned Only
-#[derive(Debug, PartialEq, Eq)]
-pub enum AtcAssignedOnly {
-    Yes,
-    No,
-}
-
-impl ParseableField for AtcAssignedOnly {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        Ok(Some(match bytes {
-            b"Y" => AtcAssignedOnly::Yes,
-            [BLANK] => AtcAssignedOnly::No,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid ATC assigned only flag".to_string(),
-                ));
+                return Err(FieldParseError::new("Invalid figure of merit".to_string()));
             }
         }))
     }
@@ -2260,16 +1766,15 @@ impl ParseableField for EnrouteAirwayRestrictionFlag {
 pub enum MagneticTrueIndicator {
     Magnetic,
     True,
+    Both,
 }
 
 impl ParseableField for MagneticTrueIndicator {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
         Ok(Some(match bytes {
             b"M" => MagneticTrueIndicator::Magnetic,
             b"T" => MagneticTrueIndicator::True,
+            [BLANK] => MagneticTrueIndicator::Both,
             _ => {
                 return Err(FieldParseError::new(format!(
                     "Invalid magnetic/true indicator: {}",
@@ -2307,7 +1812,6 @@ pub enum PublicMilitaryIndicator {
     Public,
     Military,
     Private,
-    Joint,
 }
 
 impl ParseableField for PublicMilitaryIndicator {
@@ -2318,7 +1822,6 @@ impl ParseableField for PublicMilitaryIndicator {
         Ok(Some(match bytes {
             b"C" => PublicMilitaryIndicator::Public,
             b"M" => PublicMilitaryIndicator::Military,
-            b"J" => PublicMilitaryIndicator::Joint,
             b"P" => PublicMilitaryIndicator::Private,
             _ => {
                 return Err(FieldParseError::new(
@@ -2358,7 +1861,6 @@ impl ParseableField for DaylightTimeObservedIndicator {
 pub enum H24Indicator {
     Yes,
     No,
-    Unknown,
 }
 
 impl ParseableField for H24Indicator {
@@ -2369,9 +1871,29 @@ impl ParseableField for H24Indicator {
         Ok(Some(match bytes {
             b"Y" => H24Indicator::Yes,
             b"N" => H24Indicator::No,
-            b"U" => H24Indicator::Unknown,
             _ => {
                 return Err(FieldParseError::new("Invalid H24 indicator".to_string()));
+            }
+        }))
+    }
+}
+
+/// 5.182 Guard/Transmit Indicator
+#[derive(Debug, PartialEq, Eq)]
+pub enum GuardTransmitIndicator {
+    Guard,
+    Transmit,
+}
+
+impl ParseableField for GuardTransmitIndicator {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"G" => GuardTransmitIndicator::Guard,
+            b"T" => GuardTransmitIndicator::Transmit,
+            _ => {
+                return Err(FieldParseError::new(
+                    "Invalid guard/transmit indicator".to_string(),
+                ));
             }
         }))
     }
@@ -2383,7 +1905,6 @@ pub enum DistanceDescription {
     AppliedUpToDistance,
     AppliedFromDistance,
     NotAppliedOrAtSpecifiedDistance,
-    BetweenSpecifiedDistances,
 }
 
 impl ParseableField for DistanceDescription {
@@ -2392,7 +1913,6 @@ impl ParseableField for DistanceDescription {
             b"-" => DistanceDescription::AppliedUpToDistance,
             b"+" => DistanceDescription::AppliedFromDistance,
             [BLANK] => DistanceDescription::NotAppliedOrAtSpecifiedDistance,
-            b"B" => DistanceDescription::BetweenSpecifiedDistances,
             _ => {
                 return Err(FieldParseError::new(
                     "Invalid distance description".to_string(),
@@ -2402,7 +1922,7 @@ impl ParseableField for DistanceDescription {
     }
 }
 
-/// 5.197 Modulation
+/// 5.198 Modulation
 #[derive(Debug, PartialEq, Eq)]
 pub enum Modulation {
     AM,
@@ -2630,8 +2150,6 @@ pub enum ControlledAirspaceType {
     TerminalControlArea,
     RadarArea,
     ClassB,
-    RadioMandatoryZone,
-    TransponderMandatoryZone,
     ClassD,
 }
 
@@ -2646,8 +2164,6 @@ impl ParseableField for ControlledAirspaceType {
             b"M" => ControlledAirspaceType::TerminalControlArea,
             b"R" => ControlledAirspaceType::RadarArea,
             b"T" => ControlledAirspaceType::ClassB,
-            b"U" => ControlledAirspaceType::RadioMandatoryZone,
-            b"V" => ControlledAirspaceType::TransponderMandatoryZone,
             b"Z" => ControlledAirspaceType::ClassD,
             _ => {
                 return Err(FieldParseError::new(
@@ -2693,13 +2209,11 @@ pub enum GNSSFMSIndicator {
     GNSSOverlayWithNavaid,
     GNSSOverlay,
     FMSOverlay,
-    SBASWithVNAV,
-    RNPRNAVVisualNoSBASVNAV,
-    RNPSBASVNAVNotPublished,
-    RNPSBASNoSBASVNAV,
+    FMSAndOrGNSSOverlay,
+    RNAVSBASAllowed,
+    RNAVNoSBAS,
+    RNAVSBASNotSpecified,
     StandaloneGNSS,
-    RNPApproachAsGPS,
-    ILSLocalizerOnly,
     OverlayAuthorizationNotPublished,
 }
 
@@ -2714,13 +2228,11 @@ impl ParseableField for GNSSFMSIndicator {
             b"2" => GNSSFMSIndicator::GNSSOverlayWithNavaid,
             b"3" => GNSSFMSIndicator::GNSSOverlay,
             b"4" => GNSSFMSIndicator::FMSOverlay,
-            b"A" => GNSSFMSIndicator::SBASWithVNAV,
-            b"B" => GNSSFMSIndicator::RNPRNAVVisualNoSBASVNAV,
-            b"C" => GNSSFMSIndicator::RNPSBASVNAVNotPublished,
-            b"D" => GNSSFMSIndicator::RNPSBASNoSBASVNAV,
+            b"5" => GNSSFMSIndicator::FMSAndOrGNSSOverlay,
+            b"A" => GNSSFMSIndicator::RNAVSBASAllowed,
+            b"B" => GNSSFMSIndicator::RNAVNoSBAS,
+            b"C" => GNSSFMSIndicator::RNAVSBASNotSpecified,
             b"P" => GNSSFMSIndicator::StandaloneGNSS,
-            b"G" => GNSSFMSIndicator::RNPApproachAsGPS,
-            b"L" => GNSSFMSIndicator::ILSLocalizerOnly,
             b"U" => GNSSFMSIndicator::OverlayAuthorizationNotPublished,
             _ => {
                 return Err(FieldParseError::new(
@@ -2731,12 +2243,11 @@ impl ParseableField for GNSSFMSIndicator {
     }
 }
 
-/// 5.223(A) SBAS Operation Type
+/// 5.223(A) Path Point Operation Type
 #[derive(Debug, PartialEq, Eq)]
 pub enum SBASOperationType {
-    StraightInOrPointInSpaceApproach,
+    StraightIn,
     Reserved,
-    Spare,
 }
 
 impl ParseableField for SBASOperationType {
@@ -2753,48 +2264,11 @@ impl ParseableField for SBASOperationType {
         .map_err(|e| FieldParseError::new(format!("Numeric is not a valid u8: {}", e)))?;
 
         Ok(Some(match numeric_value {
-            0 => SBASOperationType::StraightInOrPointInSpaceApproach,
-            1..=2 => SBASOperationType::Reserved,
-            3..=15 => SBASOperationType::Spare,
+            0 => SBASOperationType::StraightIn,
+            1..=15 => SBASOperationType::Reserved,
             _ => {
                 return Err(FieldParseError::new(
                     "Invalid SBAS operation type".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.223(B) GBAS Operation Type
-#[derive(Debug, PartialEq, Eq)]
-pub enum GBASOperationType {
-    StraightInApproachPath,
-    TerminalAreaPath,
-    MissedApproach,
-    Spare,
-}
-
-impl ParseableField for GBASOperationType {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-
-        let numeric_value = u8::from_str_radix(
-            std::str::from_utf8(bytes)
-                .map_err(|e| FieldParseError::new(format!("Numeric is not valid UTF-8: {}", e)))?,
-            10,
-        )
-        .map_err(|e| FieldParseError::new(format!("Numeric is not a valid u8: {}", e)))?;
-
-        Ok(Some(match numeric_value {
-            0 => GBASOperationType::StraightInApproachPath,
-            1 => GBASOperationType::TerminalAreaPath,
-            2 => GBASOperationType::MissedApproach,
-            3..=15 => GBASOperationType::Spare,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid GBAS operation type".to_string(),
                 ));
             }
         }))
@@ -3090,16 +2564,10 @@ impl ParseableField for AlternateType {
 }
 
 /// 5.255 SBAS Service Provider Identifier
+/// Note: This field as of this version is not developed and thus no enumeration even from future revisions should be assigned
 #[derive(Debug, PartialEq, Eq)]
 pub enum SbasServiceProviderIdentifier {
-    WAAS,
-    EGNOS,
-    MSAS,
-    GAGAN,
-    SDCM,
-    Spare,
-    CRCForGBAS,
-    AnyServiceProvider,
+    InDevelopment,
 }
 
 impl ParseableField for SbasServiceProviderIdentifier {
@@ -3117,14 +2585,7 @@ impl ParseableField for SbasServiceProviderIdentifier {
             FieldParseError::new(format!("Invalid SBAS service provider identifier: {}", e))
         })?;
         Ok(Some(match numeric_value {
-            0 => SbasServiceProviderIdentifier::WAAS,
-            1 => SbasServiceProviderIdentifier::EGNOS,
-            2 => SbasServiceProviderIdentifier::MSAS,
-            3 => SbasServiceProviderIdentifier::GAGAN,
-            4 => SbasServiceProviderIdentifier::SDCM,
-            5..=13 => SbasServiceProviderIdentifier::Spare,
-            14 => SbasServiceProviderIdentifier::CRCForGBAS,
-            15 => SbasServiceProviderIdentifier::AnyServiceProvider,
+            0..=15 => SbasServiceProviderIdentifier::InDevelopment,
             _ => {
                 return Err(FieldParseError::new(format!(
                     "Invalid SBAS service provider identifier: {}",
@@ -3135,16 +2596,14 @@ impl ParseableField for SbasServiceProviderIdentifier {
     }
 }
 
-/// 5.258 GBAS Approach Performance Designator
+/// 5.258 Approach Performance Designator
+/// Note: This field as of this version is not developed and thus no enumeration even from future revisions should be assigned
 #[derive(Debug, PartialEq, Eq)]
-pub enum GBASApproachPerformanceDesignator {
-    GASTAOrGASTB,
-    GASTC,
-    GASTCOrGASTD,
-    Spare,
+pub enum ApproachPerformanceDesignator {
+    InDevelopment,
 }
 
-impl ParseableField for GBASApproachPerformanceDesignator {
+impl ParseableField for ApproachPerformanceDesignator {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
             return Ok(None);
@@ -3165,10 +2624,7 @@ impl ParseableField for GBASApproachPerformanceDesignator {
             ))
         })?;
         Ok(Some(match numeric_value {
-            0 => GBASApproachPerformanceDesignator::GASTAOrGASTB,
-            1 => GBASApproachPerformanceDesignator::GASTC,
-            2 => GBASApproachPerformanceDesignator::GASTCOrGASTD,
-            3..=7 => GBASApproachPerformanceDesignator::Spare,
+            0..=7 => ApproachPerformanceDesignator::InDevelopment,
             _ => {
                 return Err(FieldParseError::new(
                     "Invalid GBAS approach performance designator".to_string(),
@@ -3267,11 +2723,10 @@ pub enum ProcedureTurn {
 impl ParseableField for ProcedureTurn {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
+            return Ok(Some(ProcedureTurn::NoProcedureTurn));
         }
         Ok(Some(match bytes {
-            b"Y" => ProcedureTurn::Required,
-            b"N" => ProcedureTurn::NoProcedureTurn,
+            b"NOPT" => ProcedureTurn::NoProcedureTurn,
             _ => {
                 return Err(FieldParseError::new("Invalid procedure turn".to_string()));
             }
@@ -3314,827 +2769,16 @@ pub enum LevelOfServiceAuthorized {
 
 impl ParseableField for LevelOfServiceAuthorized {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
         Ok(Some(match bytes {
             b"A" => LevelOfServiceAuthorized::Authorized,
-            [BLANK] | b"N" => LevelOfServiceAuthorized::NotAuthorized,
+            b"N" => LevelOfServiceAuthorized::NotAuthorized,
             _ => {
                 return Err(FieldParseError::new(
                     format!("Invalid level of service authorized: {}", bytes[0] as char)
                         .to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.277 DME Operational Service Volume
-#[derive(Debug, PartialEq, Eq)]
-pub enum DMEOperationalServiceVolume {
-    LessThan40NM,
-    LessThan70NM,
-    LessThan130NM,
-    GreaterThan130NM,
-    Unspecified,
-}
-
-impl ParseableField for DMEOperationalServiceVolume {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(match bytes {
-            b"A" => DMEOperationalServiceVolume::LessThan40NM,
-            b"B" => DMEOperationalServiceVolume::LessThan70NM,
-            b"C" => DMEOperationalServiceVolume::LessThan130NM,
-            b"D" => DMEOperationalServiceVolume::GreaterThan130NM,
-            b"U" => DMEOperationalServiceVolume::Unspecified,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid DME operational service volume".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.278 Special Activity Type
-#[derive(Debug, PartialEq, Eq)]
-pub enum SpecialActivityType {
-    ParachuteJumping,
-    Glider,
-    HangGlider,
-    Ultralight,
-}
-
-impl ParseableField for SpecialActivityType {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(match bytes {
-            b"P" => SpecialActivityType::ParachuteJumping,
-            b"G" => SpecialActivityType::Glider,
-            b"H" => SpecialActivityType::HangGlider,
-            b"U" => SpecialActivityType::Ultralight,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid special activity type".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.283 Communications Class
-#[derive(Debug, PartialEq, Eq)]
-pub enum CommunicationsClass {
-    LinkedToFIRUIRForControl,
-    LinkedToFIRUIRForInformation,
-    UsedWithinFIRUIRForOtherPurposes,
-    UsedWithinFIRUIRForBroadcastServices,
-    UsedWithinTerminalAreaForControl,
-    UsedwithinTerminalAreaForOtherPurposes,
-    UsedWithinTerminalAreaForBroadcastServices,
-}
-
-impl ParseableField for CommunicationsClass {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(match bytes {
-            b"LIRC" => CommunicationsClass::LinkedToFIRUIRForControl,
-            b"LIRI" => CommunicationsClass::LinkedToFIRUIRForInformation,
-            b"USVC" => CommunicationsClass::UsedWithinFIRUIRForOtherPurposes,
-            b"ASVC" => CommunicationsClass::UsedWithinFIRUIRForBroadcastServices,
-            b"ATCF" => CommunicationsClass::UsedWithinTerminalAreaForControl,
-            b"AOTF" => CommunicationsClass::UsedwithinTerminalAreaForOtherPurposes,
-            b"AFAC" => CommunicationsClass::UsedWithinTerminalAreaForBroadcastServices,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid communications class".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.286 Multi-Sector Indicator
-#[derive(Debug, PartialEq, Eq)]
-pub enum MultiSectorIndicator {
-    MultiSector,
-    SingleSector,
-}
-
-impl ParseableField for MultiSectorIndicator {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(match bytes {
-            b"Y" => MultiSectorIndicator::MultiSector,
-            b"N" => MultiSectorIndicator::SingleSector,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid multi-sector indicator".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.287 Communications Type Recognized By
-#[derive(Debug, PartialEq, Eq)]
-pub enum CommunicationsTypeRecognizedBy {
-    ICAO,
-    FAA,
-    ICAOAndFAA,
-    CountryAuthority,
-    DataProvider,
-}
-
-impl ParseableField for CommunicationsTypeRecognizedBy {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(match bytes {
-            b"I" => CommunicationsTypeRecognizedBy::ICAO,
-            b"F" => CommunicationsTypeRecognizedBy::FAA,
-            b"B" => CommunicationsTypeRecognizedBy::ICAOAndFAA,
-            b"C" => CommunicationsTypeRecognizedBy::CountryAuthority,
-            b"S" => CommunicationsTypeRecognizedBy::DataProvider,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid communications type recognized by".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.289 Communications Used On
-#[derive(Debug, PartialEq, Eq)]
-pub enum CommunicationsUsedOn {
-    AirportCommunicationsRecordsOnly,
-    EnrouteCommunicationsRecordsOnly,
-    HeliportCommunicationsRecordsOnly,
-    AllApplicableCommunicationsRecords,
-    AirportAndHeliportCommunicationsRecords,
-}
-
-impl ParseableField for CommunicationsUsedOn {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(match bytes {
-            b"A" => CommunicationsUsedOn::AirportCommunicationsRecordsOnly,
-            b"E" => CommunicationsUsedOn::EnrouteCommunicationsRecordsOnly,
-            b"H" => CommunicationsUsedOn::HeliportCommunicationsRecordsOnly,
-            b"B" => CommunicationsUsedOn::AllApplicableCommunicationsRecords,
-            b"C" => CommunicationsUsedOn::AirportAndHeliportCommunicationsRecords,
-            _ => {
-                return Err(FieldParseError::new("Invalid used on".to_string()));
-            }
-        }))
-    }
-}
-
-/// 5.291 Procedure Design Magnetic Variation Indicator
-#[derive(Debug, PartialEq, Eq)]
-pub enum ProcedureDesignMagneticVariationIndicator {
-    EntireProcedure,
-    AssociatedLeg,
-}
-
-impl ParseableField for ProcedureDesignMagneticVariationIndicator {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(match bytes {
-            b"P" => ProcedureDesignMagneticVariationIndicator::EntireProcedure,
-            b"L" => ProcedureDesignMagneticVariationIndicator::AssociatedLeg,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid procedure design magnetic variation indicator".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.297 Route Inappropriate Navaid Indicator
-#[derive(Debug, PartialEq, Eq)]
-pub enum RouteInappropriateNavaidIndicator {
-    Appropriate,
-    Inappropriate,
-}
-
-impl ParseableField for RouteInappropriateNavaidIndicator {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(match bytes {
-            b"Y" => RouteInappropriateNavaidIndicator::Inappropriate,
-            b"N" => RouteInappropriateNavaidIndicator::Appropriate,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid route inappropriate navaid indicator".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.298 Holding Pattern/Race Track Course Reversal Leg Inbound/Outbound Indicator
-#[derive(Debug, PartialEq, Eq)]
-pub enum HoldingPatternCourseReversalLegIndicator {
-    Inbound,
-    Outbound,
-}
-
-impl ParseableField for HoldingPatternCourseReversalLegIndicator {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(match bytes {
-            b"I" => HoldingPatternCourseReversalLegIndicator::Inbound,
-            b"O" => HoldingPatternCourseReversalLegIndicator::Outbound,
-            _ => {
-                return Err(FieldParseError::new("Invalid holding pattern/race track course reversal leg inbound/outbound indicator".to_string()));
-            }
-        }))
-    }
-}
-
-/// 5.301 Procedure Design Aircraft Category or Type
-#[derive(Debug, PartialEq, Eq)]
-pub enum ProcedureDesignAircraftCategoryOrType {
-    CategoryA,
-    CategoryB,
-    CategoryC,
-    CategoryD,
-    CategoryE,
-    CategoriesAB,
-    CategoriesCD,
-    CategoriesABC,
-    CategoriesABCD,
-    CategoriesABCDE,
-    CategoriesDE,
-    Helicopters,
-    CategoriesBC,
-    CategoriesCDE,
-    CategoriesBCDE,
-    Jets,
-    NonJets,
-    Pistons,
-    NotLimited,
-    TurbojetAndTurboprop,
-    Turbojet,
-    Turboprop,
-    Prop,
-    TurbopropAndProp,
-    NonTurbojets,
-    NotProvided,
-}
-
-impl ParseableField for ProcedureDesignAircraftCategoryOrType {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        Ok(Some(match bytes {
-            b"A" => ProcedureDesignAircraftCategoryOrType::CategoryA,
-            b"B" => ProcedureDesignAircraftCategoryOrType::CategoryB,
-            b"C" => ProcedureDesignAircraftCategoryOrType::CategoryC,
-            b"D" => ProcedureDesignAircraftCategoryOrType::CategoryD,
-            b"E" => ProcedureDesignAircraftCategoryOrType::CategoryE,
-            b"F" => ProcedureDesignAircraftCategoryOrType::CategoriesAB,
-            b"G" => ProcedureDesignAircraftCategoryOrType::CategoriesCD,
-            b"I" => ProcedureDesignAircraftCategoryOrType::CategoriesABC,
-            b"J" => ProcedureDesignAircraftCategoryOrType::CategoriesABCD,
-            b"K" => ProcedureDesignAircraftCategoryOrType::CategoriesABCDE,
-            b"L" => ProcedureDesignAircraftCategoryOrType::CategoriesDE,
-            b"H" => ProcedureDesignAircraftCategoryOrType::Helicopters,
-            b"M" => ProcedureDesignAircraftCategoryOrType::CategoriesBC,
-            b"N" => ProcedureDesignAircraftCategoryOrType::CategoriesCDE,
-            b"O" => ProcedureDesignAircraftCategoryOrType::CategoriesBCDE,
-            b"W" => ProcedureDesignAircraftCategoryOrType::Jets,
-            b"X" => ProcedureDesignAircraftCategoryOrType::NonJets,
-            b"Y" => ProcedureDesignAircraftCategoryOrType::Pistons,
-            b"P" => ProcedureDesignAircraftCategoryOrType::NotLimited,
-            b"Q" => ProcedureDesignAircraftCategoryOrType::TurbojetAndTurboprop,
-            b"R" => ProcedureDesignAircraftCategoryOrType::Turbojet,
-            b"S" => ProcedureDesignAircraftCategoryOrType::Turboprop,
-            b"T" => ProcedureDesignAircraftCategoryOrType::Prop,
-            b"U" => ProcedureDesignAircraftCategoryOrType::TurbopropAndProp,
-            b"V" => ProcedureDesignAircraftCategoryOrType::NonTurbojets,
-            [BLANK] => ProcedureDesignAircraftCategoryOrType::NotProvided,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid procedure design aircraft category or type".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.299 Surface Type
-#[derive(Debug, PartialEq, Eq)]
-pub enum SurfaceType {
-    Asphalt,
-    ApshaltAndGrass,
-    BituminousSurface,
-    Brick,
-    Clay,
-    Concrete,
-    ConcreteAndAsphalt,
-    ConcreteAndGrass,
-    Coral,
-    Dirt,
-    Grass,
-    Gravel,
-    Ice,
-    Laterite,
-    Macadam,
-    LandingMat,
-    Laminate,
-    Metal,
-    NonBituminousMix,
-    Other,
-    Paved,
-    PiercedSteelPlanking,
-    Sand,
-    Sealed,
-    Silt,
-    Snow,
-    Soil,
-    Stone,
-    Tarmac,
-    Treated,
-    Turf,
-    Unknown,
-    Unpaved,
-    Water,
-}
-
-impl ParseableField for SurfaceType {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(match bytes {
-            b"ASPH" => SurfaceType::Asphalt,
-            b"ASGR" => SurfaceType::ApshaltAndGrass,
-            b"BITU" => SurfaceType::BituminousSurface,
-            b"BRCK" => SurfaceType::Brick,
-            b"CLAY" => SurfaceType::Clay,
-            b"CONC" => SurfaceType::Concrete,
-            b"COAS" => SurfaceType::ConcreteAndAsphalt,
-            b"COGS" => SurfaceType::ConcreteAndGrass,
-            b"CORL" => SurfaceType::Coral,
-            b"DIRT" => SurfaceType::Dirt,
-            b"GRAS" => SurfaceType::Grass,
-            b"GRVL" => SurfaceType::Gravel,
-            b"ICE " => SurfaceType::Ice,
-            b"LATE" => SurfaceType::Laterite,
-            b"MACA" => SurfaceType::Macadam,
-            b"MATS" => SurfaceType::LandingMat,
-            b"MEMB" => SurfaceType::Laminate,
-            b"META" => SurfaceType::Metal,
-            b"MIX " => SurfaceType::NonBituminousMix,
-            b"OTHR" => SurfaceType::Other,
-            b"PAVD" => SurfaceType::Paved,
-            b"PSP " => SurfaceType::PiercedSteelPlanking,
-            b"SAND" => SurfaceType::Sand,
-            b"SELD" => SurfaceType::Sealed,
-            b"SILT" => SurfaceType::Silt,
-            b"SNOW" => SurfaceType::Snow,
-            b"SOIL" => SurfaceType::Soil,
-            b"STON" => SurfaceType::Stone,
-            b"TARM" => SurfaceType::Tarmac,
-            b"TRTD" => SurfaceType::Treated,
-            b"TURF" => SurfaceType::Turf,
-            b"UNKN" => SurfaceType::Unknown,
-            b"UNPV" => SurfaceType::Unpaved,
-            b"WATE" => SurfaceType::Water,
-            _ => {
-                return Err(FieldParseError::new("Invalid surface type".to_string()));
-            }
-        }))
-    }
-}
-
-/// 5.303 Helipad Shape
-#[derive(Debug, PartialEq, Eq)]
-pub enum HelipadShape {
-    Circle,
-    Rectangular,
-    Runway,
-    Undefined,
-}
-
-impl ParseableField for HelipadShape {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(match bytes {
-            b"C" => HelipadShape::Circle,
-            b"S" => HelipadShape::Rectangular,
-            b"R" => HelipadShape::Runway,
-            b"U" => HelipadShape::Undefined,
-            _ => {
-                return Err(FieldParseError::new("Invalid helipad shape".to_string()));
-            }
-        }))
-    }
-}
-
-/// 5.305 Heliport Type
-#[derive(Debug, PartialEq, Eq)]
-pub enum HeliportType {
-    Hospital,
-    OilRig,
-    Other,
-    NotProvided,
-}
-
-impl ParseableField for HeliportType {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(match bytes {
-            b"H" => HeliportType::Hospital,
-            b"O" => HeliportType::OilRig,
-            [BLANK] => HeliportType::Other,
-            b"N" => HeliportType::NotProvided,
-            _ => {
-                return Err(FieldParseError::new("Invalid heliport type".to_string()));
-            }
-        }))
-    }
-}
-
-/// 5.306 Preferred Multiple Approach Indicator
-#[derive(Debug, PartialEq, Eq)]
-pub enum PreferredMultipleApproachIndicator {
-    Preferred,
-    NotPreferred,
-}
-
-impl ParseableField for PreferredMultipleApproachIndicator {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        Ok(Some(match bytes {
-            b"P" => PreferredMultipleApproachIndicator::Preferred,
-            [BLANK] => PreferredMultipleApproachIndicator::NotPreferred,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid preferred multiple approach indicator".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.307 Terminal Procedure Special Indicator
-#[derive(Debug, PartialEq, Eq)]
-pub enum SpecialProcedureIndicator {
-    SpecialProcedure,
-    NotASpecialProcedure,
-}
-
-impl ParseableField for SpecialProcedureIndicator {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        Ok(Some(match bytes {
-            b"Y" => SpecialProcedureIndicator::SpecialProcedure,
-            [BLANK] => SpecialProcedureIndicator::NotASpecialProcedure,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid terminal procedure special indicator".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.308 Remote Altimeter Flag
-#[derive(Debug, PartialEq, Eq)]
-pub enum RemoteAltimeterFlag {
-    LNAVVNAVRestricted,
-    NotRestricted,
-}
-
-impl ParseableField for RemoteAltimeterFlag {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        Ok(Some(match bytes {
-            b"Y" => RemoteAltimeterFlag::LNAVVNAVRestricted,
-            [BLANK] => RemoteAltimeterFlag::NotRestricted,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid remote altimeter flag".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.310 Helicopter Performance Requirement
-#[derive(Debug, PartialEq, Eq)]
-pub enum HelicopterPerformanceRequirement {
-    MultiEngineRequired,
-    SingleEngine,
-    Unknown,
-}
-
-impl ParseableField for HelicopterPerformanceRequirement {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(match bytes {
-            b"M" => HelicopterPerformanceRequirement::MultiEngineRequired,
-            b"S" => HelicopterPerformanceRequirement::SingleEngine,
-            b"U" => HelicopterPerformanceRequirement::Unknown,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid helicopter performance requirement".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.311 FIR/FRA Transition Type
-#[derive(Debug, PartialEq, Eq)]
-pub enum FIRFRATransitionType {
-    EntryPoint,
-    ExitPoint,
-    ArrivalTransitionPoint,
-    DepartureTransitinoPoint,
-    IntermediatePoint,
-    Unknown,
-}
-
-impl ParseableField for FIRFRATransitionType {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(match bytes {
-            b"E" => FIRFRATransitionType::EntryPoint,
-            b"X" => FIRFRATransitionType::ExitPoint,
-            b"A" => FIRFRATransitionType::ArrivalTransitionPoint,
-            b"D" => FIRFRATransitionType::DepartureTransitinoPoint,
-            b"I" => FIRFRATransitionType::IntermediatePoint,
-            b"H" => FIRFRATransitionType::Unknown,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid FIR/FRA transition type".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.317 Runway Usage Indicator
-#[derive(Debug, PartialEq, Eq)]
-pub enum RunwayUsageIndicator {
-    LandingOnly,
-    TakeoffOnly,
-    TakeoffAndLanding,
-}
-
-impl ParseableField for RunwayUsageIndicator {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(match bytes {
-            b"L" => RunwayUsageIndicator::LandingOnly,
-            b"T" => RunwayUsageIndicator::TakeoffOnly,
-            b"B" => RunwayUsageIndicator::TakeoffAndLanding,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid runway usage indicator".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.318 Runway Accuracy Compliance Flag
-#[derive(Debug, PartialEq, Eq)]
-pub enum RunwayAccuracyComplianceFlag {
-    Compliant,
-    NonCompliant,
-    NotEvaluated,
-}
-
-impl ParseableField for RunwayAccuracyComplianceFlag {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        Ok(Some(match bytes {
-            b"Y" => RunwayAccuracyComplianceFlag::Compliant,
-            b"N" => RunwayAccuracyComplianceFlag::NonCompliant,
-            [BLANK] => RunwayAccuracyComplianceFlag::NotEvaluated,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid runway accuracy compliance flag".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.319 Landing Threshold Elevation Accuracy Compliance Flag
-#[derive(Debug, PartialEq, Eq)]
-pub enum LandingThresholdElevationAccuracyComplianceFlag {
-    Compliant,
-    NonCompliant,
-    NotEvaluated,
-}
-
-impl ParseableField for LandingThresholdElevationAccuracyComplianceFlag {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        Ok(Some(match bytes {
-            b"Y" => LandingThresholdElevationAccuracyComplianceFlag::Compliant,
-            b"N" => LandingThresholdElevationAccuracyComplianceFlag::NonCompliant,
-            [BLANK] => LandingThresholdElevationAccuracyComplianceFlag::NotEvaluated,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid runway accuracy compliance flag".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.322 Helipad Type
-#[derive(Debug, PartialEq, Eq)]
-pub enum HelipadType {
-    Elevated,
-    OtherOrUnknown,
-}
-
-impl ParseableField for HelipadType {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        Ok(Some(match bytes {
-            b"E" => HelipadType::Elevated,
-            [BLANK] => HelipadType::OtherOrUnknown,
-            _ => {
-                return Err(FieldParseError::new("Invalid helipad type".to_string()));
-            }
-        }))
-    }
-}
-
-/// 5.337 ATN ATSU Ground Facility Use Indicator
-#[derive(Debug, PartialEq, Eq)]
-pub enum ATNATSUGroundFacilityUseIndicator {
-    Implemented,
-    Future,
-    TestFacility,
-    Unknown,
-}
-
-impl ParseableField for ATNATSUGroundFacilityUseIndicator {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        Ok(Some(match bytes {
-            b"Y" => ATNATSUGroundFacilityUseIndicator::Implemented,
-            b"N" => ATNATSUGroundFacilityUseIndicator::Future,
-            b"T" => ATNATSUGroundFacilityUseIndicator::TestFacility,
-            [BLANK] => ATNATSUGroundFacilityUseIndicator::Unknown,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid ATN ATSU ground facility use indicator".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.338 VHF Navaid VOR Range/Power
-#[derive(Debug, PartialEq, Eq)]
-pub enum VHFNavaidVorRangePower {
-    Within25NMTo12000Feet,
-    Within40NMTo18000Feet,
-    Within130NMTo60000Feet,
-    NotProvided,
-    Within70NMTo18000FeetExpanded,
-    Within130NMTo60000FeetExpanded,
-}
-
-impl ParseableField for VHFNavaidVorRangePower {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(match bytes {
-            b"T" => VHFNavaidVorRangePower::Within25NMTo12000Feet,
-            b"L" => VHFNavaidVorRangePower::Within40NMTo18000Feet,
-            b"H" => VHFNavaidVorRangePower::Within130NMTo60000Feet,
-            b"U" => VHFNavaidVorRangePower::NotProvided,
-            b"M" => VHFNavaidVorRangePower::Within70NMTo18000FeetExpanded,
-            b"N" => VHFNavaidVorRangePower::Within130NMTo60000FeetExpanded,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid VHF Navaid VOR Range/Power".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.339 DME Expanded Service Volume
-#[derive(Debug, PartialEq, Eq)]
-pub enum DMEExpandedServiceVolume {
-    Within130NMTo18000FeetExpanded,
-    Within130NMTo60000FeetExpanded,
-    NotProvided,
-}
-
-impl ParseableField for DMEExpandedServiceVolume {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(match bytes {
-            b"F" => DMEExpandedServiceVolume::Within130NMTo18000FeetExpanded,
-            b"G" => DMEExpandedServiceVolume::Within130NMTo60000FeetExpanded,
-            b"U" => DMEExpandedServiceVolume::NotProvided,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid DME expanded service volume".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.340 Unmanned Aerial Vehicle (UAV) Only
-#[derive(Debug, PartialEq, Eq)]
-pub enum UnmannedAerialVehicleOnly {
-    Yes,
-    No,
-}
-
-impl ParseableField for UnmannedAerialVehicleOnly {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        Ok(Some(match bytes {
-            b"Y" => UnmannedAerialVehicleOnly::Yes,
-            [BLANK] => UnmannedAerialVehicleOnly::No,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid unmanned aerial vehicle only".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.341 Terminal Procedure For Military Indicator
-#[derive(Debug, PartialEq, Eq)]
-pub enum TerminalProcedureForMilitaryIndicator {
-    Yes,
-    No,
-}
-
-impl ParseableField for TerminalProcedureForMilitaryIndicator {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        Ok(Some(match bytes {
-            b"Y" => TerminalProcedureForMilitaryIndicator::Yes,
-            [BLANK] => TerminalProcedureForMilitaryIndicator::No,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid terminal procedure for military indicator".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.342 Source of LAL/VAL
-#[derive(Debug, PartialEq, Eq)]
-pub enum SourceOfLALVAL {
-    OfficialSource,
-    DerivedFromLinesOfMinima,
-    BasicDefaults,
-}
-
-impl ParseableField for SourceOfLALVAL {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(match bytes {
-            b"Y" => SourceOfLALVAL::OfficialSource,
-            b"M" => SourceOfLALVAL::DerivedFromLinesOfMinima,
-            b"N" => SourceOfLALVAL::BasicDefaults,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid source of LAL/VAL".to_string(),
                 ));
             }
         }))

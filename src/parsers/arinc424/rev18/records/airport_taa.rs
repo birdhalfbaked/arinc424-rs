@@ -1,7 +1,7 @@
+use crate::parsers::arinc424::rev18::definitions::*;
 use crate::parsers::arinc424::rev18::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
 use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
-use crate::parsers::arinc424::rev18::definitions::*;
 pub(super) struct AirportTAARecords;
 impl AirportTAARecords {
     const CONTINUATION_COLUMN: usize = 30;
@@ -66,13 +66,13 @@ pub struct AirportTAAPrimaryRecord<'a> {
     pub sector_5_minimum_altitude: RecordField<'a, SectorAltitude>,
     pub sector_5_radius: RecordField<'a, TaaSectorRadius>,
     pub sector_5_procedure_turn_indicator: RecordField<'a, ProcedureTurn>,
-    pub bearing_reference_waypoint: RecordField<'a, TaaSectorBearingReferenceWaypoint>,
+    // pub bearing_reference_waypoint: RecordField<'a, TaaSectorBearingReferenceWaypoint>,
     pub bearing_reference_waypoint_icao_code: RecordField<'a, IcaoCode>,
     pub bearing_reference_waypoint_section: RecordField<'a, Section>,
     pub bearing_reference_waypoint_subsection: RecordField<'a, GenericSubsection>,
     pub aircraft_category_or_type: RecordField<'a, ProcedureDesignAircraftCategoryOrType>,
-    pub approach_route_qualifier_1: RecordField<'a, AirportHeliportApproachRouteTypeQualifier1>,
-    pub approach_route_qualifier_2: RecordField<'a, AirportHeliportApproachRouteTypeQualifier2>,
+    pub approach_route_qualifier_1: RecordField<'a, RouteTypeQualifier1>,
+    pub approach_route_qualifier_2: RecordField<'a, RouteTypeQualifier2>,
     pub magnetic_true_indicator: RecordField<'a, MagneticTrueIndicator>,
     pub file_record_number: RecordField<'a, FileRecordNumber>,
     pub cycle_date: RecordField<'a, CycleDate>,
@@ -115,7 +115,7 @@ impl<'a> AirportTAAPrimaryRecord<'a> {
             sector_5_minimum_altitude:               RecordField::from_bytes(input, 95, 3)?,
             sector_5_radius:                         RecordField::from_bytes(input, 98, 4)?,
             sector_5_procedure_turn_indicator:       RecordField::from_bytes(input, 102, 1)?,
-            bearing_reference_waypoint:              RecordField::from_bytes(input, 103, 5)?,
+            // bearing_reference_waypoint:              RecordField::from_bytes(input, 103, 5)?,
             bearing_reference_waypoint_icao_code:    RecordField::from_bytes(input, 108, 2)?,
             bearing_reference_waypoint_section:      RecordField::from_bytes(input, 110, 1)?,
             bearing_reference_waypoint_subsection:   RecordField::from_bytes(input, 111, 1)?,
@@ -164,8 +164,8 @@ pub struct AirportTAAContinuationRecord<'a> {
     pub sector_4_procedure_turn_indicator: RecordField<'a, ProcedureTurn>,
     pub notes: RecordField<'a, Notes>,
     pub aircraft_category_or_type: RecordField<'a, ProcedureDesignAircraftCategoryOrType>,
-    pub approach_route_qualifier_1: RecordField<'a, AirportHeliportApproachRouteTypeQualifier1>,
-    pub approach_route_qualifier_2: RecordField<'a, AirportHeliportApproachRouteTypeQualifier2>,
+    pub approach_route_qualifier_1: RecordField<'a, RouteTypeQualifier1>,
+    pub approach_route_qualifier_2: RecordField<'a, RouteTypeQualifier2>,
     pub file_record_number: RecordField<'a, FileRecordNumber>,
     pub cycle_date: RecordField<'a, CycleDate>,
 }

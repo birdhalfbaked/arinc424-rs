@@ -1,8 +1,7 @@
-
+use crate::parsers::arinc424::rev23::definitions::*;
 use crate::parsers::arinc424::rev23::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
 use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
-use crate::parsers::arinc424::rev23::definitions::*;
 pub(super) struct GLSRecords;
 impl GLSRecords {
     const CONTINUATION_COLUMN: usize = 22;
@@ -75,7 +74,7 @@ pub struct AirportGLSPrimaryRecord<'a> {
     pub station_latitude: RecordField<'a, Latitude>,
     pub station_longitude: RecordField<'a, Longitude>,
     pub station_identifier: RecordField<'a, ComponentElevation>,
-    pub service_volume_radius: RecordField<'a, GlsServiceVolumeRadius>,
+    pub service_volume_radius: RecordField<'a, GLSServiceVolumeRadius>,
     pub tdma_slots: RecordField<'a, GlsTdmaSlots>,
     pub gls_approach_slope: RecordField<'a, GlideslopeAngle>,
     pub magnetic_variation: RecordField<'a, MagneticVariation>,
@@ -140,7 +139,7 @@ pub struct HeliportGLSPrimaryRecord<'a> {
     pub station_latitude: RecordField<'a, Latitude>,
     pub station_longitude: RecordField<'a, Longitude>,
     pub station_identifier: RecordField<'a, ComponentElevation>,
-    pub service_volume_radius: RecordField<'a, GlsServiceVolumeRadius>,
+    pub service_volume_radius: RecordField<'a, GLSServiceVolumeRadius>,
     pub tdma_slots: RecordField<'a, GlsTdmaSlots>,
     pub gls_approach_slope: RecordField<'a, GlideslopeAngle>,
     pub magnetic_variation: RecordField<'a, MagneticVariation>,

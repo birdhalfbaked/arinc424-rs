@@ -373,6 +373,50 @@ impl Into<i32> for MultiUnitAltitudeNumeric {
     }
 }
 
+#[derive(Debug, PartialEq, Eq)]
+pub enum MinimumAltitudeNumeric {
+    Established(AltitudeNumeric),
+    Unknown,
+    NotEstablished,
+}
+
+impl ParseableField for MinimumAltitudeNumeric {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        let trimmed_bytes = bytes.trim_ascii();
+        if trimmed_bytes.is_empty() {
+            return Ok(None);
+        }
+        match trimmed_bytes {
+            b"UNKNN" => Ok(Some(MinimumAltitudeNumeric::Unknown)),
+            b"NESTB" => Ok(Some(MinimumAltitudeNumeric::NotEstablished)),
+            _ => {
+                let altitude = AltitudeNumeric::from_bytes(&bytes)?;
+                if let Some(altitude) = altitude {
+                    Ok(Some(MinimumAltitudeNumeric::Established(altitude)))
+                } else {
+                    Ok(None)
+                }
+            }
+        }
+    }
+}
+
+#[test]
+pub fn test_altitude_minimum_altitude() {
+    let r = MinimumAltitudeNumeric::from_bytes(&[b'F', b'L', b'1', b'0', b'0']);
+    if let Ok(Some(MinimumAltitudeNumeric::Established(altitude))) = r {
+        assert_eq!(altitude, AltitudeNumeric(10000));
+    } else {
+        panic!("Failed to parse altitude minimum altitude");
+    }
+    let r = MinimumAltitudeNumeric::from_bytes(&[b'-', b'1', b'1', b'0', b'0']);
+    if let Ok(Some(MinimumAltitudeNumeric::Established(altitude))) = r {
+        assert_eq!(altitude, AltitudeNumeric(-1100));
+    } else {
+        panic!("Failed to parse altitude minimum altitude");
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub struct LatitudeNumeric(pub f64);
 impl ParseableField for LatitudeNumeric {
@@ -528,6 +572,47 @@ pub fn test_declination() {
     let r = DeclinationNumeric::from_bytes(b"G0010");
     if let Ok(Some(DeclinationNumeric::GridNorth(declination))) = r {
         assert_within_epsilon(declination, 0.0);
+    }
+}
+
+/// Bearing Numeric at first glance seems similar to Declination Numeric, but in this case the indicator for True is the only one
+/// to look for and is at the end of the byte array passed in.
+#[derive(Debug, PartialEq)]
+pub enum BearingNumeric {
+    Magnetic(f64),
+    True(f64),
+}
+
+impl ParseableField for BearingNumeric {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        let trimmed_bytes = bytes.trim_ascii();
+        if trimmed_bytes.is_empty() {
+            return Ok(None);
+        }
+        if trimmed_bytes.ends_with(b"T") {
+            let value =
+                (coalesce_into_number::<u32>(&trimmed_bytes[..trimmed_bytes.len() - 1])?) as f64;
+            return Ok(Some(BearingNumeric::True(value as f64)));
+        } else {
+            let value = 0.1 * coalesce_into_number::<u32>(&trimmed_bytes)? as f64;
+            return Ok(Some(BearingNumeric::Magnetic(value)));
+        }
+    }
+}
+
+#[test]
+pub fn test_bearing() {
+    let r = BearingNumeric::from_bytes(b"0010");
+    if let Ok(Some(BearingNumeric::Magnetic(bearing))) = r {
+        assert_within_epsilon(bearing, 1.0);
+    }
+    let r = BearingNumeric::from_bytes(b"0010");
+    if let Ok(Some(BearingNumeric::Magnetic(bearing))) = r {
+        assert_within_epsilon(bearing, 1.0);
+    }
+    let r = BearingNumeric::from_bytes(b"347T");
+    if let Ok(Some(BearingNumeric::True(bearing))) = r {
+        assert_within_epsilon(bearing, 347.0);
     }
 }
 

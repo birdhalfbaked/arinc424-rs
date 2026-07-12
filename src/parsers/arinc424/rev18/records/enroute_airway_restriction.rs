@@ -1,7 +1,7 @@
+use crate::parsers::arinc424::rev18::definitions::*;
 use crate::parsers::arinc424::rev18::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
 use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
-use crate::parsers::arinc424::rev18::definitions::*;
 pub(super) struct EnrouteAirwayRestrictionRecords;
 impl EnrouteAirwayRestrictionRecords {
     const CONTINUATION_COLUMN: usize = 18;
@@ -32,11 +32,6 @@ impl EnrouteAirwayRestrictionRecords {
                         Some(ContinuationRecordApplicationType::FormattedTimeOfOperationsContinuation) => {
                             Ok(ARINCRecord::EnrouteAirwayRestrictionAltitudeExclusionFormattedTimeContinuation(
                                 EnrouteAirwayRestrictionAltitudeExclusionFormattedTimeContinuationRecord::parse(input)?,
-                            ))
-                        }
-                        Some(ContinuationRecordApplicationType::NarrativeTimeOfOperationsContinuation) => {
-                            Ok(ARINCRecord::EnrouteAirwayRestrictionAltitudeExclusionNarrativeTimeContinuation(
-                                EnrouteAirwayRestrictionAltitudeExclusionNarrativeTimeContinuationRecord::parse(input)?,
                             ))
                         }
                         _ => Err(RecordParseError {
@@ -83,11 +78,6 @@ impl EnrouteAirwayRestrictionRecords {
                                 EnrouteAirwayRestrictionSeasonalClosureFormattedTimeContinuationRecord::parse(input)?,
                             ))
                         }
-                        Some(ContinuationRecordApplicationType::NarrativeTimeOfOperationsContinuation) => {
-                            Ok(ARINCRecord::EnrouteAirwayRestrictionSeasonalClosureNarrativeTimeContinuation(
-                                EnrouteAirwayRestrictionSeasonalClosureNarrativeTimeContinuationRecord::parse(input)?,
-                            ))
-                        }
                         _ => Err(RecordParseError {
                             message: "Invalid continuation record application type".to_string(),
                         })
@@ -111,11 +101,6 @@ impl EnrouteAirwayRestrictionRecords {
                         Some(ContinuationRecordApplicationType::FormattedTimeOfOperationsContinuation) => {
                             Ok(ARINCRecord::EnrouteAirwayRestrictionCruisingTableReplacementFormattedTimeContinuation(
                                 EnrouteAirwayRestrictionCruisingTableReplacementFormattedTimeContinuationRecord::parse(input)?,
-                            ))
-                        }
-                        Some(ContinuationRecordApplicationType::NarrativeTimeOfOperationsContinuation) => {
-                            Ok(ARINCRecord::EnrouteAirwayRestrictionCruisingTableReplacementNarrativeTimeContinuation(
-                                EnrouteAirwayRestrictionCruisingTableReplacementNarrativeTimeContinuationRecord::parse(input)?,
                             ))
                         }
                         _ => Err(RecordParseError {
@@ -336,43 +321,6 @@ impl<'a> EnrouteAirwayRestrictionAltitudeExclusionFormattedTimeContinuationRecor
     }
 }
 
-/// 4.1.21.A.4 Enroute Airway Restriction Altitude Exclusion Narrative Time Continuation Record
-#[derive(Debug)]
-pub struct EnrouteAirwayRestrictionAltitudeExclusionNarrativeTimeContinuationRecord<'a> {
-    pub record_type: RecordField<'a, RecordType>,
-    pub customer_area_code: RecordField<'a, CustomerAreaCode>,
-    pub section: RecordField<'a, Section>,
-    pub subsection: RecordField<'a, EnrouteSubsection>,
-    pub route_identifier: RecordField<'a, EnrouteRouteIdentifier>,
-    pub restriction_identifier: RecordField<'a, AirwayRestrictionIdentifier>,
-    pub restriction_type: RecordField<'a, RestrictionRecordType>,
-    pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
-    pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
-    pub narrative_time: RecordField<'a, TimeNarrative>,
-    pub file_record_number: RecordField<'a, FileRecordNumber>,
-    pub cycle_date: RecordField<'a, CycleDate>,
-}
-
-#[rustfmt::skip]
-impl<'a> EnrouteAirwayRestrictionAltitudeExclusionNarrativeTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
-        Ok(Self{
-            record_type:                  RecordField::from_bytes(input, 1, 1)?,
-            customer_area_code:           RecordField::from_bytes(input, 2, 3)?,
-            section:                      RecordField::from_bytes(input, 5, 1)?,
-            subsection:                   RecordField::from_bytes(input, 6, 1)?,
-            route_identifier:             RecordField::from_bytes(input, 7, 5)?,
-            restriction_identifier:       RecordField::from_bytes(input, 13, 3)?,
-            restriction_type:             RecordField::from_bytes(input, 16, 2)?,
-            continuation_record_number:   RecordField::from_bytes(input, 18, 1)?,
-            application_type:             RecordField::from_bytes(input, 19, 1)?,
-            narrative_time:               RecordField::from_bytes(input, 23, 97)?,
-            file_record_number:           RecordField::from_bytes(input, 124, 5)?,
-            cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
-        })
-    }
-}
-
 /// 4.1.21.B.1 Enroute Airway Restriction Note Restriction Primary Record
 #[derive(Debug)]
 pub struct EnrouteAirwayRestrictionNoteRestrictionPrimaryRecord<'a> {
@@ -573,43 +521,6 @@ impl<'a> EnrouteAirwayRestrictionSeasonalClosureFormattedTimeContinuationRecord<
     }
 }
 
-/// 4.1.21.C.4 Enroute Airway Restriction Seasonal Closure Narrative Time Continuation Record
-#[derive(Debug)]
-pub struct EnrouteAirwayRestrictionSeasonalClosureNarrativeTimeContinuationRecord<'a> {
-    pub record_type: RecordField<'a, RecordType>,
-    pub customer_area_code: RecordField<'a, CustomerAreaCode>,
-    pub section: RecordField<'a, Section>,
-    pub subsection: RecordField<'a, EnrouteSubsection>,
-    pub route_identifier: RecordField<'a, EnrouteRouteIdentifier>,
-    pub restriction_identifier: RecordField<'a, AirwayRestrictionIdentifier>,
-    pub restriction_type: RecordField<'a, RestrictionRecordType>,
-    pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
-    pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
-    pub narrative_time: RecordField<'a, TimeNarrative>,
-    pub file_record_number: RecordField<'a, FileRecordNumber>,
-    pub cycle_date: RecordField<'a, CycleDate>,
-}
-
-#[rustfmt::skip]
-impl<'a> EnrouteAirwayRestrictionSeasonalClosureNarrativeTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
-        Ok(Self{
-            record_type:                  RecordField::from_bytes(input, 1, 1)?,
-            customer_area_code:           RecordField::from_bytes(input, 2, 3)?,
-            section:                      RecordField::from_bytes(input, 5, 1)?,
-            subsection:                   RecordField::from_bytes(input, 6, 1)?,
-            route_identifier:             RecordField::from_bytes(input, 7, 5)?,
-            restriction_identifier:       RecordField::from_bytes(input, 13, 3)?,
-            restriction_type:             RecordField::from_bytes(input, 16, 2)?,
-            continuation_record_number:   RecordField::from_bytes(input, 18, 1)?,
-            application_type:             RecordField::from_bytes(input, 19, 1)?,
-            narrative_time:               RecordField::from_bytes(input, 23, 97)?,
-            file_record_number:           RecordField::from_bytes(input, 124, 5)?,
-            cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
-        })
-    }
-}
-
 /// 4.1.21.D.1 Enroute Airway Restriction Cruising Table Replacement Primary Record
 #[derive(Debug)]
 pub struct EnrouteAirwayRestrictionCruisingTableReplacementPrimaryRecord<'a> {
@@ -716,43 +627,6 @@ impl<'a> EnrouteAirwayRestrictionCruisingTableReplacementFormattedTimeContinuati
             time_of_operation_6:          RecordField::from_bytes(input, 73, 10)?,
             time_of_operation_7:          RecordField::from_bytes(input, 83, 10)?,
             timezone:                     RecordField::from_bytes(input, 93, 3)?,
-            file_record_number:           RecordField::from_bytes(input, 124, 5)?,
-            cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
-        })
-    }
-}
-
-/// 4.1.21.D.3 Enroute Airway Restriction Cruising Table Replacement Narrative Time Continuation Record
-#[derive(Debug)]
-pub struct EnrouteAirwayRestrictionCruisingTableReplacementNarrativeTimeContinuationRecord<'a> {
-    pub record_type: RecordField<'a, RecordType>,
-    pub customer_area_code: RecordField<'a, CustomerAreaCode>,
-    pub section: RecordField<'a, Section>,
-    pub subsection: RecordField<'a, EnrouteSubsection>,
-    pub route_identifier: RecordField<'a, EnrouteRouteIdentifier>,
-    pub restriction_identifier: RecordField<'a, AirwayRestrictionIdentifier>,
-    pub restriction_type: RecordField<'a, RestrictionRecordType>,
-    pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
-    pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
-    pub narrative_time: RecordField<'a, TimeNarrative>,
-    pub file_record_number: RecordField<'a, FileRecordNumber>,
-    pub cycle_date: RecordField<'a, CycleDate>,
-}
-
-#[rustfmt::skip]
-impl<'a> EnrouteAirwayRestrictionCruisingTableReplacementNarrativeTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
-        Ok(Self{
-            record_type:                  RecordField::from_bytes(input, 1, 1)?,
-            customer_area_code:           RecordField::from_bytes(input, 2, 3)?,
-            section:                      RecordField::from_bytes(input, 5, 1)?,
-            subsection:                   RecordField::from_bytes(input, 6, 1)?,
-            route_identifier:             RecordField::from_bytes(input, 7, 5)?,
-            restriction_identifier:       RecordField::from_bytes(input, 13, 3)?,
-            restriction_type:             RecordField::from_bytes(input, 16, 2)?,
-            continuation_record_number:   RecordField::from_bytes(input, 18, 1)?,
-            application_type:             RecordField::from_bytes(input, 19, 1)?,
-            narrative_time:               RecordField::from_bytes(input, 23, 97)?,
             file_record_number:           RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })

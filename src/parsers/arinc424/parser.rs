@@ -44,7 +44,6 @@ impl Arinc424Parser {
         &self,
         input: &'a [u8],
     ) -> Result<Arinc424VersionedRecord<'a>, RecordParseError> {
-        // record types are the
         match self {
             Self::Rev18 => Ok(Arinc424VersionedRecord::Rev18(Rev18ArincRecord::parse(
                 input,

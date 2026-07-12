@@ -9,9 +9,6 @@
 //! For example, 5.27 - Route Distance From encodes both a time and a distance.
 //!
 //! To handle this, there are specific fields that capture the union of the two types appropriately.
-#[cfg(test)]
-use std::convert::Into;
-
 use crate::parsers::arinc424::types::fields::*;
 
 /// 5.12 Sequence Number
@@ -24,58 +21,16 @@ pub type Theta = FloatNumeric<-1>;
 pub type Rho = FloatNumeric<-1>;
 
 /// 5.26 Outbound Course
-pub type OutboundCourse = FloatNumeric<-1>;
+pub type OutboundCourse = BearingNumeric;
 
 /// 5.27 Route Distance From
 pub type RouteDistanceFrom = TimeDistanceNumeric<-1>;
 
 /// 5.28 Inbound Course
-pub type InboundCourse = FloatNumeric<-1>;
+pub type InboundCourse = BearingNumeric;
 
 /// 5.30 Altitude / Minimum Altitude
-#[derive(Debug, PartialEq, Eq)]
-pub enum MinimumAltitude {
-    Established(AltitudeNumeric),
-    Unknown,
-    NotEstablished,
-}
-
-impl ParseableField for MinimumAltitude {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        let trimmed_bytes = bytes.trim_ascii();
-        if trimmed_bytes.is_empty() {
-            return Ok(None);
-        }
-        match trimmed_bytes {
-            b"UNKNN" => Ok(Some(MinimumAltitude::Unknown)),
-            b"NESTB" => Ok(Some(MinimumAltitude::NotEstablished)),
-            _ => {
-                let altitude = AltitudeNumeric::from_bytes(&bytes)?;
-                if let Some(altitude) = altitude {
-                    Ok(Some(MinimumAltitude::Established(altitude)))
-                } else {
-                    Ok(None)
-                }
-            }
-        }
-    }
-}
-
-#[test]
-pub fn test_altitude_minimum_altitude() {
-    let r = MinimumAltitude::from_bytes(&[b'F', b'L', b'1', b'0', b'0']);
-    if let Ok(Some(MinimumAltitude::Established(altitude))) = r {
-        assert_eq!(altitude, AltitudeNumeric(10000));
-    } else {
-        panic!("Failed to parse altitude minimum altitude");
-    }
-    let r = MinimumAltitude::from_bytes(&[b'-', b'1', b'1', b'0', b'0']);
-    if let Ok(Some(MinimumAltitude::Established(altitude))) = r {
-        assert_eq!(altitude, AltitudeNumeric(-1100));
-    } else {
-        panic!("Failed to parse altitude minimum altitude");
-    }
-}
+pub type MinimumAltitude = MinimumAltitudeNumeric;
 
 /// 5.31 File Record Number
 pub type FileRecordNumber = UintNumeric;
@@ -83,8 +38,11 @@ pub type FileRecordNumber = UintNumeric;
 /// 5.32 Cycle Date
 pub type CycleDate = UintNumeric;
 
-/// 5.34 VOR/NDB Frequency
-pub type VORNDBFrequency = FloatNumeric<-2>;
+/// 5.34(A) VOR Frequency
+pub type VORFrequency = FloatNumeric<-2>;
+
+/// 5.34(B) NDB Frequency
+pub type NDBFrequency = FloatNumeric<-1>;
 
 /// 5.36 Latitude
 pub type Latitude = LatitudeNumeric;
@@ -102,7 +60,7 @@ pub type DMEElevation = IntNumeric;
 pub type LocalizerFrequency = FloatNumeric<-2>;
 
 /// 5.47 Localizer Bearing (LOC BRG)
-pub type LocalizerBearing = FloatNumeric<-1>;
+pub type LocalizerBearing = BearingNumeric;
 
 /// 5.48 Localizer Position (LOC FR RW END / AZ/BAZ FR RW END) Azimuth/Back Azimuth Position (AZ/BAZ FR RW END)
 pub type LocalizerPosition = IntNumeric;
@@ -111,7 +69,7 @@ pub type LocalizerPosition = IntNumeric;
 pub type GlideslopePosition = IntNumeric;
 
 /// 5.51 Localizer Width (LOC WIDTH)
-pub type LocalizerWidth = FloatNumeric<-1>;
+pub type LocalizerWidth = FloatNumeric<-2>;
 
 /// 5.52 Glideslope angle (GS ANGLE) Minimum Elevation Angle (MIN ELEV ANGLE)
 pub type GlideslopeAngle = FloatNumeric<-2>;
@@ -129,10 +87,10 @@ pub type AirportHeliportElevation = IntNumeric;
 pub type RunwayLength = UintNumeric;
 
 /// 5.58 Runway Bearing (RWY BRG)
-pub type RunwayBearing = FloatNumeric<-1>;
+pub type RunwayBearing = BearingNumeric;
 
 /// 5.62 Inbound Holding Course (IB HOLD CRS)
-pub type InboundHoldingCourse = FloatNumeric<-1>;
+pub type InboundHoldingCourse = BearingNumeric;
 
 /// 5.64 Leg Length (LEG LENGTH)
 pub type LegLength = FloatNumeric<-1>;
@@ -231,30 +189,7 @@ pub type VerticalSeparation = MultiUnitAltitudeNumeric;
 pub type MsaRadiusLimit = UintNumeric;
 
 /// 5.147 Sector Altitude
-#[derive(Debug, PartialEq, Eq)]
-pub enum SectorAltitude {
-    NoSectorAltitude,
-    SectorAltitude(UintNumeric),
-}
-
-impl ParseableField for SectorAltitude {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        match bytes {
-            b"999" => Ok(Some(SectorAltitude::NoSectorAltitude)),
-            _ => {
-                let altitude = UintNumeric::from_bytes(bytes)?;
-                if let Some(altitude) = altitude {
-                    Ok(Some(SectorAltitude::SectorAltitude(altitude)))
-                } else {
-                    Ok(None)
-                }
-            }
-        }
-    }
-}
+pub type SectorAltitude = UintNumeric;
 
 /// 5.150 Frequency Protection Distance
 pub type FrequencyProtectionDistance = UintNumeric;
@@ -266,7 +201,7 @@ pub type AirwayRestrictionAltitude = UintNumeric;
 pub type MLSChannel = UintNumeric;
 
 /// 5.167 MLS Azimuth/Back Azimuth Bearing
-pub type MLSAzimuthBearing = FloatNumeric<-1>;
+pub type MLSAzimuthBearing = BearingNumeric;
 
 /// 5.168 MLS Azimuth/Back Azimuth Proportional Angle
 pub type MLSAzimuthProportionalAngle = UintNumeric;
@@ -284,7 +219,7 @@ pub type MLSNominalElevationAngle = FloatNumeric<-2>;
 pub type HoldingSpeed = UintNumeric;
 
 /// 5.184 Communication Altitude
-pub type CommunicationsAltitude = UintNumeric;
+pub type CommunicationsAltitude = AltitudeNumeric;
 
 /// 5.188 Communications Distance
 pub type CommunicationsDistance = UintNumeric;
@@ -301,8 +236,8 @@ pub type RunwayGradient = FloatNumeric<-3>;
 /// 5.225 WGS-84 ellipsoid height
 pub type WGS84EllipsoidHeight = FloatNumeric<-1>;
 
-/// 5.226 SBAS/GBAS Glide Path Angle
-pub type SBASGBASGlidePathAngle = FloatNumeric<-2>;
+/// 5.226 Point Path Glide Path Angle
+pub type GlidePathAngle = FloatNumeric<-2>;
 
 /// 5.227 Orthometric height
 ///
@@ -315,14 +250,14 @@ pub type CourseWidthAtThreshold = FloatNumeric<-2>;
 /// 5.231 Along Track Distance
 pub type AlongTrackDistance = UintNumeric;
 
-/// 5.240 Flight Planning Altitude
-pub type FlightPlanningAltitude = UintNumeric;
+/// 5.240 Altitude
+pub type Altitude = UintNumeric;
 
-/// 5.244 SBAS/GBAS Channel
-pub type SBASGBASChannel = UintNumeric;
+/// 5.244 GLS/Path Point Channel
+pub type GLSPathPointChannel = UintNumeric;
 
 /// 5.245 GLS Service Volume Radius
-pub type GlsServiceVolumeRadius = UintNumeric;
+pub type GLSServiceVolumeRadius = UintNumeric;
 
 /// 5.248 GLS WGS84 Station Elevation
 ///
@@ -338,8 +273,8 @@ pub type FixedRadiusTransitionIndicator = FloatNumeric<-1>;
 /// 5.256 Reference Path Data Selector
 pub type ReferencePathDataSelector = UintNumeric;
 
-/// 5.259 SBAS/GBAS Length Offset
-pub type SBASGBASLengthOffset = UintNumeric;
+/// 5.259 Path Point Length Offset
+pub type PathPointLengthOffset = UintNumeric;
 
 /// 5.260 Terminal Procedure Flight Planning Leg Distance
 pub type TerminalProcedureFlightPlanningLegDistance = FloatNumeric<-1>;
@@ -371,81 +306,3 @@ pub type HighPrecisionLongitude = LongitudeNumeric;
 
 /// 5.269 Helicopter Procedure Course
 pub type HelicopterProcedureCourse = UintNumeric;
-
-/// 5.280 Special Activity Area Size
-pub type SpecialActivityAreaSize = FloatNumeric<-1>;
-
-/// 5.290 Procedure Design Magnetic Variation
-pub type ProcedureDesignMagneticVariation = MagneticVariationNumeric;
-
-/// 5.292 Circling Category Distance
-pub type CirclingCategoryDistance = FloatNumeric<-1>;
-
-/// 5.293 Vertical Scale Factor
-pub type VerticalScaleFactor = UintNumeric;
-
-/// 5.294 RVSM Minimum Level
-pub type RVSMMinimumLevel = UintNumeric;
-
-/// 5.295 RVSM Maximum Level
-pub type RVSMMaximumLevel = UintNumeric;
-
-/// 5.296 RNP Level of Service
-pub type RNPLevelOfService = VariableFloatNumeric<-1>;
-
-/// 5.299 Final Approach Course as Runway
-///
-/// Note: This is a very odd field, but one that seems to benefit specifically Path Point approaches
-#[derive(Debug)]
-pub struct FinalApproachCourseAsRunway(u64);
-impl ParseableField for FinalApproachCourseAsRunway {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        let value = coalesce_into_number::<u64>(&bytes[0..2])? * 10;
-        Ok(Some(FinalApproachCourseAsRunway(value)))
-    }
-}
-
-impl Into<u64> for FinalApproachCourseAsRunway {
-    fn into(self: FinalApproachCourseAsRunway) -> u64 {
-        self.0
-    }
-}
-
-/// 5.309 Maximum Allowable Helicopter Weight
-pub type MaximumAllowableHelicopterWeight = UintNumeric;
-
-/// 5.312 Runway Starter Extension
-pub type RunwayStarterExtension = UintNumeric;
-
-/// 5.313 TORA
-pub type TORA = UintNumeric;
-
-/// 5.314 TODA
-pub type TODA = UintNumeric;
-
-/// 5.315 ASDA
-pub type ASDA = UintNumeric;
-
-/// 5.316 LDA
-pub type LDA = UintNumeric;
-
-/// 5.320 SBAS Final Approach Course
-pub type SBASFinalApproachCourse = RunwayBearing;
-
-/// 5.321 Helipad Maximum Rotor Diameter
-pub type HelipadMaximumRotorDiameter = UintNumeric;
-
-/// 5.323 Heliport Orientation
-pub type HeliportOrientation = FloatNumeric<-2>;
-
-/// 5.324 Heliport Identifier Orientation
-pub type HeliportIdentifierOrientation = FloatNumeric<-2>;
-
-/// 5.325 Preferred Approach Bearing
-pub type PreferredApproachBearing = RunwayBearing;
-
-/// 5.343 Holding Pattern Magnetic Variation
-pub type HoldingPatternMagneticVariation = MagneticVariationNumeric;

@@ -1,8 +1,7 @@
-
+use crate::parsers::arinc424::rev18::definitions::*;
 use crate::parsers::arinc424::rev18::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
 use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
-use crate::parsers::arinc424::rev18::definitions::*;
 pub(super) struct TerminalNDBNavaidRecords;
 impl TerminalNDBNavaidRecords {
     const CONTINUATION_COLUMN: usize = 22;
@@ -53,7 +52,7 @@ pub struct TerminalNDBNavaidPrimaryRecord<'a> {
     pub ndb_identifier: RecordField<'a, VORNDBIdentifier>,
     pub ndb_icao_code: RecordField<'a, IcaoCode>,
     pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
-    pub ndb_frequency: RecordField<'a, VORNDBFrequency>,
+    pub ndb_frequency: RecordField<'a, NDBFrequency>,
     pub ndb_class: RecordField<'a, NDBNavaidClass>,
     pub ndb_latitude: RecordField<'a, Latitude>,
     pub ndb_longitude: RecordField<'a, Longitude>,

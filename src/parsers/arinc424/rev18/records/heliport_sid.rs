@@ -1,8 +1,7 @@
-
+use crate::parsers::arinc424::rev18::definitions::*;
 use crate::parsers::arinc424::rev18::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
 use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
-use crate::parsers::arinc424::rev18::definitions::*;
 pub(super) struct HeliportSIDRecords;
 impl HeliportSIDRecords {
     const CONTINUATION_COLUMN: usize = 39;
@@ -89,9 +88,8 @@ pub struct HeliportSIDPrimaryRecord<'a> {
     pub center_fix_subsection_code: RecordField<'a, GenericSubsection>,
     pub gnss_fms_indication: RecordField<'a, GNSSFMSIndicator>,
     pub speed_limit_description: RecordField<'a, SpeedLimitDescription>,
-    pub route_qualifier_1: RecordField<'a, AirportHeliportSIDRouteTypeQualifier1>,
-    pub route_qualifier_2: RecordField<'a, AirportHeliportSIDRouteTypeQualifier2>,
-    pub route_qualifier_3: RecordField<'a, AirportHeliportSIDRouteTypeQualifier3>,
+    pub route_qualifier_1: RecordField<'a, RouteTypeQualifier1>,
+    pub route_qualifier_2: RecordField<'a, RouteTypeQualifier2>,
     pub file_record_number: RecordField<'a, FileRecordNumber>,
     pub cycle_date: RecordField<'a, CycleDate>,
 }
@@ -147,7 +145,6 @@ impl <'a> HeliportSIDPrimaryRecord<'a> {
             speed_limit_description:              RecordField::from_bytes(input, 118, 1)?,
             route_qualifier_1:                    RecordField::from_bytes(input, 119, 1)?,
             route_qualifier_2:                    RecordField::from_bytes(input, 120, 1)?,
-            route_qualifier_3:                    RecordField::from_bytes(input, 121, 1)?,
             file_record_number:                   RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                           RecordField::from_bytes(input, 129, 4)?,
         })
@@ -197,9 +194,8 @@ pub struct HeliportSIDPrimaryExtensionContinuationRecord<'a> {
     pub special_indicator: RecordField<'a, SpecialProcedureIndicator>,
     pub military_indicator: RecordField<'a, TerminalProcedureForMilitaryIndicator>,
     pub vertical_scale_factor: RecordField<'a, VerticalScaleFactor>,
-    pub route_qualifier_1: RecordField<'a, AirportHeliportSIDRouteTypeQualifier1>,
-    pub route_qualifier_2: RecordField<'a, AirportHeliportSIDRouteTypeQualifier2>,
-    pub route_qualifier_3: RecordField<'a, AirportHeliportSIDRouteTypeQualifier3>,
+    pub route_qualifier_1: RecordField<'a, RouteTypeQualifier1>,
+    pub route_qualifier_2: RecordField<'a, RouteTypeQualifier2>,
     pub file_record_number: RecordField<'a, FileRecordNumber>,
     pub cycle_date: RecordField<'a, CycleDate>,
 }
@@ -250,7 +246,6 @@ impl <'a> HeliportSIDPrimaryExtensionContinuationRecord<'a> {
             vertical_scale_factor:              RecordField::from_bytes(input, 116, 3)?,
             route_qualifier_1:                  RecordField::from_bytes(input, 119, 1)?,
             route_qualifier_2:                  RecordField::from_bytes(input, 120, 1)?,
-            route_qualifier_3:                  RecordField::from_bytes(input, 121, 1)?,
             file_record_number:                 RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                         RecordField::from_bytes(input, 129, 4)?,
         })
@@ -278,9 +273,8 @@ pub struct HeliportSIDFlightPlanningContinuationRecord<'a> {
     pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
     pub atc_assigned_only: RecordField<'a, AtcAssignedOnly>,
     pub leg_distance: RecordField<'a, TerminalProcedureFlightPlanningLegDistance>,
-    pub route_qualifier_1: RecordField<'a, AirportHeliportSIDRouteTypeQualifier1>,
-    pub route_qualifier_2: RecordField<'a, AirportHeliportSIDRouteTypeQualifier2>,
-    pub route_qualifier_3: RecordField<'a, AirportHeliportSIDRouteTypeQualifier3>,
+    pub route_qualifier_1: RecordField<'a, RouteTypeQualifier1>,
+    pub route_qualifier_2: RecordField<'a, RouteTypeQualifier2>,
     pub file_record_number: RecordField<'a, FileRecordNumber>,
     pub cycle_date: RecordField<'a, CycleDate>,
 }
@@ -310,7 +304,6 @@ impl <'a> HeliportSIDFlightPlanningContinuationRecord<'a> {
             leg_distance:                       RecordField::from_bytes(input, 75, 4)?,
             route_qualifier_1:                  RecordField::from_bytes(input, 119, 1)?,
             route_qualifier_2:                  RecordField::from_bytes(input, 120, 1)?,
-            route_qualifier_3:                  RecordField::from_bytes(input, 121, 1)?,
             file_record_number:                 RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                         RecordField::from_bytes(input, 129, 4)?,
         })
@@ -336,10 +329,9 @@ pub struct HeliportSIDProcedureNameContinuationRecord<'a> {
     pub fix_subsection_code: RecordField<'a, GenericSubsection>,
     pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
     pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
-    pub name: RecordField<'a, ProcedureName>,
-    pub route_qualifier_1: RecordField<'a, AirportHeliportSIDRouteTypeQualifier1>,
-    pub route_qualifier_2: RecordField<'a, AirportHeliportSIDRouteTypeQualifier2>,
-    pub route_qualifier_3: RecordField<'a, AirportHeliportSIDRouteTypeQualifier3>,
+    // pub name: RecordField<'a, ProcedureName>,
+    pub route_qualifier_1: RecordField<'a, RouteTypeQualifier1>,
+    pub route_qualifier_2: RecordField<'a, RouteTypeQualifier2>,
     pub file_record_number: RecordField<'a, FileRecordNumber>,
     pub cycle_date: RecordField<'a, CycleDate>,
 }
@@ -365,10 +357,9 @@ impl <'a> HeliportSIDProcedureNameContinuationRecord<'a> {
             fix_subsection_code:                RecordField::from_bytes(input, 38, 1)?,
             continuation_record_number:         RecordField::from_bytes(input, 39, 1)?,
             application_type:                   RecordField::from_bytes(input, 40, 1)?,
-            name:                               RecordField::from_bytes(input, 41, 78)?,
+            // name:                               RecordField::from_bytes(input, 41, 78)?,
             route_qualifier_1:                  RecordField::from_bytes(input, 119, 1)?,
             route_qualifier_2:                  RecordField::from_bytes(input, 120, 1)?,
-            route_qualifier_3:                  RecordField::from_bytes(input, 121, 1)?,
             file_record_number:                 RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                         RecordField::from_bytes(input, 129, 4)?,
         })

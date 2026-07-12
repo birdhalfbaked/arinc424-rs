@@ -263,7 +263,7 @@ impl ParseableField for NDBCollocation {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             b"B" => NDBCollocation::BFOOperation,
-            b" " => NDBCollocation::NonCollocated,
+            [BLANK] => NDBCollocation::NonCollocated,
             _ => {
                 return Err(FieldParseError::new("Invalid NDB Collocation".to_string()));
             }
@@ -352,12 +352,12 @@ impl ParseableField for MarkerLocatorNavaidClass {
 #[derive(Debug, PartialEq, Eq)]
 pub enum PrimaryWaypointType {
     ArcCenterFix,
-    CombinedNamedIntersectionAndOrDMEFixRNAVWaypoint,
-    UnnamedChartedIntersectionAndOrDMEFix,
-    MiddleInnerMarkerAsWaypoint,
+    CombinedNamedIntersectionAndRNAV,
+    UnnamedChartedIntersection,
+    MiddleMarkerAsWaypoint,
     NDBAsWaypoint,
-    OuterBackMarkerAsWaypoint,
-    NamedIntersectionAndOrDMEFix,
+    OuterMarkerAsWaypoint,
+    NamedIntersection,
     UnchartedAirwayIntersection,
     VFRWaypoint,
     RNAVWaypoint,
@@ -370,12 +370,12 @@ impl ParseableField for PrimaryWaypointType {
         }
         Ok(Some(match bytes {
             b"A" => PrimaryWaypointType::ArcCenterFix,
-            b"C" => PrimaryWaypointType::CombinedNamedIntersectionAndOrDMEFixRNAVWaypoint,
-            b"I" => PrimaryWaypointType::UnnamedChartedIntersectionAndOrDMEFix,
-            b"M" => PrimaryWaypointType::MiddleInnerMarkerAsWaypoint,
+            b"C" => PrimaryWaypointType::CombinedNamedIntersectionAndRNAV,
+            b"I" => PrimaryWaypointType::UnnamedChartedIntersection,
+            b"M" => PrimaryWaypointType::MiddleMarkerAsWaypoint,
             b"N" => PrimaryWaypointType::NDBAsWaypoint,
-            b"O" => PrimaryWaypointType::OuterBackMarkerAsWaypoint,
-            b"R" => PrimaryWaypointType::NamedIntersectionAndOrDMEFix,
+            b"O" => PrimaryWaypointType::OuterMarkerAsWaypoint,
+            b"R" => PrimaryWaypointType::NamedIntersection,
             b"U" => PrimaryWaypointType::UnchartedAirwayIntersection,
             b"V" => PrimaryWaypointType::VFRWaypoint,
             b"W" => PrimaryWaypointType::RNAVWaypoint,
@@ -394,19 +394,16 @@ pub enum SecondaryWaypointType {
     InitialAndFinalApproachFix,
     FinalApproachCourseFix,
     IntermediateApproachFix,
-    OffRouteWaypointIntersectionDMEFix,
-    InitialDepartureFix,
-    HelicopterOnlyAirwayFix,
+    FAAOffRouteWaypointIntersection,
+    OffRouteWaypointIntersection,
     InitialApproachFix,
-    RequiredOffRouteWaypoint,
     InitialAndFinalApproachCourseFix,
     IntermediateAndFinalApproachCourseFix,
     MissedApproachFix,
     InitialAndMissedApproachFix,
     OceanicGatewayFix,
-    UnnamedStepdownFix,
-    RFLegFixNotAtProcedureFix,
-    NamedStepdownFix,
+    FAAPitchAndCatchPoint,
+    AACAAOrSUAWaypoint,
     FIRUIRControlledAirspaceFix,
     FullDegreeLatLongFix,
     HalfDegreeLatLongFix,
@@ -422,19 +419,16 @@ impl ParseableField for SecondaryWaypointType {
             b"B" => SecondaryWaypointType::InitialAndFinalApproachFix,
             b"C" => SecondaryWaypointType::FinalApproachCourseFix,
             b"D" => SecondaryWaypointType::IntermediateApproachFix,
-            b"F" => SecondaryWaypointType::OffRouteWaypointIntersectionDMEFix,
-            b"G" => SecondaryWaypointType::InitialDepartureFix,
-            b"H" => SecondaryWaypointType::HelicopterOnlyAirwayFix,
+            b"E" => SecondaryWaypointType::FAAOffRouteWaypointIntersection,
+            b"F" => SecondaryWaypointType::OffRouteWaypointIntersection,
             b"I" => SecondaryWaypointType::InitialApproachFix,
-            b"J" => SecondaryWaypointType::RequiredOffRouteWaypoint,
             b"K" => SecondaryWaypointType::InitialAndFinalApproachCourseFix,
             b"L" => SecondaryWaypointType::IntermediateAndFinalApproachCourseFix,
             b"M" => SecondaryWaypointType::MissedApproachFix,
             b"N" => SecondaryWaypointType::InitialAndMissedApproachFix,
             b"O" => SecondaryWaypointType::OceanicGatewayFix,
-            b"P" => SecondaryWaypointType::UnnamedStepdownFix,
-            b"R" => SecondaryWaypointType::RFLegFixNotAtProcedureFix,
-            b"S" => SecondaryWaypointType::NamedStepdownFix,
+            b"P" => SecondaryWaypointType::FAAPitchAndCatchPoint,
+            b"S" => SecondaryWaypointType::AACAAOrSUAWaypoint,
             b"U" => SecondaryWaypointType::FIRUIRControlledAirspaceFix,
             b"V" => SecondaryWaypointType::FullDegreeLatLongFix,
             b"W" => SecondaryWaypointType::HalfDegreeLatLongFix,
@@ -488,6 +482,62 @@ impl ParseableField for WaypointType {
             ))?,
             PublishedUse::from_bytes(&bytes[2..3])?
                 .ok_or(FieldParseError::new("Invalid Published Use".to_string()))?,
+        )))
+    }
+}
+
+// Waypoint Usage
+#[derive(Debug, PartialEq, Eq)]
+pub enum WaypointUsageAltitude {
+    HIAndLo,
+    Hi,
+    Lo,
+    TerminalOnly,
+}
+
+impl ParseableField for WaypointUsageAltitude {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"B" => WaypointUsageAltitude::HIAndLo,
+            b"H" => WaypointUsageAltitude::Hi,
+            b"L" => WaypointUsageAltitude::Lo,
+            [BLANK] => WaypointUsageAltitude::TerminalOnly,
+            _ => {
+                return Err(FieldParseError::new("Invalid waypoint usage".to_string()));
+            }
+        }))
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum WaypointUsageRNAVIndicator {
+    RNAV,
+    NonRNAV,
+}
+
+impl ParseableField for WaypointUsageRNAVIndicator {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(match bytes {
+            b"R" => WaypointUsageRNAVIndicator::RNAV,
+            [BLANK] => WaypointUsageRNAVIndicator::NonRNAV,
+            _ => {
+                return Err(FieldParseError::new("Invalid waypoint usage".to_string()));
+            }
+        }))
+    }
+}
+/// 5.82 Waypoint Usage
+#[derive(Debug, PartialEq, Eq)]
+pub struct WaypointUsage(WaypointUsageAltitude, WaypointUsageRNAVIndicator);
+impl ParseableField for WaypointUsage {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        Ok(Some(WaypointUsage(
+            WaypointUsageAltitude::from_bytes(&bytes[0..1])?.ok_or(FieldParseError::new(
+                "Invalid Waypoint Usage Altitude".to_string(),
+            ))?,
+            WaypointUsageRNAVIndicator::from_bytes(&bytes[1..2])?.ok_or(FieldParseError::new(
+                "Invalid Waypoint Usage RNAV Indicator".to_string(),
+            ))?,
         )))
     }
 }
@@ -607,22 +657,22 @@ pub enum FacilityCharacteristicsRepetitionAndCollocation {
     CollocatedWithAzimuth,
     CollocatedWithElevation,
     NotCollocatedWithAzOrElev,
-    NotApplicable,
+    NotCollocated,
     KnownRepetition(u8),
 }
 impl ParseableField for FacilityCharacteristicsRepetitionAndCollocation {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         if bytes[0] == BLANK {
             return Ok(Some(
-                FacilityCharacteristicsRepetitionAndCollocation::NotApplicable,
+                FacilityCharacteristicsRepetitionAndCollocation::NotCollocated,
             ));
         }
         Ok(Some(match bytes {
-            b"0" => FacilityCharacteristicsRepetitionAndCollocation::CollocatedWithLocalizer,
-            b"1" => FacilityCharacteristicsRepetitionAndCollocation::CollocatedWithGlideslope,
-            b"2" => FacilityCharacteristicsRepetitionAndCollocation::CollocatedWithAzimuth,
-            b"3" => FacilityCharacteristicsRepetitionAndCollocation::CollocatedWithElevation,
-            b"4" => FacilityCharacteristicsRepetitionAndCollocation::NotCollocatedWithAzOrElev,
+            b"L" => FacilityCharacteristicsRepetitionAndCollocation::CollocatedWithLocalizer,
+            b"G" => FacilityCharacteristicsRepetitionAndCollocation::CollocatedWithGlideslope,
+            b"A" => FacilityCharacteristicsRepetitionAndCollocation::CollocatedWithAzimuth,
+            b"E" => FacilityCharacteristicsRepetitionAndCollocation::CollocatedWithElevation,
+            b"N" => FacilityCharacteristicsRepetitionAndCollocation::NotCollocatedWithAzOrElev,
             _ => {
                 if bytes[0].is_ascii_digit() {
                     return Ok(Some(
@@ -833,6 +883,7 @@ pub enum AirportHeliportCommunicationsServiceIndicator2 {
     AerodromeTrafficFrequency,
     CommonTrafficAdvisoryFrequency,
     MandatoryFrequency,
+    AirToAirFrequency,
     SecondaryFrequency,
     NotApplicable,
 }
@@ -843,6 +894,7 @@ impl ParseableField for AirportHeliportCommunicationsServiceIndicator2 {
             b"A" => AirportHeliportCommunicationsServiceIndicator2::AerodromeTrafficFrequency,
             b"C" => AirportHeliportCommunicationsServiceIndicator2::CommonTrafficAdvisoryFrequency,
             b"M" => AirportHeliportCommunicationsServiceIndicator2::MandatoryFrequency,
+            b"R" => AirportHeliportCommunicationsServiceIndicator2::AirToAirFrequency,
             b"S" => AirportHeliportCommunicationsServiceIndicator2::SecondaryFrequency,
             _ => {
                 return Err(FieldParseError::new(
@@ -855,20 +907,26 @@ impl ParseableField for AirportHeliportCommunicationsServiceIndicator2 {
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum AirportHeliportCommunicationsServiceIndicator3 {
+    AirToGround,
     VHFDirectionFindingService,
+    RemoteCommunicationsAirToGround,
     LanguageOtherThanEnglish,
     MilitaryUseFrequency,
     PilotControlledLight,
+    RemoteCommunicationsOutlet,
     NotApplicable,
 }
 impl ParseableField for AirportHeliportCommunicationsServiceIndicator3 {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             [BLANK] => AirportHeliportCommunicationsServiceIndicator3::NotApplicable,
+            b"A" => AirportHeliportCommunicationsServiceIndicator3::AirToGround,
             b"D" => AirportHeliportCommunicationsServiceIndicator3::VHFDirectionFindingService,
+            b"G" => AirportHeliportCommunicationsServiceIndicator3::RemoteCommunicationsAirToGround,
             b"L" => AirportHeliportCommunicationsServiceIndicator3::LanguageOtherThanEnglish,
             b"M" => AirportHeliportCommunicationsServiceIndicator3::MilitaryUseFrequency,
             b"P" => AirportHeliportCommunicationsServiceIndicator3::PilotControlledLight,
+            b"R" => AirportHeliportCommunicationsServiceIndicator3::RemoteCommunicationsOutlet,
             _ => {
                 return Err(FieldParseError::new(
                     "Invalid Airport Heliport Communications Service Indicator 3".to_string(),
@@ -930,8 +988,9 @@ impl ParseableField for EnrouteCommunicationsServiceIndicator1 {
 }
 #[derive(Debug, PartialEq, Eq)]
 pub enum EnrouteCommunicationsServiceIndicator2 {
-    AirGround,
+    AirToGround,
     DiscreteFrequency,
+    AirToAir,
     MandatoryFrequency,
     SecondaryFrequency,
     NotApplicable,
@@ -940,8 +999,9 @@ impl ParseableField for EnrouteCommunicationsServiceIndicator2 {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
             [BLANK] => EnrouteCommunicationsServiceIndicator2::NotApplicable,
-            b"A" => EnrouteCommunicationsServiceIndicator2::AirGround,
+            b"A" => EnrouteCommunicationsServiceIndicator2::AirToGround,
             b"D" => EnrouteCommunicationsServiceIndicator2::DiscreteFrequency,
+            b"R" => EnrouteCommunicationsServiceIndicator2::AirToAir,
             b"M" => EnrouteCommunicationsServiceIndicator2::MandatoryFrequency,
             b"S" => EnrouteCommunicationsServiceIndicator2::SecondaryFrequency,
             _ => {
@@ -955,8 +1015,10 @@ impl ParseableField for EnrouteCommunicationsServiceIndicator2 {
 #[derive(Debug, PartialEq, Eq)]
 pub enum EnrouteCommunicationsServiceIndicator3 {
     VHFDirectionFindingService,
+    RemoteCommunicationsAirToGround,
     LanguageOtherThanEnglish,
     MilitaryUseFrequency,
+    RemoteCommunicationsOutlet,
     NotApplicable,
 }
 impl ParseableField for EnrouteCommunicationsServiceIndicator3 {
@@ -964,8 +1026,10 @@ impl ParseableField for EnrouteCommunicationsServiceIndicator3 {
         Ok(Some(match bytes {
             [BLANK] => EnrouteCommunicationsServiceIndicator3::NotApplicable,
             b"D" => EnrouteCommunicationsServiceIndicator3::VHFDirectionFindingService,
+            b"G" => EnrouteCommunicationsServiceIndicator3::RemoteCommunicationsAirToGround,
             b"L" => EnrouteCommunicationsServiceIndicator3::LanguageOtherThanEnglish,
             b"M" => EnrouteCommunicationsServiceIndicator3::MilitaryUseFrequency,
+            b"R" => EnrouteCommunicationsServiceIndicator3::RemoteCommunicationsOutlet,
             _ => {
                 return Err(FieldParseError::new(
                     "Invalid Enroute Communications Service Indicator 3".to_string(),
@@ -1146,6 +1210,7 @@ impl ParseableField for DescriptiveAltitudeLimits {
 }
 
 /// 5.121 Lower/Upper Limit
+/// Note: maybe belongs in the common numeric field section? unsure
 #[derive(Debug, PartialEq, Eq)]
 pub enum LowerUpperLimit {
     Descriptive(DescriptiveAltitudeLimits),
@@ -1198,6 +1263,7 @@ pub fn test_lower_upper_limit() {
 }
 
 /// 5.127 Maximum Altitude
+/// Note: see 5.121
 #[derive(Debug, PartialEq, Eq)]
 pub enum MaximumAltitude {
     Descriptive(DescriptiveAltitudeLimits),
@@ -1230,6 +1296,7 @@ impl ParseableField for MaximumAltitude {
 }
 
 /// 5.136 Cruise Level From/To
+/// Note: see 5.121
 #[derive(Debug, PartialEq, Eq)]
 pub enum CruiseLevelFromTo {
     Descriptive(DescriptiveAltitudeLimits),
@@ -1493,14 +1560,11 @@ pub enum NameFormatType1 {
     PublishedMoreThanFiveLetterNameFix,
     AirportRunwayRelatedFix,
     UIRFix,
-    VFRCheckpointReportingPointAsFix,
+    NotApplicable,
 }
 
 impl ParseableField for NameFormatType1 {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
         Ok(Some(match bytes {
             b"A" => NameFormatType1::AbeamFix,
             b"B" => NameFormatType1::BearingDistanceFix,
@@ -1516,7 +1580,7 @@ impl ParseableField for NameFormatType1 {
             b"R" => NameFormatType1::PublishedMoreThanFiveLetterNameFix,
             b"T" => NameFormatType1::AirportRunwayRelatedFix,
             b"U" => NameFormatType1::UIRFix,
-            b"V" => NameFormatType1::VFRCheckpointReportingPointAsFix,
+            [BLANK] => NameFormatType1::NotApplicable,
             _ => {
                 return Err(FieldParseError::new(
                     "Invalid name format indicator".to_string(),
@@ -1534,12 +1598,10 @@ pub enum NameFormatType2 {
 }
 impl NameFormatType2 {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(Some(NameFormatType2::NotApplicable));
-        }
         Ok(Some(match bytes {
             b"O" => NameFormatType2::LocalizerMarkerWithPublishedIdentifier,
             b"M" => NameFormatType2::LocalizerMarkerWithoutPublishedIdentifier,
+            [BLANK] => NameFormatType2::NotApplicable,
             _ => {
                 return Err(FieldParseError::new(
                     "Invalid name format indicator".to_string(),
@@ -1568,10 +1630,11 @@ impl ParseableField for NameFormat {
 }
 
 /// 5.207 Sector From / Sector To
+/// Note: This should resolve to degrees, but for now we will keep it as is
 #[derive(Debug, PartialEq, Eq)]
 pub struct SectorFromTo {
-    pub from: Box<str>,
-    pub to: Box<str>,
+    pub from: char,
+    pub to: char,
 }
 impl ParseableField for SectorFromTo {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
@@ -1583,16 +1646,10 @@ impl ParseableField for SectorFromTo {
                 "Invalid sector in 'from' or 'to' position".to_string(),
             ));
         }
-        let from_str = Box::from(std::str::from_utf8(&bytes[0..1]).map_err(|e| {
-            FieldParseError::new(format!("Could not convert 'from' sector to string: {}", e))
-        })?);
 
-        let to_str = Box::from(std::str::from_utf8(&bytes[1..2]).map_err(|e| {
-            FieldParseError::new(format!("Could not convert 'to' sector to string: {}", e))
-        })?);
         Ok(Some(SectorFromTo {
-            from: from_str,
-            to: to_str,
+            from: bytes[0] as char,
+            to: bytes[1] as char,
         }))
     }
 }
@@ -1918,8 +1975,8 @@ pub enum GLSStationType1 {
 impl ParseableField for GLSStationType1 {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
-            b"LAAS" => GLSStationType1::LAASOrGLSGroundStation,
-            b"SCAT1" => GLSStationType1::SCAT1Station,
+            b"L" => GLSStationType1::LAASOrGLSGroundStation,
+            b"C" => GLSStationType1::SCAT1Station,
             _ => {
                 return Err(FieldParseError::new("Invalid GLS station type".to_string()));
             }
@@ -1976,107 +2033,5 @@ impl ParseableField for TaaSectorRadius {
             start_radius,
             end_radius,
         }))
-    }
-}
-
-// Special Activity Area Operating Times
-#[derive(Debug, PartialEq, Eq)]
-pub enum SpecialActivityTimesDayIndicator {
-    WeekdaysAndWeekends,
-    WeekdaysOnly,
-    WeekendsOnly,
-    Other,
-    Unknown,
-}
-
-impl ParseableField for SpecialActivityTimesDayIndicator {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        Ok(Some(match bytes {
-            b"C" => SpecialActivityTimesDayIndicator::WeekdaysAndWeekends,
-            b"D" => SpecialActivityTimesDayIndicator::WeekdaysOnly,
-            b"E" => SpecialActivityTimesDayIndicator::WeekendsOnly,
-            b"O" => SpecialActivityTimesDayIndicator::Other,
-            b"U" => SpecialActivityTimesDayIndicator::Unknown,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid special activity times day indicator".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum SpecialActivityTimesHolidayIndicator {
-    IncludingHolidays,
-    ExcludingHolidays,
-    Unknown,
-}
-
-impl ParseableField for SpecialActivityTimesHolidayIndicator {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        Ok(Some(match bytes {
-            b"H" => SpecialActivityTimesHolidayIndicator::IncludingHolidays,
-            b"X" => SpecialActivityTimesHolidayIndicator::ExcludingHolidays,
-            b"U" => SpecialActivityTimesHolidayIndicator::Unknown,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid special activity times holiday indicator".to_string(),
-                ));
-            }
-        }))
-    }
-}
-#[derive(Debug, PartialEq, Eq)]
-pub enum SpecialActivityTimesTimeIndicator {
-    SunriseOrSunset,
-    NightUse,
-    Continuous,
-    ActiveByNotam,
-}
-
-impl ParseableField for SpecialActivityTimesTimeIndicator {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        Ok(Some(match bytes {
-            b"D" => SpecialActivityTimesTimeIndicator::SunriseOrSunset,
-            b"N" => SpecialActivityTimesTimeIndicator::NightUse,
-            b"C" => SpecialActivityTimesTimeIndicator::Continuous,
-            b"A" => SpecialActivityTimesTimeIndicator::ActiveByNotam,
-            _ => {
-                return Err(FieldParseError::new(
-                    "Invalid special activity times time indicator".to_string(),
-                ));
-            }
-        }))
-    }
-}
-
-/// 5.282 Special Activity Area Operating Times
-#[derive(Debug, PartialEq, Eq)]
-pub struct SpecialActivityTimes(
-    SpecialActivityTimesDayIndicator,
-    SpecialActivityTimesHolidayIndicator,
-    SpecialActivityTimesTimeIndicator,
-);
-impl ParseableField for SpecialActivityTimes {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
-        // all fields must be Some type
-        let day_indicator = SpecialActivityTimesDayIndicator::from_bytes(&bytes[0..1])?;
-        let holiday_indicator = SpecialActivityTimesHolidayIndicator::from_bytes(&bytes[1..2])?;
-        let time_indicator = SpecialActivityTimesTimeIndicator::from_bytes(&bytes[2..3])?;
-        if day_indicator.is_some() && holiday_indicator.is_some() && time_indicator.is_some() {
-            Ok(Some(SpecialActivityTimes(
-                day_indicator.unwrap(),
-                holiday_indicator.unwrap(),
-                time_indicator.unwrap(),
-            )))
-        } else {
-            Err(FieldParseError::new(
-                "Invalid special activity times".to_string(),
-            ))
-        }
     }
 }

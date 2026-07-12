@@ -37,13 +37,12 @@ pub type FixIdentifier = LengthLimitedIdentifier<5, false>;
 /// 5.14 ICAO Code
 pub type IcaoCode = LengthLimitedIdentifier<2, false>;
 
-/// 5.15 Inbound Course Theta
-pub type InboundCourseTheta = LengthLimitedIdentifier<3, true>;
-
 /// 5.16 Continuation Record Number
 pub type ContinuationRecordNumber = LengthLimitedIdentifier<1, true>;
 
 /// 5.17 Waypoint Description Code
+/// Note: This should be a complex type, but the rules are a bit difficult to parse out atm
+/// TODO: come back to this
 pub type WaypointDescriptionCode = LengthLimitedIdentifier<4, true>;
 
 /// 5.21 Path and Termination
@@ -80,7 +79,7 @@ pub type RunwayDescription = LengthLimitedIdentifier<22, false>;
 pub type Name = LengthLimitedIdentifier<25, false>;
 
 /// 5.61 Notes (Continuation Records) (NOTES)
-pub type Notes = LengthLimitedIdentifier<102, false>;
+pub type Notes = LengthLimitedIdentifier<70, false>;
 
 /// 5.71 Name Field, Navaid/Airport/Heliport/Enroute Marker records
 pub type NameOfFacility = LengthLimitedIdentifier<30, false>;
@@ -97,11 +96,17 @@ pub type CompanyRouteIdent = LengthLimitedIdentifier<10, false>;
 /// 5.78 SID/STAR/App/AWY (S/S/A/AWY), SID/STAR/AWY (S/S/AWY)
 pub type SidStarApproachAirwayIdentifier = LengthLimitedIdentifier<6, false>;
 
-/// 5.83 To Fix
+/// 5.83(A) To Fix for Company Routes
 ///
 /// Note: This warrants some change from the spec, because what this is actually referring to is the fix that is the next
 /// immediate point within the route that the specific record refers to. Suggestion: NextFix
-pub type ToFix = LengthLimitedIdentifier<5, false>;
+pub type CompanyRouteToFix = LengthLimitedIdentifier<6, false>;
+
+/// 5.83(B) To Fix for Preferred Routes
+///
+/// Note: This warrants some change from the spec, because what this is actually referring to is the fix that is the next
+/// immediate point within the route that the specific record refers to. Suggestion: NextFix
+pub type PreferredRouteToFix = LengthLimitedIdentifier<5, false>;
 
 /// 5.84 Runway Transition
 pub type RunwayTransition = LengthLimitedIdentifier<5, false>;
@@ -138,9 +143,6 @@ pub type RestrictiveAirspaceDesignation = LengthLimitedIdentifier<10, false>;
 
 /// 5.130 Multiple Code
 pub type MultipleCode = LengthLimitedIdentifier<1, true>;
-
-/// 5.139 Procedure Name
-pub type ProcedureName = LengthLimitedIdentifier<78, false>;
 
 /// 5.140 Controlling Agency
 pub type ControllingAgency = LengthLimitedIdentifier<25, false>;
@@ -205,8 +207,8 @@ pub type SectorFacility = LengthLimitedIdentifier<4, false>;
 /// 5.186 Sectorization Narrative
 pub type SectorizationNarrative = LengthLimitedIdentifier<60, false>;
 
-/// 5.189 Position Narrative
-pub type PositionNarrative = LengthLimitedIdentifier<25, false>;
+/// 5.189 Remote Site Name
+pub type RemoteSiteName = LengthLimitedIdentifier<25, false>;
 
 /// 5.190 FIR/RDO Identifier
 pub type FirRdoIdentifier = LengthLimitedIdentifier<4, false>;
@@ -220,7 +222,7 @@ pub type InitialTerminusFixOrAirport = LengthLimitedIdentifier<5, false>;
 /// The mix of sunrise/sunset logic with the times is hellish.
 pub type TimeOfOperation = LengthLimitedIdentifier<10, false>;
 
-/// 5.198 Datum Code
+/// 5.197 Datum Code
 ///
 /// Validation left to user for now. Refer to Attachment 2 in ARINC 424
 pub type DatumCode = LengthLimitedIdentifier<3, true>;
@@ -246,8 +248,8 @@ pub type GeographicalReferenceTableIdentifier = LengthLimitedIdentifier<2, false
 /// 5.219 Geographical Entity
 pub type GeographicalEntity = LengthLimitedIdentifier<29, false>;
 
-/// 5.224 SBAS/GBAS Route Indicator
-pub type SBASGBASRouteIndicator = LengthLimitedIdentifier<1, true>;
+/// 5.224 Route Indicator
+pub type RouteIndicator = LengthLimitedIdentifier<1, true>;
 
 /// 5.229 Final Approach Segment Data CRC Remainder
 pub type FinalApproachSegmentDataCrcRemainder = LengthLimitedIdentifier<8, true>;
@@ -278,57 +280,3 @@ pub type TaaWaypoint = LengthLimitedIdentifier<5, false>;
 
 /// 5.275 Level of Service Name
 pub type LevelOfServiceName = LengthLimitedIdentifier<10, false>;
-
-/// 5.279 Special Activity Area Identifier
-pub type SpecialActivityAreaIdentifier = LengthLimitedIdentifier<6, false>;
-
-/// 5.281 Special Activity Area Volume
-pub type SpecialActivityAreaVolume = LengthLimitedIdentifier<1, true>;
-
-/// 5.284 Assigned Sector Name
-pub type AssignedSectorName = LengthLimitedIdentifier<25, false>;
-
-/// 5.285 Time Narrative
-pub type TimeNarrative = LengthLimitedIdentifier<100, false>;
-
-/// 5.288 Communications Type Translation
-pub type CommunicationsTypeTranslation = LengthLimitedIdentifier<80, false>;
-
-/// 5.299 Procedure Referenced Fix Identifier
-pub type ProcedureReferencedFixIdentifier = LengthLimitedIdentifier<5, false>;
-
-/// 5.304 TAA Sector Bearing Reference Waypoint
-pub type TaaSectorBearingReferenceWaypoint = LengthLimitedIdentifier<5, false>;
-
-/// 5.326 ATN Ground Facility Identifier
-pub type ATNGroundFacilityIdentifier = LengthLimitedIdentifier<8, false>;
-
-/// 5.327 ATN Authority Format Identifier
-pub type ATNAuthorityFormatIdentifier = LengthLimitedIdentifier<2, false>;
-
-/// 5.328 ATN Initial Domain Identifier
-pub type ATNInitialDomainIdentifier = LengthLimitedIdentifier<4, false>;
-
-/// 5.329 ATN Version
-pub type ATNVersion = LengthLimitedIdentifier<2, false>;
-
-/// 5.330 ATN Administration
-pub type ATNAdministration = LengthLimitedIdentifier<6, false>;
-
-/// 5.331 ATN Routing Domain Format
-pub type ATNRoutingDomainFormat = LengthLimitedIdentifier<2, false>;
-
-/// 5.332 ATN Administrative Region Selector
-pub type ATNAdministrativeRegionSelector = LengthLimitedIdentifier<6, false>;
-
-/// 5.333 ATN Routing Location
-pub type ATNRoutingLocation = LengthLimitedIdentifier<4, false>;
-
-/// 5.334 ATN System Identifier
-pub type ATNSystemIdentifier = LengthLimitedIdentifier<12, false>;
-
-/// 5.335 ATN Network Service Access Point Selector
-pub type ATNNetworkServiceAccessPointSelector = LengthLimitedIdentifier<2, false>;
-
-/// 5.336 ATN Context Management Transport Selector
-pub type ATNContextManagementTransportSelector = LengthLimitedIdentifier<4, false>;

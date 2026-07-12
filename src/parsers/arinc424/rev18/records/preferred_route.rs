@@ -1,8 +1,7 @@
-
+use crate::parsers::arinc424::rev18::definitions::*;
 use crate::parsers::arinc424::rev18::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
 use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
-use crate::parsers::arinc424::rev18::definitions::*;
 pub(super) struct PreferredRouteRecords;
 impl PreferredRouteRecords {
     const CONTINUATION_COLUMN: usize = 39;
@@ -39,19 +38,9 @@ impl PreferredRouteRecords {
                 &input[Self::CONTINUATION_APPLICATION_COLUMN - 1
                     ..Self::CONTINUATION_APPLICATION_COLUMN],
             )? {
-                Some(ContinuationRecordApplicationType::FormattedTimeOfOperationsContinuation) => {
-                    Ok(ARINCRecord::PreferredRouteFormattedTimeContinuation(
-                        PreferredRouteFormattedTimeContinuationRecord::parse(input)?,
-                    ))
-                }
                 Some(ContinuationRecordApplicationType::StandardContinuation) => {
                     Ok(ARINCRecord::PreferredRouteContinuation(
                         PreferredRouteContinuationRecord::parse(input)?,
-                    ))
-                }
-                Some(ContinuationRecordApplicationType::NarrativeTimeOfOperationsContinuation) => {
-                    Ok(ARINCRecord::PreferredRouteNarrativeTimeContinuation(
-                        PreferredRouteNarrativeTimeContinuationRecord::parse(input)?,
                     ))
                 }
                 _ => Err(RecordParseError {
@@ -99,8 +88,8 @@ pub struct PreferredSIDRoutePrimaryRecord<'a> {
     pub altitude_1: RecordField<'a, MinimumAltitude>,
     pub altitude_2: RecordField<'a, MinimumAltitude>,
     pub sid_route_type: RecordField<'a, SIDRouteType>,
-    pub sid_route_type_qualifier_1: RecordField<'a, AirportHeliportSIDRouteTypeQualifier1>,
-    pub sid_route_type_qualifier_2: RecordField<'a, AirportHeliportSIDRouteTypeQualifier2>,
+    pub sid_route_type_qualifier_1: RecordField<'a, RouteTypeQualifier1>,
+    pub sid_route_type_qualifier_2: RecordField<'a, RouteTypeQualifier2>,
     pub file_record_number: RecordField<'a, FileRecordNumber>,
     pub cycle_date: RecordField<'a, CycleDate>,
 }
@@ -188,8 +177,8 @@ pub struct PreferredSTARRoutePrimaryRecord<'a> {
     pub altitude_1: RecordField<'a, MinimumAltitude>,
     pub altitude_2: RecordField<'a, MinimumAltitude>,
     pub star_route_type: RecordField<'a, STARRouteType>,
-    pub star_route_type_qualifier_1: RecordField<'a, AirportHeliportSTARRouteTypeQualifier1>,
-    pub star_route_type_qualifier_2: RecordField<'a, AirportHeliportSTARRouteTypeQualifier2>,
+    pub star_route_type_qualifier_1: RecordField<'a, RouteTypeQualifier1>,
+    pub star_route_type_qualifier_2: RecordField<'a, RouteTypeQualifier2>,
     pub file_record_number: RecordField<'a, FileRecordNumber>,
     pub cycle_date: RecordField<'a, CycleDate>,
 }
@@ -406,61 +395,6 @@ impl<'a> PreferredGeneralRoutePrimaryRecord<'a> {
     }
 }
 
-/// 4.1.24.2 Preferred Route Formatted Time Continuation Record
-#[derive(Debug)]
-pub struct PreferredRouteFormattedTimeContinuationRecord<'a> {
-    pub record_type: RecordField<'a, RecordType>,
-    pub customer_area_code: RecordField<'a, CustomerAreaCode>,
-    pub section: RecordField<'a, Section>,
-    pub subsection: RecordField<'a, GenericSubsection>,
-    pub route_id: RecordField<'a, PreferredRouteIdentifier>,
-    pub route_use_indicator: RecordField<'a, PreferredRouteUseIndicator>,
-    pub sequence_number: RecordField<'a, SequenceNumber>,
-    pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
-    pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
-    pub time_code: RecordField<'a, ContinuationRecordTimeCode>,
-    pub time_indicator: RecordField<'a, TimeIndicator>,
-    pub time_of_operation_1: RecordField<'a, TimeOfOperation>,
-    pub time_of_operation_2: RecordField<'a, TimeOfOperation>,
-    pub time_of_operation_3: RecordField<'a, TimeOfOperation>,
-    pub time_of_operation_4: RecordField<'a, TimeOfOperation>,
-    pub time_of_operation_5: RecordField<'a, TimeOfOperation>,
-    pub time_of_operation_6: RecordField<'a, TimeOfOperation>,
-    pub time_of_operation_7: RecordField<'a, TimeOfOperation>,
-    pub timezone: RecordField<'a, Timezone>,
-    pub file_record_number: RecordField<'a, FileRecordNumber>,
-    pub cycle_date: RecordField<'a, CycleDate>,
-}
-
-#[rustfmt::skip]
-impl<'a> PreferredRouteFormattedTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
-        Ok(PreferredRouteFormattedTimeContinuationRecord {
-            record_type:                  RecordField::from_bytes(input, 1, 1)?,
-            customer_area_code:           RecordField::from_bytes(input, 2, 3)?,
-            section:                      RecordField::from_bytes(input, 5, 1)?,
-            subsection:                   RecordField::from_bytes(input, 6, 1)?,
-            route_id:                     RecordField::from_bytes(input, 14, 10)?,
-            route_use_indicator:          RecordField::from_bytes(input, 24, 2)?,
-            sequence_number:              RecordField::from_bytes(input, 26, 4)?,
-            continuation_record_number:   RecordField::from_bytes(input, 39, 1)?,
-            application_type:             RecordField::from_bytes(input, 40, 1)?,
-            time_code:                    RecordField::from_bytes(input, 41, 1)?,
-            time_indicator:               RecordField::from_bytes(input, 42, 1)?,
-            time_of_operation_1:          RecordField::from_bytes(input, 43, 10)?,
-            time_of_operation_2:          RecordField::from_bytes(input, 53, 10)?,
-            time_of_operation_3:          RecordField::from_bytes(input, 63, 10)?,
-            time_of_operation_4:          RecordField::from_bytes(input, 73, 10)?,
-            time_of_operation_5:          RecordField::from_bytes(input, 83, 10)?,
-            time_of_operation_6:          RecordField::from_bytes(input, 93, 10)?,
-            time_of_operation_7:          RecordField::from_bytes(input, 103, 10)?,
-            timezone:                     RecordField::from_bytes(input, 113, 3)?,
-            file_record_number:           RecordField::from_bytes(input, 124, 5)?,
-            cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
-        })
-    }
-}
-
 /// 4.1.24.2 Preferred Route Continuation Record
 #[derive(Debug)]
 pub struct PreferredRouteContinuationRecord<'a> {
@@ -492,43 +426,6 @@ impl<'a> PreferredRouteContinuationRecord<'a> {
             continuation_record_number:   RecordField::from_bytes(input, 39, 1)?,
             application_type:             RecordField::from_bytes(input, 40, 1)?,
             notes:                        RecordField::from_bytes(input, 41, 69)?,
-            file_record_number:           RecordField::from_bytes(input, 124, 5)?,
-            cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
-        })
-    }
-}
-
-/// 4.1.24.4 Preferred Route Narrative Time Continuation Record
-#[derive(Debug)]
-pub struct PreferredRouteNarrativeTimeContinuationRecord<'a> {
-    pub record_type: RecordField<'a, RecordType>,
-    pub customer_area_code: RecordField<'a, CustomerAreaCode>,
-    pub section: RecordField<'a, Section>,
-    pub subsection: RecordField<'a, GenericSubsection>,
-    pub route_id: RecordField<'a, PreferredRouteIdentifier>,
-    pub route_use_indicator: RecordField<'a, PreferredRouteUseIndicator>,
-    pub sequence_number: RecordField<'a, SequenceNumber>,
-    pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
-    pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
-    pub time_narrative: RecordField<'a, TimeNarrative>,
-    pub file_record_number: RecordField<'a, FileRecordNumber>,
-    pub cycle_date: RecordField<'a, CycleDate>,
-}
-
-#[rustfmt::skip]
-impl<'a> PreferredRouteNarrativeTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
-        Ok(PreferredRouteNarrativeTimeContinuationRecord {
-            record_type:                  RecordField::from_bytes(input, 1, 1)?,
-            customer_area_code:           RecordField::from_bytes(input, 2, 3)?,
-            section:                      RecordField::from_bytes(input, 5, 1)?,
-            subsection:                   RecordField::from_bytes(input, 6, 1)?,
-            route_id:                     RecordField::from_bytes(input, 14, 10)?,
-            route_use_indicator:          RecordField::from_bytes(input, 24, 2)?,
-            sequence_number:              RecordField::from_bytes(input, 26, 4)?,
-            continuation_record_number:   RecordField::from_bytes(input, 39, 1)?,
-            application_type:             RecordField::from_bytes(input, 40, 1)?,
-            time_narrative:               RecordField::from_bytes(input, 41, 83)?,
             file_record_number:           RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })

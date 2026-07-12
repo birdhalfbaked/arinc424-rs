@@ -75,9 +75,8 @@ pub struct EnrouteAirwayPrimaryRecord<'a> {
     pub rvsm_minimum_level: RecordField<'a, RVSMMinimumLevel>,
     pub vsf_rvsm_maximum_level: RecordField<'a, RVSMMaximumLevel>,
     pub maximum_altitude_2: RecordField<'a, MaximumAltitude>,
-    pub route_qualifier1: RecordField<'a, EnrouteAirwayRouteTypeQualifier1>,
-    pub route_qualifier2: RecordField<'a, EnrouteAirwayRouteTypeQualifier2>,
-    pub route_qualifier3: RecordField<'a, EnrouteAirwayRouteTypeQualifier3>,
+    pub route_qualifier1: RecordField<'a, RouteTypeQualifier1>,
+    pub route_qualifier2: RecordField<'a, RouteTypeQualifier2>,
     pub file_record_number: RecordField<'a, FileRecordNumber>,
     pub cycle_date: RecordField<'a, CycleDate>,
 }
@@ -126,7 +125,6 @@ impl<'a> EnrouteAirwayPrimaryRecord<'a> {
             maximum_altitude_2:                   RecordField::from_bytes(input, 116, 5)?,
             route_qualifier1:                     RecordField::from_bytes(input, 121, 1)?,
             route_qualifier2:                     RecordField::from_bytes(input, 122, 1)?,
-            route_qualifier3:                     RecordField::from_bytes(input, 123, 1)?,
             file_record_number:                   RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                           RecordField::from_bytes(input, 129, 4)?,
         })

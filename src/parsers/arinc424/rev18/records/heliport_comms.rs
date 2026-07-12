@@ -1,8 +1,7 @@
-
+use crate::parsers::arinc424::rev18::definitions::*;
 use crate::parsers::arinc424::rev18::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
 use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
-use crate::parsers::arinc424::rev18::definitions::*;
 pub(super) struct HeliportCommsRecords;
 impl HeliportCommsRecords {
     const CONTINUATION_COLUMN: usize = 22;
@@ -26,16 +25,6 @@ impl HeliportCommsRecords {
                 Some(ContinuationRecordApplicationType::SectorNarrativeContinuation) => {
                     Ok(ARINCRecord::HeliportCommsSectorNarrativeContinuation(
                         HeliportCommsSectorNarrativeContinuationRecord::parse(input)?,
-                    ))
-                }
-                Some(ContinuationRecordApplicationType::FormattedTimeOfOperationsContinuation) => {
-                    Ok(ARINCRecord::HeliportCommsFormattedTimeContinuation(
-                        HeliportCommsFormattedTimeContinuationRecord::parse(input)?,
-                    ))
-                }
-                Some(ContinuationRecordApplicationType::NarrativeTimeOfOperationsContinuation) => {
-                    Ok(ARINCRecord::HeliportCommsNarrativeTimeContinuation(
-                        HeliportCommsNarrativeTimeContinuationRecord::parse(input)?,
                     ))
                 }
                 Some(ContinuationRecordApplicationType::AdditionalSectorizationContinuation) => Ok(
@@ -315,104 +304,6 @@ impl<'a> HeliportCommsSectorNarrativeContinuationRecord<'a> {
             continuation_record_number:       RecordField::from_bytes(input, 22, 1)?,
             application_type:                 RecordField::from_bytes(input, 23, 1)?,
             sectorization_narrative:          RecordField::from_bytes(input, 24, 60)?,
-            file_record_number:               RecordField::from_bytes(input, 124, 5)?,
-            cycle_date:                       RecordField::from_bytes(input, 129, 4)?,
-        })
-    }
-}
-
-// 4.2.5.4 Heliport Communications Formatted Time Continuation Record
-#[derive(Debug)]
-pub struct HeliportCommsFormattedTimeContinuationRecord<'a> {
-    pub record_type: RecordField<'a, RecordType>,
-    pub customer_area_code: RecordField<'a, CustomerAreaCode>,
-    pub section: RecordField<'a, Section>,
-    pub heliport_identifier: RecordField<'a, AirportHeliportIdentifier>,
-    pub heliport_icao_code: RecordField<'a, IcaoCode>,
-    pub subsection: RecordField<'a, GenericSubsection>,
-    pub communications_class: RecordField<'a, CommunicationsClass>,
-    pub sequence_number: RecordField<'a, SequenceNumber>,
-    pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
-    pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
-    pub time_code: RecordField<'a, ContinuationRecordTimeCode>,
-    pub notam: RecordField<'a, NotamFlag>,
-    pub time_indicator: RecordField<'a, TimeIndicator>,
-    pub timezone: RecordField<'a, Timezone>,
-    pub time_of_operation_1: RecordField<'a, TimeOfOperation>,
-    pub time_of_operation_2: RecordField<'a, TimeOfOperation>,
-    pub time_of_operation_3: RecordField<'a, TimeOfOperation>,
-    pub time_of_operation_4: RecordField<'a, TimeOfOperation>,
-    pub time_of_operation_5: RecordField<'a, TimeOfOperation>,
-    pub time_of_operation_6: RecordField<'a, TimeOfOperation>,
-    pub time_of_operation_7: RecordField<'a, TimeOfOperation>,
-    pub file_record_number: RecordField<'a, FileRecordNumber>,
-    pub cycle_date: RecordField<'a, CycleDate>,
-}
-
-#[rustfmt::skip]
-impl<'a> HeliportCommsFormattedTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
-        Ok(Self {
-            record_type:                      RecordField::from_bytes(input, 1, 1)?,
-            customer_area_code:               RecordField::from_bytes(input, 2, 3)?,
-            section:                          RecordField::from_bytes(input, 5, 1)?,
-            heliport_identifier:               RecordField::from_bytes(input, 7, 4)?,
-            heliport_icao_code:                RecordField::from_bytes(input, 11, 2)?,
-            subsection:                       RecordField::from_bytes(input, 13, 1)?,
-            communications_class:             RecordField::from_bytes(input, 16, 4)?,
-            sequence_number:                  RecordField::from_bytes(input, 20, 2)?,
-            continuation_record_number:       RecordField::from_bytes(input, 22, 1)?,
-            application_type:                 RecordField::from_bytes(input, 23, 1)?,
-            time_code:                        RecordField::from_bytes(input, 24, 1)?,
-            notam:                            RecordField::from_bytes(input, 25, 1)?,
-            time_indicator:                   RecordField::from_bytes(input, 26, 1)?,
-            timezone:                         RecordField::from_bytes(input, 27, 3)?,
-            time_of_operation_1:              RecordField::from_bytes(input, 50, 10)?,
-            time_of_operation_2:              RecordField::from_bytes(input, 60, 10)?,
-            time_of_operation_3:              RecordField::from_bytes(input, 70, 10)?,
-            time_of_operation_4:              RecordField::from_bytes(input, 80, 10)?,
-            time_of_operation_5:              RecordField::from_bytes(input, 90, 10)?,
-            time_of_operation_6:              RecordField::from_bytes(input, 100, 10)?,
-            time_of_operation_7:              RecordField::from_bytes(input, 110, 10)?,
-            file_record_number:               RecordField::from_bytes(input, 124, 5)?,
-            cycle_date:                       RecordField::from_bytes(input, 129, 4)?,
-        })
-    }
-}
-
-// 4.2.5.5 Heliport Communications Narrative Time Continuation Record
-#[derive(Debug)]
-pub struct HeliportCommsNarrativeTimeContinuationRecord<'a> {
-    pub record_type: RecordField<'a, RecordType>,
-    pub customer_area_code: RecordField<'a, CustomerAreaCode>,
-    pub section: RecordField<'a, Section>,
-    pub heliport_identifier: RecordField<'a, AirportHeliportIdentifier>,
-    pub heliport_icao_code: RecordField<'a, IcaoCode>,
-    pub subsection: RecordField<'a, GenericSubsection>,
-    pub communications_class: RecordField<'a, CommunicationsClass>,
-    pub sequence_number: RecordField<'a, SequenceNumber>,
-    pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
-    pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
-    pub time_narrative: RecordField<'a, TimeNarrative>,
-    pub file_record_number: RecordField<'a, FileRecordNumber>,
-    pub cycle_date: RecordField<'a, CycleDate>,
-}
-
-#[rustfmt::skip]
-impl<'a> HeliportCommsNarrativeTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
-        Ok(Self {
-            record_type:                      RecordField::from_bytes(input, 1, 1)?,
-            customer_area_code:               RecordField::from_bytes(input, 2, 3)?,
-            section:                          RecordField::from_bytes(input, 5, 1)?,
-            heliport_identifier:               RecordField::from_bytes(input, 7, 4)?,
-            heliport_icao_code:                RecordField::from_bytes(input, 11, 2)?,
-            subsection:                       RecordField::from_bytes(input, 13, 1)?,
-            communications_class:             RecordField::from_bytes(input, 16, 4)?,
-            sequence_number:                  RecordField::from_bytes(input, 20, 2)?,
-            continuation_record_number:       RecordField::from_bytes(input, 22, 1)?,
-            application_type:                 RecordField::from_bytes(input, 23, 1)?,
-            time_narrative:                   RecordField::from_bytes(input, 24, 100)?,
             file_record_number:               RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                       RecordField::from_bytes(input, 129, 4)?,
         })
