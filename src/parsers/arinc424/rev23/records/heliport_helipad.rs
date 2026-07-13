@@ -12,9 +12,7 @@ impl HeliportHelipadRecords {
                 HeliportHelipadPrimaryRecord::parse(input)?,
             ))
         } else {
-            Err(RecordParseError {
-                message: "Invalid record type".to_string(),
-            })
+            Err(RecordParseError::new("Invalid record type".to_string(), Some(String::from_utf8_lossy(input).into_owned())))
         }
     }
 }
@@ -56,9 +54,7 @@ fn parse_pad_dimensions<'a>(
         }
         Some(HelipadShape::Undefined) => None,
         None => {
-            return Err(RecordParseError {
-                message: "Invalid helipad shape".to_string(),
-            });
+            return Err(RecordParseError::new("Invalid helipad shape".to_string(), Some(String::from_utf8_lossy(input).into_owned())));
         }
     };
     let fato_dimension_value = match HelipadShape::from_bytes(shape_bytes)? {
@@ -83,9 +79,7 @@ fn parse_pad_dimensions<'a>(
         }
         Some(HelipadShape::Undefined) => None,
         None => {
-            return Err(RecordParseError {
-                message: "Invalid helipad shape".to_string(),
-            });
+            return Err(RecordParseError::new("Invalid helipad shape".to_string(), Some(String::from_utf8_lossy(input).into_owned())));
         }
     };
     let safety_area_dimension_value = match HelipadShape::from_bytes(shape_bytes)? {
@@ -110,9 +104,7 @@ fn parse_pad_dimensions<'a>(
         }
         Some(HelipadShape::Undefined) => None,
         None => {
-            return Err(RecordParseError {
-                message: "Invalid helipad shape".to_string(),
-            });
+            return Err(RecordParseError::new("Invalid helipad shape".to_string(), Some(String::from_utf8_lossy(input).into_owned())));
         }
     };
 

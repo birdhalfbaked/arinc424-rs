@@ -2,8 +2,8 @@ use crate::parsers::arinc424::rev18::definitions::*;
 use crate::parsers::arinc424::rev18::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
 use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
-pub(super) struct AirportSBASRecords;
-impl AirportSBASRecords {
+pub(super) struct PathPointRecords;
+impl PathPointRecords {
     const CONTINUATION_COLUMN: usize = 27;
     const CONTINUATION_APPLICATION_COLUMN: usize = 28;
     const DISCRIMINATOR_COLUMN: usize = 20;
@@ -32,9 +32,10 @@ impl AirportSBASRecords {
                             AirportPathPointContinuationRecord::parse(input)?,
                         ))
                     }
-                    _ => Err(RecordParseError {
-                        message: "Invalid continuation record application type".to_string(),
-                    }),
+                    _ => Err(RecordParseError::new(
+                        "Invalid continuation record application type".to_string(),
+                        Some(String::from_utf8_lossy(input).into_owned()),
+                    )),
                 }
             } else {
                 match ContinuationRecordApplicationType::from_bytes(
@@ -46,9 +47,10 @@ impl AirportSBASRecords {
                             HeliportPathPointContinuationRecord::parse(input)?,
                         ))
                     }
-                    _ => Err(RecordParseError {
-                        message: "Invalid continuation record application type".to_string(),
-                    }),
+                    _ => Err(RecordParseError::new(
+                        "Invalid continuation record application type".to_string(),
+                        Some(String::from_utf8_lossy(input).into_owned()),
+                    )),
                 }
             }
         }
@@ -82,9 +84,10 @@ fn parse_path_point_tch<'a>(
                 }
             }
             None => {
-                return Err(RecordParseError {
-                    message: "Invalid TCH units indicator".to_string(),
-                })?;
+                return Err(RecordParseError::new(
+                    "Invalid TCH units indicator".to_string(),
+                    Some(String::from_utf8_lossy(input).into_owned()),
+                ))?;
             }
         },
         raw_bytes: tch_value_bytes,

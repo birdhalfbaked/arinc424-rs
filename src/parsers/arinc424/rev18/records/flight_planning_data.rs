@@ -41,9 +41,7 @@ impl FlightPlanningDataRecords {
                                 FlightPlanningSIDSTARTimeContinuationRecord::parse(input)?,
                             ))
                         }
-                        _ => Err(RecordParseError {
-                            message: "Invalid continuation record application type".to_string(),
-                        }),
+                        _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
                     }
                 }
             }
@@ -68,15 +66,11 @@ impl FlightPlanningDataRecords {
                                 FlightPlanningApproachTimeContinuationRecord::parse(input)?,
                             ))
                         }
-                        _ => Err(RecordParseError {
-                            message: "Invalid continuation record application type".to_string(),
-                        }),
+                        _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
                     }
                 }
             }
-            _ => Err(RecordParseError {
-                message: "Invalid procedure type".to_string(),
-            }),
+            _ => Err(RecordParseError::new("Invalid procedure type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
         }
     }
 }

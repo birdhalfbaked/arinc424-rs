@@ -548,7 +548,6 @@ impl ParseableField for AirportHeliportApproachRouteType {
         }))
     }
 }
-
 /// 5.7.2 Route Type Qualifier 1
 #[derive(Debug, PartialEq, Eq)]
 pub enum RouteTypeQualifier1 {
@@ -944,6 +943,9 @@ pub enum AtcIndicator {
 
 impl ParseableField for AtcIndicator {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
         Ok(Some(match bytes {
             b"A" => AtcIndicator::ATCAssignmentOptional,
             b"S" => AtcIndicator::ATCAssignmentRequired,

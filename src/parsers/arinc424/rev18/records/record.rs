@@ -265,6 +265,7 @@ impl<'a> ARINCRecord<'a> {
             [b'H', b'F'] => HeliportApproachRecords::parse(input),
             [b'H', b'K'] => HeliportTAARecords::parse(input),
             [b'H', b'S'] => HeliportMSARecords::parse(input),
+            [b'H', b'V'] => HeliportCommsRecords::parse(input),
             [b'P', b'A'] => AirportRecords::parse(input),
             [b'P', b'B'] => AirportGateRecords::parse(input),
             [b'P', b'C'] => TerminalWaypointRecords::parse(input),
@@ -277,6 +278,7 @@ impl<'a> ARINCRecord<'a> {
             [b'P', b'L'] => MLSRecords::parse(input),
             [b'P', b'M'] => LocalizerMarkerRecords::parse(input),
             [b'P', b'N'] => TerminalNDBNavaidRecords::parse(input),
+            [b'P', b'P'] => PathPointRecords::parse(input),
             [b'P', b'R'] => FlightPlanningDataRecords::parse(input),
             [b'P', b'S'] => AirportMSARecords::parse(input),
             [b'P', b'T'] => GLSRecords::parse(input),
@@ -288,9 +290,10 @@ impl<'a> ARINCRecord<'a> {
             [b'U', b'C'] => ControlledAirspaceRecords::parse(input),
             [b'U', b'F'] => FIRUIRRecords::parse(input),
             [b'U', b'R'] => RestrictiveAirspaceRecords::parse(input),
-            _ => Err(RecordParseError {
-                message: "Invalid record type".to_string(),
-            }),
+            _ => Err(RecordParseError::new(
+                "Invalid record type".to_string(),
+                Some(String::from_utf8_lossy(input).into_owned()),
+            )),
         }
     }
 }

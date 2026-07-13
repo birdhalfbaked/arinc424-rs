@@ -41,9 +41,7 @@ impl AirportApproachRecords {
                             AirportApproachProcedureDataContinuationRecord::parse(input)?,
                         ))
                     }
-                    _ => Err(RecordParseError {
-                        message: "Invalid continuation record application type".to_string(),
-                    }),
+                    _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
                 }
             } else {
                 if input[Self::TAA_CHECK_COLUMN - 1] == BLANK {

@@ -6,7 +6,6 @@ pub(super) struct LocalizerGlideslopeRecords;
 impl LocalizerGlideslopeRecords {
     const CONTINUATION_COLUMN: usize = 22;
     const CONTINUATION_APPLICATION_COLUMN: usize = 23;
-    const RUNWAY_HELIPORT_DISCRIMINATION_START_COLUMN: usize = 28;
 
     pub fn parse(input: &[u8]) -> Result<ARINCRecord<'_>, RecordParseError> {
         if is_primary_record(input, Self::CONTINUATION_COLUMN) {
@@ -28,9 +27,10 @@ impl LocalizerGlideslopeRecords {
                         LocalizerGlideslopeSimulationContinuationRecord::parse(input)?,
                     ))
                 }
-                _ => Err(RecordParseError {
-                    message: "Invalid continuation record application type".to_string(),
-                }),
+                _ => Err(RecordParseError::new(
+                    "Invalid continuation record application type".to_string(),
+                    Some(String::from_utf8_lossy(input).into_owned()),
+                )),
             }
         }
     }

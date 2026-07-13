@@ -28,9 +28,7 @@ impl EnrouteWaypointRecords {
                             EnrouteWaypointFlightPlanningContinuationRecord::parse(input)?,
                         ))
                     }
-                    _ => Err(RecordParseError {
-                        message: "Invalid continuation record application type".to_string(),
-                    }),
+                    _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
                 }
             } else {
                 Ok(ARINCRecord::EnrouteWaypointChangedDataContinuation(
@@ -79,7 +77,7 @@ impl<'a> EnrouteWaypointPrimaryRecord<'a> {
             waypoint_icao_code:             RecordField::from_bytes(input, 20, 2)?,
             continuation_record_number:     RecordField::from_bytes(input, 22, 1)?,
             waypoint_type:                  RecordField::from_bytes(input, 27, 3)?,
-            waypoint_usage:                 RecordField::from_bytes(input, 31, 1)?,
+            waypoint_usage:                 RecordField::from_bytes(input, 31, 2)?,
             waypoint_latitude:              RecordField::from_bytes(input, 33, 9)?,
             waypoint_longitude:             RecordField::from_bytes(input, 42, 10)?,
             dynamic_magnetic_variation:     RecordField::from_bytes(input, 75, 5)?,

@@ -28,9 +28,7 @@ impl EnrouteCommsRecords {
                     ))
                 }
                 _ => {
-                    return Err(RecordParseError {
-                        message: "Invalid continuation record application type".to_string(),
-                    });
+                    return Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned())));
                 }
             }
         }

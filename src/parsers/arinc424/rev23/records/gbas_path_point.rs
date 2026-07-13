@@ -34,9 +34,7 @@ impl AirportGBASRecords {
                             AirportRunwayGBASPathPointContinuationRecord::parse(input)?,
                         ))
                     }
-                    _ => Err(RecordParseError {
-                        message: "Invalid continuation record application type".to_string(),
-                    }),
+                    _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
                 }
             } else {
                 match ContinuationRecordApplicationType::from_bytes(
@@ -48,9 +46,7 @@ impl AirportGBASRecords {
                             AirportFinalApproachCourseAsRunwayGBASPathPointContinuationRecord::parse(input)?,
                         ))
                     }
-                    _ => Err(RecordParseError {
-                        message: "Invalid continuation record application type".to_string(),
-                    }),
+                    _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
                 }
             }
         }
@@ -79,9 +75,7 @@ fn parse_path_point_tch<'a>(
                 }
             }
             None => {
-                return Err(RecordParseError {
-                    message: "Invalid TCH units indicator".to_string(),
-                })?;
+                return Err(RecordParseError::new("Invalid TCH units indicator".to_string(), Some(String::from_utf8_lossy(input).into_owned())))?;
             }
         },
         raw_bytes: tch_value_bytes,

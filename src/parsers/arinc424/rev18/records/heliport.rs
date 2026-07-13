@@ -30,9 +30,7 @@ impl HeliportRecords {
                         HeliportNarrativeTimeContinuationRecord::parse(input)?,
                     ))
                 }
-                _ => Err(RecordParseError {
-                    message: "Invalid continuation record application type".to_string(),
-                }),
+                _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
             }
         }
     }
@@ -88,8 +86,8 @@ impl<'a> HeliportPrimaryRecord<'a> {
             speed_limit_altitude:                 RecordField::from_bytes(input, 23, 5)?,
             datum_code:                           RecordField::from_bytes(input, 28, 3)?,
             ifr_capability:                       RecordField::from_bytes(input, 31, 1)?,
-            latitude:                             RecordField::from_bytes(input, 32, 9)?,
-            longitude:                            RecordField::from_bytes(input, 41, 10)?,
+            latitude:                             RecordField::from_bytes(input, 33, 9)?,
+            longitude:                            RecordField::from_bytes(input, 42, 10)?,
             magnetic_variation:                   RecordField::from_bytes(input, 52, 5)?,
             heliport_elevation:                   RecordField::from_bytes(input, 57, 5)?,
             speed_limit:                          RecordField::from_bytes(input, 62, 3)?,

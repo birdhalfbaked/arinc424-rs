@@ -33,9 +33,10 @@ impl TerminalNDBNavaidRecords {
                             TerminalNDBNavaidFlightPlanningContinuationRecord::parse(input)?,
                         ))
                     }
-                    _ => Err(RecordParseError {
-                        message: "Invalid continuation record application type".to_string(),
-                    }),
+                    _ => Err(RecordParseError::new(
+                        "Invalid continuation record application type".to_string(),
+                        Some(String::from_utf8_lossy(input).into_owned()),
+                    )),
                 }
             } else {
                 Ok(ARINCRecord::TerminalNDBNavaidChangedDataContinuation(
@@ -52,7 +53,7 @@ pub struct TerminalNDBNavaidPrimaryRecord<'a> {
     pub record_type: RecordField<'a, RecordType>,
     pub customer_area_code: RecordField<'a, CustomerAreaCode>,
     pub section: RecordField<'a, Section>,
-    pub subsection: RecordField<'a, NavaidSubsection>,
+    pub subsection: RecordField<'a, AirportSubsection>,
     pub airport_icao_identifier: RecordField<'a, AirportHeliportIdentifier>,
     pub airport_icao_code: RecordField<'a, IcaoCode>,
     pub ndb_identifier: RecordField<'a, VORNDBIdentifier>,
@@ -101,7 +102,7 @@ pub struct TerminalNDBNavaidContinuationRecord<'a> {
     pub record_type: RecordField<'a, RecordType>,
     pub customer_area_code: RecordField<'a, CustomerAreaCode>,
     pub section: RecordField<'a, Section>,
-    pub subsection: RecordField<'a, NavaidSubsection>,
+    pub subsection: RecordField<'a, AirportSubsection>,
     pub airport_icao_identifier: RecordField<'a, AirportHeliportIdentifier>,
     pub airport_icao_code: RecordField<'a, IcaoCode>,
     pub ndb_identifier: RecordField<'a, VORNDBIdentifier>,
@@ -140,7 +141,7 @@ pub struct TerminalNDBNavaidSimulationContinuationRecord<'a> {
     pub record_type: RecordField<'a, RecordType>,
     pub customer_area_code: RecordField<'a, CustomerAreaCode>,
     pub section: RecordField<'a, Section>,
-    pub subsection: RecordField<'a, NavaidSubsection>,
+    pub subsection: RecordField<'a, AirportSubsection>,
     pub airport_icao_identifier: RecordField<'a, AirportHeliportIdentifier>,
     pub airport_icao_code: RecordField<'a, IcaoCode>,
     pub ndb_identifier: RecordField<'a, VORNDBIdentifier>,
@@ -181,7 +182,7 @@ pub struct TerminalNDBNavaidFlightPlanningContinuationRecord<'a> {
     pub record_type: RecordField<'a, RecordType>,
     pub customer_area_code: RecordField<'a, CustomerAreaCode>,
     pub section: RecordField<'a, Section>,
-    pub subsection: RecordField<'a, NavaidSubsection>,
+    pub subsection: RecordField<'a, AirportSubsection>,
     pub airport_icao_identifier: RecordField<'a, AirportHeliportIdentifier>,
     pub airport_icao_code: RecordField<'a, IcaoCode>,
     pub ndb_identifier: RecordField<'a, VORNDBIdentifier>,
