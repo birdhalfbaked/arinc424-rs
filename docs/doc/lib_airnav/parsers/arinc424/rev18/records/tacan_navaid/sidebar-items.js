@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["TACANOnlyNavaidContinuationRecord","TACANOnlyNavaidFlightPlanningContinuationRecord","TACANOnlyNavaidLimitationContinuationRecord","TACANOnlyNavaidPrimaryRecord","TACANOnlyNavaidSimulationContinuationRecord"]};

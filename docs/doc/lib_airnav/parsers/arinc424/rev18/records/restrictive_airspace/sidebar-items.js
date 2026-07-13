@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["RestrictiveAirspaceControllingAgencyContinuationRecord","RestrictiveAirspaceFormattedTimeContinuationRecord","RestrictiveAirspaceNarrativeTimeContinuationRecord","RestrictiveAirspacePrimaryRecord"]};
+window.SIDEBAR_ITEMS = {"struct":["RestrictiveAirspaceFlightPlanningContinuationRecord","RestrictiveAirspacePrimaryRecord","RestrictiveAirspaceTimeControllingAgencyContinuationRecord"]};

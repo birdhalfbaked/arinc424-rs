@@ -15,12 +15,29 @@ sources.
 
 ## ARINC 424
 
-Parsing and definitions follow **ARINC 424-23** (Specification 424, Change 23).
+### Revisions supported
+
+* ARINC 424-18
+* ARINC 424-18 (with FAA extensions)
+    * Note: This is bespoke and the exceptions are noted by the FAA in each CIFP dump (see below)
+* ARINC 424-23
+
+### Data Reading and definitions
+
+Line deserialization and definitions that support this follow the revisions supported.
 
 All fields are manually curated and defined as best as possible to capture the intent of the specification. There are errata and ambiguous interpretations of data, thus not all fields will be perfect on first use. Please raise issues as needed.
 
-As of now all of the records under the scope of the specification are defined and should work, though I am actively working on getting dumps from major providers which would allow me to verify correctness
+As of now all of the records under the scope of the specification are defined and should work, though I am actively working on getting dumps from major providers which would allow me to verify correctness.
 
+### Testing with FAA CIFP dump
+
+There is a data file available from the FAA at the following url: https://www.faa.gov/air_traffic/flight_info/aeronav/digital_products/cifp/download/
+
+I have tested with this, but issues are sure to arise as this is a young project. Please raise issues as needed.
+Note that there are FAA-specific exceptions to how the standard is used, and thus it is important to read the accompanying documentation for each dump (`CIFP Readme {cycle}.pdf`).
+
+You can modify the test file location in `tests/test_file_parse.rs` and run the tests to verify the parser works.
 
 ## AIXM
 
