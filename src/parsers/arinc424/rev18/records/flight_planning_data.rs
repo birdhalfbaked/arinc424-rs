@@ -1,8 +1,7 @@
-
+use crate::parsers::arinc424::rev18::definitions::*;
 use crate::parsers::arinc424::rev18::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
 use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
-use crate::parsers::arinc424::rev18::definitions::*;
 pub(super) struct FlightPlanningDataRecords;
 impl FlightPlanningDataRecords {
     const CONTINUATION_COLUMN: usize = 70;
@@ -24,83 +23,61 @@ impl FlightPlanningDataRecords {
             | Some(ProcedureType::ArrivalProcedureInDatabase)
             | Some(ProcedureType::ArrivalProcedureNotInDatabase) => {
                 if is_primary_record(input, Self::CONTINUATION_COLUMN) {
-                    Ok(ARINCRecord::FlightPlanningSIDSTARDataPrimary(
-                        FlightPlanningSIDSTARDataPrimaryRecord::parse(input)?,
+                    Ok(ARINCRecord::FlightPlanningSIDSTARPrimary(
+                        FlightPlanningSIDSTARPrimaryRecord::parse(input)?,
                     ))
                 } else {
                     match ContinuationRecordApplicationType::from_bytes(
                         &input[Self::CONTINUATION_APPLICATION_COLUMN - 1
                             ..Self::CONTINUATION_APPLICATION_COLUMN],
                     )? {
-                        Some(ContinuationRecordApplicationType::PrimaryRecordExtension) => Ok(
-                            ARINCRecord::FlightPlanningSIDSTARDataPrimaryExtensionContinuation(
-                                FlightPlanningSIDSTARPrimaryExtensionContinuationRecord::parse(
-                                    input,
-                                )?,
-                            ),
-                        ),
-                        Some(ContinuationRecordApplicationType::FormattedTimeOfOperationsContinuation) => Ok(
-                            ARINCRecord::FlightPlanningSIDSTARDataFormattedTimeContinuation(
-                                FlightPlanningSIDSTARFormattedTimeContinuationRecord::parse(
-                                    input,
-                                )?,
-                            ),
-                        ),
-                        Some(ContinuationRecordApplicationType::NarrativeTimeOfOperationsContinuation) => Ok(
-                            ARINCRecord::FlightPlanningSIDSTARDataNarrativeTimeContinuation(
-                                FlightPlanningSIDSTARNarrativeTimeContinuationRecord::parse(
-                                    input,
-                                )?,
-                            ),
-                        ),
-                        _ => Err(RecordParseError {
-                            message: "Invalid continuation record application type".to_string(),
-                        }),
+                        Some(ContinuationRecordApplicationType::PrimaryRecordExtension) => {
+                            Ok(ARINCRecord::FlightPlanningSIDSTARContinuation(
+                                FlightPlanningSIDSTARContinuationRecord::parse(input)?,
+                            ))
+                        }
+                        Some(ContinuationRecordApplicationType::FormattedTimeOfOperationsContinuation) => {
+                            Ok(ARINCRecord::FlightPlanningSIDSTARTimeContinuation(
+                                FlightPlanningSIDSTARTimeContinuationRecord::parse(input)?,
+                            ))
+                        }
+                        _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
                     }
                 }
             }
             Some(ProcedureType::ApproachProcedureInDatabase)
             | Some(ProcedureType::ApproachProcedureNotInDatabase) => {
                 if is_primary_record(input, Self::CONTINUATION_COLUMN) {
-                    Ok(ARINCRecord::FlightPlanningApproachDataPrimary(
-                        FlightPlanningApproachDataPrimaryRecord::parse(input)?,
+                    Ok(ARINCRecord::FlightPlanningApproachPrimary(
+                        FlightPlanningApproachPrimaryRecord::parse(input)?,
                     ))
                 } else {
                     match ContinuationRecordApplicationType::from_bytes(
                         &input[Self::CONTINUATION_APPLICATION_COLUMN - 1
                             ..Self::CONTINUATION_APPLICATION_COLUMN],
                     )? {
-                        Some(ContinuationRecordApplicationType::PrimaryRecordExtension) => Ok(
-                            ARINCRecord::FlightPlanningApproachDataPrimaryExtensionContinuation(
-                                FlightPlanningApproachPrimaryExtensionContinuationRecord::parse(input)?,
-                            ),
-                        ),
-                        Some(ContinuationRecordApplicationType::FormattedTimeOfOperationsContinuation) => Ok(
-                            ARINCRecord::FlightPlanningApproachDataFormattedTimeContinuation(
-                                FlightPlanningApproachFormattedTimeContinuationRecord::parse(input)?,
-                            ),
-                        ),
-                        Some(ContinuationRecordApplicationType::NarrativeTimeOfOperationsContinuation) => Ok(
-                            ARINCRecord::FlightPlanningApproachDataNarrativeTimeContinuation(
-                                FlightPlanningApproachNarrativeTimeContinuationRecord::parse(input)?,
-                            ),
-                        ),
-                        _ => Err(RecordParseError {
-                            message: "Invalid continuation record application type".to_string(),
-                        }),
+                        Some(ContinuationRecordApplicationType::PrimaryRecordExtension) => {
+                            Ok(ARINCRecord::FlightPlanningApproachContinuation(
+                                FlightPlanningApproachContinuationRecord::parse(input)?,
+                            ))
+                        }
+                        Some(ContinuationRecordApplicationType::FormattedTimeOfOperationsContinuation) => {
+                            Ok(ARINCRecord::FlightPlanningApproachTimeContinuation(
+                                FlightPlanningApproachTimeContinuationRecord::parse(input)?,
+                            ))
+                        }
+                        _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
                     }
                 }
             }
-            _ => Err(RecordParseError {
-                message: "Invalid procedure type".to_string(),
-            }),
+            _ => Err(RecordParseError::new("Invalid procedure type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
         }
     }
 }
 
 /// 4.1.27.1(A) Flight Planning SID/STAR Data Primary Record
 #[derive(Debug)]
-pub struct FlightPlanningSIDSTARDataPrimaryRecord<'a> {
+pub struct FlightPlanningSIDSTARPrimaryRecord<'a> {
     pub record_type: RecordField<'a, RecordType>,
     pub customer_area_code: RecordField<'a, CustomerAreaCode>,
     pub section: RecordField<'a, Section>,
@@ -133,14 +110,14 @@ pub struct FlightPlanningSIDSTARDataPrimaryRecord<'a> {
     pub rnav: RecordField<'a, RNAVFlag>,
     pub atc_weight_category: RecordField<'a, ATCWeightCategory>,
     pub atc_identifier: RecordField<'a, AtcIdentifier>,
-    pub time_code: RecordField<'a, PrimaryRecordTimeCode>,
+    pub time_code: RecordField<'a, StandardPrimaryRecordTimeCode>,
     pub procedure_description: RecordField<'a, ProcedureDescription>,
     pub leg_type: RecordField<'a, LegTypeCode>,
     pub reporting_code: RecordField<'a, ReportingCode>,
     pub initial_departure_course: RecordField<'a, OutboundCourse>,
     pub altitude_description: RecordField<'a, CrossingAltitudeDescription>,
-    pub altitude_1: RecordField<'a, FlightPlanningAltitude>,
-    pub altitude_2: RecordField<'a, FlightPlanningAltitude>,
+    pub altitude_1: RecordField<'a, Altitude>,
+    pub altitude_2: RecordField<'a, Altitude>,
     pub speed_limit: RecordField<'a, SpeedLimit>,
     pub initial_cruise_table: RecordField<'a, CruiseTableIdentifier>,
     pub speed_limit_description: RecordField<'a, SpeedLimitDescription>,
@@ -149,7 +126,7 @@ pub struct FlightPlanningSIDSTARDataPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> FlightPlanningSIDSTARDataPrimaryRecord<'a> {
+impl<'a> FlightPlanningSIDSTARPrimaryRecord<'a> {
     pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                                          RecordField::from_bytes(input, 1, 1)?,
@@ -192,7 +169,7 @@ impl<'a> FlightPlanningSIDSTARDataPrimaryRecord<'a> {
             altitude_description:                                 RecordField::from_bytes(input, 108, 1)?,
             altitude_1:                                           RecordField::from_bytes(input, 109, 3)?,
             altitude_2:                                           RecordField::from_bytes(input, 112, 3)?,
-            speed_limit:                                          RecordField::from_bytes(input, 1115, 3)?,
+            speed_limit:                                          RecordField::from_bytes(input, 115, 3)?,
             initial_cruise_table:                                 RecordField::from_bytes(input, 118, 2)?,
             speed_limit_description:                              RecordField::from_bytes(input, 120, 1)?,
             file_record_number:                                   RecordField::from_bytes(input, 124, 5)?,
@@ -203,7 +180,7 @@ impl<'a> FlightPlanningSIDSTARDataPrimaryRecord<'a> {
 
 /// 4.1.27.1(B) Flight Planning Approach Data Primary Record
 #[derive(Debug)]
-pub struct FlightPlanningApproachDataPrimaryRecord<'a> {
+pub struct FlightPlanningApproachPrimaryRecord<'a> {
     pub record_type: RecordField<'a, RecordType>,
     pub customer_area_code: RecordField<'a, CustomerAreaCode>,
     pub section: RecordField<'a, Section>,
@@ -236,14 +213,14 @@ pub struct FlightPlanningApproachDataPrimaryRecord<'a> {
     pub rnav: RecordField<'a, RNAVFlag>,
     pub atc_weight_category: RecordField<'a, ATCWeightCategory>,
     pub atc_identifier: RecordField<'a, AtcIdentifier>,
-    pub time_code: RecordField<'a, PrimaryRecordTimeCode>,
+    pub time_code: RecordField<'a, StandardPrimaryRecordTimeCode>,
     pub procedure_description: RecordField<'a, ProcedureDescription>,
     pub leg_type: RecordField<'a, LegTypeCode>,
     pub reporting_code: RecordField<'a, ReportingCode>,
     pub initial_departure_course: RecordField<'a, OutboundCourse>,
     pub altitude_description: RecordField<'a, CrossingAltitudeDescription>,
-    pub altitude_1: RecordField<'a, FlightPlanningAltitude>,
-    pub altitude_2: RecordField<'a, FlightPlanningAltitude>,
+    pub altitude_1: RecordField<'a, Altitude>,
+    pub altitude_2: RecordField<'a, Altitude>,
     pub speed_limit: RecordField<'a, SpeedLimit>,
     pub initial_cruise_table: RecordField<'a, CruiseTableIdentifier>,
     pub speed_limit_description: RecordField<'a, SpeedLimitDescription>,
@@ -252,7 +229,7 @@ pub struct FlightPlanningApproachDataPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> FlightPlanningApproachDataPrimaryRecord<'a> {
+impl<'a> FlightPlanningApproachPrimaryRecord<'a> {
     pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                                          RecordField::from_bytes(input, 1, 1)?,
@@ -295,7 +272,7 @@ impl<'a> FlightPlanningApproachDataPrimaryRecord<'a> {
             altitude_description:                                 RecordField::from_bytes(input, 108, 1)?,
             altitude_1:                                           RecordField::from_bytes(input, 109, 3)?,
             altitude_2:                                           RecordField::from_bytes(input, 112, 3)?,
-            speed_limit:                                          RecordField::from_bytes(input, 1115, 3)?,
+            speed_limit:                                          RecordField::from_bytes(input, 115, 3)?,
             initial_cruise_table:                                 RecordField::from_bytes(input, 118, 2)?,
             speed_limit_description:                              RecordField::from_bytes(input, 120, 1)?,
             file_record_number:                                   RecordField::from_bytes(input, 124, 5)?,
@@ -304,9 +281,9 @@ impl<'a> FlightPlanningApproachDataPrimaryRecord<'a> {
     }
 }
 
-/// 4.1.27.2(A) Flight Planning SID/STAR Primary Extension Continuation Record
+/// 4.1.27.2(A) Flight Planning SID/STAR Continuation Record
 #[derive(Debug)]
-pub struct FlightPlanningSIDSTARPrimaryExtensionContinuationRecord<'a> {
+pub struct FlightPlanningSIDSTARContinuationRecord<'a> {
     pub record_type: RecordField<'a, RecordType>,
     pub customer_area_code: RecordField<'a, CustomerAreaCode>,
     pub section: RecordField<'a, Section>,
@@ -364,7 +341,7 @@ pub struct FlightPlanningSIDSTARPrimaryExtensionContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> FlightPlanningSIDSTARPrimaryExtensionContinuationRecord<'a> {
+impl<'a> FlightPlanningSIDSTARContinuationRecord<'a> {
     pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                                          RecordField::from_bytes(input, 1, 1)?,
@@ -425,9 +402,9 @@ impl<'a> FlightPlanningSIDSTARPrimaryExtensionContinuationRecord<'a> {
     }
 }
 
-/// 4.1.27.2(B) Flight Planning Approach Primary Extension Continuation Record
+/// 4.1.27.2(B) Flight Planning Approach Continuation Record
 #[derive(Debug)]
-pub struct FlightPlanningApproachPrimaryExtensionContinuationRecord<'a> {
+pub struct FlightPlanningApproachContinuationRecord<'a> {
     pub record_type: RecordField<'a, RecordType>,
     pub customer_area_code: RecordField<'a, CustomerAreaCode>,
     pub section: RecordField<'a, Section>,
@@ -485,7 +462,7 @@ pub struct FlightPlanningApproachPrimaryExtensionContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> FlightPlanningApproachPrimaryExtensionContinuationRecord<'a> {
+impl<'a> FlightPlanningApproachContinuationRecord<'a> {
     pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                                          RecordField::from_bytes(input, 1, 1)?,
@@ -546,9 +523,9 @@ impl<'a> FlightPlanningApproachPrimaryExtensionContinuationRecord<'a> {
     }
 }
 
-/// 4.1.27.3(A) Flight Planning SID/STAR Formatted Time Continuation Record
+/// 4.1.27.3(A) Flight Planning SID/STAR Time Continuation Record
 #[derive(Debug)]
-pub struct FlightPlanningSIDSTARFormattedTimeContinuationRecord<'a> {
+pub struct FlightPlanningSIDSTARTimeContinuationRecord<'a> {
     pub record_type: RecordField<'a, RecordType>,
     pub customer_area_code: RecordField<'a, CustomerAreaCode>,
     pub section: RecordField<'a, Section>,
@@ -577,19 +554,19 @@ pub struct FlightPlanningSIDSTARFormattedTimeContinuationRecord<'a> {
     pub sequence_number: RecordField<'a, SequenceNumber>,
     pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
     pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
-    pub time_code: RecordField<'a, ContinuationRecordTimeCode>,
+    pub time_code: RecordField<'a, StandardContinuationRecordTimeCode>,
     pub time_indicator: RecordField<'a, TimeIndicator>,
     pub time_of_operation_1: RecordField<'a, TimeOfOperation>,
     pub time_of_operation_2: RecordField<'a, TimeOfOperation>,
     pub time_of_operation_3: RecordField<'a, TimeOfOperation>,
     pub time_of_operation_4: RecordField<'a, TimeOfOperation>,
-    pub timezone: RecordField<'a, Timezone>,
+    pub time_of_operation_5: RecordField<'a, TimeOfOperation>,
     pub file_record_number: RecordField<'a, FileRecordNumber>,
     pub cycle_date: RecordField<'a, CycleDate>,
 }
 
 #[rustfmt::skip]
-impl<'a> FlightPlanningSIDSTARFormattedTimeContinuationRecord<'a> {
+impl<'a> FlightPlanningSIDSTARTimeContinuationRecord<'a> {
     pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                                          RecordField::from_bytes(input, 1, 1)?,
@@ -626,16 +603,16 @@ impl<'a> FlightPlanningSIDSTARFormattedTimeContinuationRecord<'a> {
             time_of_operation_2:                                  RecordField::from_bytes(input, 84, 10)?,
             time_of_operation_3:                                  RecordField::from_bytes(input, 94, 10)?,
             time_of_operation_4:                                  RecordField::from_bytes(input, 104, 10)?,
-            timezone:                                             RecordField::from_bytes(input, 114, 3)?,
+            time_of_operation_5:                                  RecordField::from_bytes(input, 114, 10)?,
             file_record_number:                                   RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                                           RecordField::from_bytes(input, 129, 4)?,
         })
     }
 }
 
-/// 4.1.27.3(B) Flight Planning Approach Formatted Time Continuation Record
+/// 4.1.27.3(B) Flight Planning Approach Time Continuation Record
 #[derive(Debug)]
-pub struct FlightPlanningApproachFormattedTimeContinuationRecord<'a> {
+pub struct FlightPlanningApproachTimeContinuationRecord<'a> {
     pub record_type: RecordField<'a, RecordType>,
     pub customer_area_code: RecordField<'a, CustomerAreaCode>,
     pub section: RecordField<'a, Section>,
@@ -664,19 +641,19 @@ pub struct FlightPlanningApproachFormattedTimeContinuationRecord<'a> {
     pub sequence_number: RecordField<'a, SequenceNumber>,
     pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
     pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
-    pub time_code: RecordField<'a, ContinuationRecordTimeCode>,
+    pub time_code: RecordField<'a, StandardContinuationRecordTimeCode>,
     pub time_indicator: RecordField<'a, TimeIndicator>,
     pub time_of_operation_1: RecordField<'a, TimeOfOperation>,
     pub time_of_operation_2: RecordField<'a, TimeOfOperation>,
     pub time_of_operation_3: RecordField<'a, TimeOfOperation>,
     pub time_of_operation_4: RecordField<'a, TimeOfOperation>,
-    pub timezone: RecordField<'a, Timezone>,
+    pub time_of_operation_5: RecordField<'a, TimeOfOperation>,
     pub file_record_number: RecordField<'a, FileRecordNumber>,
     pub cycle_date: RecordField<'a, CycleDate>,
 }
 
 #[rustfmt::skip]
-impl<'a> FlightPlanningApproachFormattedTimeContinuationRecord<'a> {
+impl<'a> FlightPlanningApproachTimeContinuationRecord<'a> {
     pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                                          RecordField::from_bytes(input, 1, 1)?,
@@ -713,157 +690,7 @@ impl<'a> FlightPlanningApproachFormattedTimeContinuationRecord<'a> {
             time_of_operation_2:                                  RecordField::from_bytes(input, 84, 10)?,
             time_of_operation_3:                                  RecordField::from_bytes(input, 94, 10)?,
             time_of_operation_4:                                  RecordField::from_bytes(input, 104, 10)?,
-            timezone:                                             RecordField::from_bytes(input, 114, 3)?,
-            file_record_number:                                   RecordField::from_bytes(input, 124, 5)?,
-            cycle_date:                                           RecordField::from_bytes(input, 129, 4)?,
-        })
-    }
-}
-
-/// 4.1.27.4(A) Flight Planning SID/STAR Narrative Time Continuation Record
-#[derive(Debug)]
-pub struct FlightPlanningSIDSTARNarrativeTimeContinuationRecord<'a> {
-    pub record_type: RecordField<'a, RecordType>,
-    pub customer_area_code: RecordField<'a, CustomerAreaCode>,
-    pub section: RecordField<'a, Section>,
-    pub airport_identifier: RecordField<'a, AirportHeliportIdentifier>,
-    pub airport_icao_code: RecordField<'a, IcaoCode>,
-    pub subsection: RecordField<'a, GenericSubsection>,
-    pub sid_star_identifier: RecordField<'a, SidStarRouteIdentifier>,
-    pub procedure_type: RecordField<'a, ProcedureType>,
-    pub runway_transition_identifier: RecordField<'a, TransitionIdentifier>,
-    pub runway_transition_fix: RecordField<'a, FixIdentifier>,
-    pub runway_transition_fix_icao_code: RecordField<'a, IcaoCode>,
-    pub runway_transition_fix_section_code: RecordField<'a, Section>,
-    pub runway_transition_fix_subsection_code: RecordField<'a, GenericSubsection>,
-    pub runway_transition_fix_along_track_distance: RecordField<'a, AlongTrackDistance>,
-    pub common_segment_transition_fix: RecordField<'a, FixIdentifier>,
-    pub common_segment_transition_fix_icao_code: RecordField<'a, IcaoCode>,
-    pub common_segment_transition_fix_section_code: RecordField<'a, Section>,
-    pub common_segment_transition_fix_subsection_code: RecordField<'a, GenericSubsection>,
-    pub common_segment_transition_fix_along_track_distance: RecordField<'a, AlongTrackDistance>,
-    pub enroute_transition_identifier: RecordField<'a, TransitionIdentifier>,
-    pub enroute_transition_fix: RecordField<'a, FixIdentifier>,
-    pub enroute_transition_fix_icao_code: RecordField<'a, IcaoCode>,
-    pub enroute_transition_fix_section_code: RecordField<'a, Section>,
-    pub enroute_transition_fix_subsection_code: RecordField<'a, GenericSubsection>,
-    pub enroute_transition_fix_along_track_distance: RecordField<'a, AlongTrackDistance>,
-    pub sequence_number: RecordField<'a, SequenceNumber>,
-    pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
-    pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
-    pub time_narrative: RecordField<'a, TimeNarrative>,
-    pub file_record_number: RecordField<'a, FileRecordNumber>,
-    pub cycle_date: RecordField<'a, CycleDate>,
-}
-
-#[rustfmt::skip]
-impl<'a> FlightPlanningSIDSTARNarrativeTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
-        Ok(Self{
-            record_type:                                          RecordField::from_bytes(input, 1, 1)?,
-            customer_area_code:                                   RecordField::from_bytes(input, 2, 3)?,
-            section:                                              RecordField::from_bytes(input, 5, 1)?,
-            airport_identifier:                                   RecordField::from_bytes(input, 7, 4)?,
-            airport_icao_code:                                    RecordField::from_bytes(input, 11, 2)?,
-            subsection:                                           RecordField::from_bytes(input, 13, 1)?,
-            sid_star_identifier:                                  RecordField::from_bytes(input, 14, 6)?,
-            procedure_type:                                       RecordField::from_bytes(input, 20, 1)?,
-            runway_transition_identifier:                         RecordField::from_bytes(input, 21, 5)?,
-            runway_transition_fix:                                RecordField::from_bytes(input, 26, 5)?,
-            runway_transition_fix_icao_code:                      RecordField::from_bytes(input, 31, 2)?,
-            runway_transition_fix_section_code:                   RecordField::from_bytes(input, 33, 1)?,
-            runway_transition_fix_subsection_code:                RecordField::from_bytes(input, 34, 1)?,
-            runway_transition_fix_along_track_distance:           RecordField::from_bytes(input, 35, 3)?,
-            common_segment_transition_fix:                        RecordField::from_bytes(input, 38, 5)?,
-            common_segment_transition_fix_icao_code:              RecordField::from_bytes(input, 43, 2)?,
-            common_segment_transition_fix_section_code:           RecordField::from_bytes(input, 45, 1)?,
-            common_segment_transition_fix_subsection_code:        RecordField::from_bytes(input, 46, 1)?,
-            common_segment_transition_fix_along_track_distance:   RecordField::from_bytes(input, 47, 3)?,
-            enroute_transition_identifier:                        RecordField::from_bytes(input, 50, 5)?,
-            enroute_transition_fix:                               RecordField::from_bytes(input, 55, 5)?,
-            enroute_transition_fix_icao_code:                     RecordField::from_bytes(input, 60, 2)?,
-            enroute_transition_fix_section_code:                  RecordField::from_bytes(input, 62, 1)?,
-            enroute_transition_fix_subsection_code:               RecordField::from_bytes(input, 63, 1)?,
-            enroute_transition_fix_along_track_distance:          RecordField::from_bytes(input, 64, 3)?,
-            sequence_number:                                      RecordField::from_bytes(input, 67, 3)?,
-            continuation_record_number:                           RecordField::from_bytes(input, 70, 1)?,
-            application_type:                                     RecordField::from_bytes(input, 71, 1)?,
-            time_narrative:                                       RecordField::from_bytes(input, 72, 52)?,
-            file_record_number:                                   RecordField::from_bytes(input, 124, 5)?,
-            cycle_date:                                           RecordField::from_bytes(input, 129, 4)?,
-        })
-    }
-}
-
-/// 4.1.27.4(B) Flight Planning Approach Narrative Time Continuation Record
-#[derive(Debug)]
-pub struct FlightPlanningApproachNarrativeTimeContinuationRecord<'a> {
-    pub record_type: RecordField<'a, RecordType>,
-    pub customer_area_code: RecordField<'a, CustomerAreaCode>,
-    pub section: RecordField<'a, Section>,
-    pub airport_identifier: RecordField<'a, AirportHeliportIdentifier>,
-    pub airport_icao_code: RecordField<'a, IcaoCode>,
-    pub subsection: RecordField<'a, GenericSubsection>,
-    pub approach_identifier: RecordField<'a, ApproachRouteIdentifier>,
-    pub procedure_type: RecordField<'a, ProcedureType>,
-    pub runway_transition_identifier: RecordField<'a, TransitionIdentifier>,
-    pub runway_transition_fix: RecordField<'a, FixIdentifier>,
-    pub runway_transition_fix_icao_code: RecordField<'a, IcaoCode>,
-    pub runway_transition_fix_section_code: RecordField<'a, Section>,
-    pub runway_transition_fix_subsection_code: RecordField<'a, GenericSubsection>,
-    pub runway_transition_fix_along_track_distance: RecordField<'a, AlongTrackDistance>,
-    pub common_segment_transition_fix: RecordField<'a, FixIdentifier>,
-    pub common_segment_transition_fix_icao_code: RecordField<'a, IcaoCode>,
-    pub common_segment_transition_fix_section_code: RecordField<'a, Section>,
-    pub common_segment_transition_fix_subsection_code: RecordField<'a, GenericSubsection>,
-    pub common_segment_transition_fix_along_track_distance: RecordField<'a, AlongTrackDistance>,
-    pub enroute_transition_identifier: RecordField<'a, TransitionIdentifier>,
-    pub enroute_transition_fix: RecordField<'a, FixIdentifier>,
-    pub enroute_transition_fix_icao_code: RecordField<'a, IcaoCode>,
-    pub enroute_transition_fix_section_code: RecordField<'a, Section>,
-    pub enroute_transition_fix_subsection_code: RecordField<'a, GenericSubsection>,
-    pub enroute_transition_fix_along_track_distance: RecordField<'a, AlongTrackDistance>,
-    pub sequence_number: RecordField<'a, SequenceNumber>,
-    pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
-    pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
-    pub time_narrative: RecordField<'a, TimeNarrative>,
-    pub file_record_number: RecordField<'a, FileRecordNumber>,
-    pub cycle_date: RecordField<'a, CycleDate>,
-}
-
-#[rustfmt::skip]
-impl<'a> FlightPlanningApproachNarrativeTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
-        Ok(Self{
-            record_type:                                          RecordField::from_bytes(input, 1, 1)?,
-            customer_area_code:                                   RecordField::from_bytes(input, 2, 3)?,
-            section:                                              RecordField::from_bytes(input, 5, 1)?,
-            airport_identifier:                                   RecordField::from_bytes(input, 7, 4)?,
-            airport_icao_code:                                    RecordField::from_bytes(input, 11, 2)?,
-            subsection:                                           RecordField::from_bytes(input, 13, 1)?,
-            approach_identifier:                                  RecordField::from_bytes(input, 14, 6)?,
-            procedure_type:                                       RecordField::from_bytes(input, 20, 1)?,
-            runway_transition_identifier:                         RecordField::from_bytes(input, 21, 5)?,
-            runway_transition_fix:                                RecordField::from_bytes(input, 26, 5)?,
-            runway_transition_fix_icao_code:                      RecordField::from_bytes(input, 31, 2)?,
-            runway_transition_fix_section_code:                   RecordField::from_bytes(input, 33, 1)?,
-            runway_transition_fix_subsection_code:                RecordField::from_bytes(input, 34, 1)?,
-            runway_transition_fix_along_track_distance:           RecordField::from_bytes(input, 35, 3)?,
-            common_segment_transition_fix:                        RecordField::from_bytes(input, 38, 5)?,
-            common_segment_transition_fix_icao_code:              RecordField::from_bytes(input, 43, 2)?,
-            common_segment_transition_fix_section_code:           RecordField::from_bytes(input, 45, 1)?,
-            common_segment_transition_fix_subsection_code:        RecordField::from_bytes(input, 46, 1)?,
-            common_segment_transition_fix_along_track_distance:   RecordField::from_bytes(input, 47, 3)?,
-            enroute_transition_identifier:                        RecordField::from_bytes(input, 50, 5)?,
-            enroute_transition_fix:                               RecordField::from_bytes(input, 55, 5)?,
-            enroute_transition_fix_icao_code:                     RecordField::from_bytes(input, 60, 2)?,
-            enroute_transition_fix_section_code:                  RecordField::from_bytes(input, 62, 1)?,
-            enroute_transition_fix_subsection_code:               RecordField::from_bytes(input, 63, 1)?,
-            enroute_transition_fix_along_track_distance:          RecordField::from_bytes(input, 64, 3)?,
-            sequence_number:                                      RecordField::from_bytes(input, 67, 3)?,
-            continuation_record_number:                           RecordField::from_bytes(input, 70, 1)?,
-            application_type:                                     RecordField::from_bytes(input, 71, 1)?,
-            time_narrative:                                       RecordField::from_bytes(input, 72, 52)?,
+            time_of_operation_5:                                  RecordField::from_bytes(input, 114, 10)?,
             file_record_number:                                   RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                                           RecordField::from_bytes(input, 129, 4)?,
         })

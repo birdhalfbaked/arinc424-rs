@@ -13,33 +13,39 @@ impl VHFNavaidRecords {
                 VHFNavaidPrimaryRecord::parse(input)?,
             ))
         } else {
-            match ContinuationRecordApplicationType::from_bytes(
+            if let Ok(Some(application_type)) = ContinuationRecordApplicationType::from_bytes(
                 &input[Self::CONTINUATION_APPLICATION_COLUMN - 1
                     ..Self::CONTINUATION_APPLICATION_COLUMN],
-            )? {
-                Some(ContinuationRecordApplicationType::StandardContinuation) => Ok(
-                    ARINCRecord::VHFNavaidContinuation(VHFNavaidContinuationRecord::parse(input)?),
-                ),
-                Some(ContinuationRecordApplicationType::FlightPlanningContinuation) => {
-                    Ok(ARINCRecord::VHFNavaidFlightPlanningContinuation(
-                        VHFNavaidFlightPlanningContinuationRecord::parse(input)?,
-                    ))
+            ) {
+                match application_type {
+                    ContinuationRecordApplicationType::StandardContinuation => {
+                        Ok(ARINCRecord::VHFNavaidContinuation(
+                            VHFNavaidContinuationRecord::parse(input)?,
+                        ))
+                    }
+                    ContinuationRecordApplicationType::FlightPlanningContinuation => {
+                        Ok(ARINCRecord::VHFNavaidFlightPlanningContinuation(
+                            VHFNavaidFlightPlanningContinuationRecord::parse(input)?,
+                        ))
+                    }
+                    ContinuationRecordApplicationType::VHFNavaidLimitationContinuation => {
+                        Ok(ARINCRecord::VHFNavaidLimitationContinuation(
+                            VHFNavaidLimitationContinuationRecord::parse(input)?,
+                        ))
+                    }
+                    ContinuationRecordApplicationType::SimulationContinuation => {
+                        Ok(ARINCRecord::VHFNavaidSimulationContinuation(
+                            VHFNavaidSimulationContinuationRecord::parse(input)?,
+                        ))
+                    }
+                    _ => {
+                        return Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned())));
+                    }
                 }
-                Some(ContinuationRecordApplicationType::VHFNavaidTACANOnlyNavaidLimitationContinuation) => {
-                    Ok(ARINCRecord::VHFNavaidLimitationContinuation(
-                        VHFNavaidLimitationContinuationRecord::parse(input)?,
-                    ))
-                }
-                Some(ContinuationRecordApplicationType::SimulationContinuation) => {
-                    Ok(ARINCRecord::VHFNavaidSimulationContinuation(
-                        VHFNavaidSimulationContinuationRecord::parse(input)?,
-                    ))
-                }
-                _ => {
-                    return Err(RecordParseError {
-                        message: "Invalid continuation record application type".to_string(),
-                    });
-                }
+            } else {
+                Ok(ARINCRecord::VHFNavaidChangedDataContinuation(
+                    VHFNavaidChangedDataContinuationRecord::parse(input)?,
+                ))
             }
         }
     }
@@ -57,7 +63,7 @@ pub struct VHFNavaidPrimaryRecord<'a> {
     pub vor_identifier: RecordField<'a, VORNDBIdentifier>,
     pub vor_icao_code: RecordField<'a, IcaoCode>,
     pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
-    pub vor_frequency: RecordField<'a, VORNDBFrequency>,
+    pub vor_frequency: RecordField<'a, VORFrequency>,
     pub navaid_class: RecordField<'a, VHFNavaidClass>,
     pub vor_latitude: RecordField<'a, Latitude>,
     pub vor_longitude: RecordField<'a, Longitude>,
@@ -66,16 +72,11 @@ pub struct VHFNavaidPrimaryRecord<'a> {
     pub dme_longitude: RecordField<'a, Longitude>,
     pub station_declination: RecordField<'a, StationDeclination>,
     pub dme_elevation: RecordField<'a, DMEElevation>,
-    pub navaid_usable_range: RecordField<'a, NavaidUsableRange>,
+    pub figure_of_merit: RecordField<'a, FigureOfMerit>,
     pub ils_dme_bias: RecordField<'a, IlsDmeBias>,
     pub frequency_protection: RecordField<'a, FrequencyProtectionDistance>,
     pub datum_code: RecordField<'a, DatumCode>,
     pub vor_name: RecordField<'a, NameOfFacility>,
-    pub vfr_checkpoint_flag: RecordField<'a, VFRCheckpointFlag>,
-    pub vor_range_power: RecordField<'a, VHFNavaidVorRangePower>,
-    pub expanded_dme_service_volume: RecordField<'a, DMEExpandedServiceVolume>,
-    pub route_inappropriate_dme: RecordField<'a, RouteInappropriateNavaidIndicator>,
-    pub dme_operational_service_volume: RecordField<'a, DMEOperationalServiceVolume>,
     pub file_record_number: RecordField<'a, FileRecordNumber>,
     pub cycle_date: RecordField<'a, CycleDate>,
 }
@@ -102,16 +103,11 @@ impl<'a> VHFNavaidPrimaryRecord<'a> {
                 dme_longitude:                  RecordField::from_bytes(input, 65, 10)?,
                 station_declination:            RecordField::from_bytes(input, 75, 5)?,
                 dme_elevation:                  RecordField::from_bytes(input, 80, 5)?,
-                navaid_usable_range:            RecordField::from_bytes(input, 85, 1)?,
+                figure_of_merit:                RecordField::from_bytes(input, 85, 1)?,
                 ils_dme_bias:                   RecordField::from_bytes(input, 86, 2)?,
                 frequency_protection:           RecordField::from_bytes(input, 88, 3)?,
                 datum_code:                     RecordField::from_bytes(input, 91, 3)?,
-                vor_name:                       RecordField::from_bytes(input, 94, 25)?,
-                vfr_checkpoint_flag:            RecordField::from_bytes(input, 119, 1)?,
-                vor_range_power:                RecordField::from_bytes(input, 120, 1)?,
-                expanded_dme_service_volume:    RecordField::from_bytes(input, 121, 1)?,
-                route_inappropriate_dme:        RecordField::from_bytes(input, 122, 1)?,
-                dme_operational_service_volume: RecordField::from_bytes(input, 123, 1)?,
+                vor_name:                       RecordField::from_bytes(input, 94, 30)?,
                 file_record_number:             RecordField::from_bytes(input, 124, 5)?,
                 cycle_date:                     RecordField::from_bytes(input, 129, 4)?,
         })
@@ -200,7 +196,7 @@ impl<'a> VHFNavaidSimulationContinuationRecord<'a> {
     }
 }
 
-/// 4.1.2.4 VHFNavaid Flight Planning Continuation Record
+/// 4.1.2.4 VHF Navaid Flight Planning Continuation Record
 #[derive(Debug)]
 pub struct VHFNavaidFlightPlanningContinuationRecord<'a> {
     pub record_type: RecordField<'a, RecordType>,
@@ -215,12 +211,8 @@ pub struct VHFNavaidFlightPlanningContinuationRecord<'a> {
     pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
     pub fir_identifier: RecordField<'a, FirUirIdentifier>,
     pub uir_identifier: RecordField<'a, FirUirIdentifier>,
-    pub fir_fra_entry_point: RecordField<'a, FIRFRATransitionType>,
-    pub fir_fra_exit_point: RecordField<'a, FIRFRATransitionType>,
-    pub fir_fra_arrival_transition: RecordField<'a, FIRFRATransitionType>,
-    pub fir_fra_departure_transition: RecordField<'a, FIRFRATransitionType>,
-    pub fir_fra_intermediate_point: RecordField<'a, FIRFRATransitionType>,
-    pub fir_fra_terminal_holding_point: RecordField<'a, FIRFRATransitionType>,
+    pub start_end_indicator: RecordField<'a, StartEndIndicator>,
+    pub start_end_date: RecordField<'a, StartEndDate>,
     pub file_record_number: RecordField<'a, FileRecordNumber>,
     pub cycle_date: RecordField<'a, CycleDate>,
 }
@@ -241,17 +233,16 @@ impl<'a> VHFNavaidFlightPlanningContinuationRecord<'a> {
             application_type:               RecordField::from_bytes(input, 23, 1)?,
             fir_identifier:                 RecordField::from_bytes(input, 24, 4)?,
             uir_identifier:                 RecordField::from_bytes(input, 28, 4)?,
-            fir_fra_entry_point:            RecordField::from_bytes(input, 44, 1)?,
-            fir_fra_exit_point:             RecordField::from_bytes(input, 45, 1)?,
-            fir_fra_arrival_transition:     RecordField::from_bytes(input, 46, 1)?,
-            fir_fra_departure_transition:   RecordField::from_bytes(input, 47, 1)?,
-            fir_fra_intermediate_point:     RecordField::from_bytes(input, 48, 1)?,
-            fir_fra_terminal_holding_point: RecordField::from_bytes(input, 49, 1)?,
+            start_end_indicator:            RecordField::from_bytes(input, 32, 1)?,
+            start_end_date:                 RecordField::from_bytes(input, 33, 11)?,
             file_record_number:             RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                     RecordField::from_bytes(input, 129, 4)?,
         })
     }
 }
+
+/// 4.1.2.1 VHFNavaid Changed Data Continuation Record
+pub type VHFNavaidChangedDataContinuationRecord<'a> = VHFNavaidPrimaryRecord<'a>;
 
 /// 4.1.2.5 VHFNavaid Limitation Continuation Record
 #[derive(Debug)]

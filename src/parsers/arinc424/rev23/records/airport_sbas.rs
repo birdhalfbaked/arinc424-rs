@@ -1,8 +1,7 @@
-
+use crate::parsers::arinc424::rev23::definitions::*;
 use crate::parsers::arinc424::rev23::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
 use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
-use crate::parsers::arinc424::rev23::definitions::*;
 pub(super) struct AirportSBASRecords;
 impl AirportSBASRecords {
     const CONTINUATION_COLUMN: usize = 27;
@@ -35,9 +34,7 @@ impl AirportSBASRecords {
                             AirportRunwaySBASPathPointContinuationRecord::parse(input)?,
                         ))
                     }
-                    _ => Err(RecordParseError {
-                        message: "Invalid continuation record application type".to_string(),
-                    }),
+                    _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
                 }
             } else {
                 match ContinuationRecordApplicationType::from_bytes(
@@ -49,9 +46,7 @@ impl AirportSBASRecords {
                             AirportFinalApproachCourseAsRunwaySBASPathPointContinuationRecord::parse(input)?,
                         ))
                     }
-                    _ => Err(RecordParseError {
-                        message: "Invalid continuation record application type".to_string(),
-                    }),
+                    _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
                 }
             }
         }
@@ -63,12 +58,12 @@ fn parse_path_point_tch<'a>(
 ) -> Result<RecordField<'a, PathPointTCH>, RecordParseError> {
     let tch_units_indicator = TCHUnitsIndicator::from_bytes(&input[108..109])
         .map_err(|e| e.with_context("TCHUnitsIndicator", 109))?;
-    let tch_value_bytes = &input[103..108];
+    let tch_value_bytes = &input[102..108];
     let tch_value = RecordField {
         value: match tch_units_indicator {
             Some(TCHUnitsIndicator::Feet) => {
                 if let Some(tch_inner_value) = PathPointTCHFeet::from_bytes(tch_value_bytes)
-                    .map_err(|e| e.with_context("PathPointTCH::Feet", 104))?
+                    .map_err(|e| e.with_context("PathPointTCH::Feet", 103))?
                 {
                     Some(PathPointTCH::Feet(tch_inner_value))
                 } else {
@@ -85,9 +80,7 @@ fn parse_path_point_tch<'a>(
                 }
             }
             None => {
-                return Err(RecordParseError {
-                    message: "Invalid TCH units indicator".to_string(),
-                })?;
+                return Err(RecordParseError::new("Invalid TCH units indicator".to_string(), Some(String::from_utf8_lossy(input).into_owned())))?;
             }
         },
         raw_bytes: tch_value_bytes,

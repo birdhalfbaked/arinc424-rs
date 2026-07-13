@@ -1,8 +1,7 @@
-
+use crate::parsers::arinc424::rev23::definitions::*;
 use crate::parsers::arinc424::rev23::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
 use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
-use crate::parsers::arinc424::rev23::definitions::*;
 pub(super) struct LocalizerMarkerRecords;
 impl LocalizerMarkerRecords {
     const CONTINUATION_COLUMN: usize = 22;
@@ -45,9 +44,7 @@ impl LocalizerMarkerRecords {
                         ))
                     }
                 }
-                _ => Err(RecordParseError {
-                    message: "Invalid continuation record application type".to_string(),
-                }),
+                _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
             }
         }
     }
@@ -65,7 +62,7 @@ pub struct AirportLocalizerMarkerPrimaryRecord<'a> {
     pub localizer_identifier: RecordField<'a, LocalizerMlsGlsIdentifier>,
     pub marker_type: RecordField<'a, MarkerType>,
     pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
-    pub locator_frequency: RecordField<'a, VORNDBFrequency>,
+    pub locator_frequency: RecordField<'a, VORFrequency>,
     pub runway_identifier: RecordField<'a, RunwayIdentifier>,
     pub marker_latitude: RecordField<'a, Latitude>,
     pub marker_longitude: RecordField<'a, Longitude>,
@@ -124,7 +121,7 @@ pub struct HeliportLocalizerMarkerPrimaryRecord<'a> {
     pub localizer_identifier: RecordField<'a, LocalizerMlsGlsIdentifier>,
     pub marker_type: RecordField<'a, MarkerType>,
     pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
-    pub locator_frequency: RecordField<'a, VORNDBFrequency>,
+    pub locator_frequency: RecordField<'a, VORFrequency>,
     pub pad_identifier: RecordField<'a, PadIdentifier>,
     pub marker_latitude: RecordField<'a, Latitude>,
     pub marker_longitude: RecordField<'a, Longitude>,

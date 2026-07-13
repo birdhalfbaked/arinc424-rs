@@ -1,7 +1,7 @@
+use crate::parsers::arinc424::rev18::definitions::*;
 use crate::parsers::arinc424::rev18::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
 use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
-use crate::parsers::arinc424::rev18::definitions::*;
 pub(super) struct AirwaysMarkerRecords;
 impl AirwaysMarkerRecords {
     const CONTINUATION_COLUMN: usize = 22;
@@ -20,9 +20,7 @@ impl AirwaysMarkerRecords {
                 Some(ContinuationRecordApplicationType::PrimaryRecordExtension) => Ok(
                     ARINCRecord::AirwaysMarkerPrimary(AirwaysMarkerPrimaryRecord::parse(input)?),
                 ),
-                _ => Err(RecordParseError {
-                    message: "Invalid continuation record application type".to_string(),
-                }),
+                _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
             }
         }
     }
@@ -90,7 +88,6 @@ pub struct AirwaysMarkerContinuationRecord<'a> {
     pub marker_icao_code: RecordField<'a, IcaoCode>,
     pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
     pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
-    pub notes: RecordField<'a, Notes>,
     pub file_record_number: RecordField<'a, FileRecordNumber>,
     pub cycle_date: RecordField<'a, CycleDate>,
 }
@@ -107,7 +104,6 @@ impl<'a> AirwaysMarkerContinuationRecord<'a> {
             marker_icao_code:             RecordField::from_bytes(input, 20, 2)?,
             continuation_record_number:   RecordField::from_bytes(input, 22, 1)?,
             application_type:             RecordField::from_bytes(input, 23, 1)?,
-            notes:                        RecordField::from_bytes(input, 24, 100)?,
             file_record_number:           RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })

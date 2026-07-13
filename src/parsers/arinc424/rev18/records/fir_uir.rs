@@ -1,8 +1,7 @@
-
+use crate::parsers::arinc424::rev18::definitions::*;
 use crate::parsers::arinc424::rev18::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
 use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
-use crate::parsers::arinc424::rev18::definitions::*;
 pub(super) struct FIRUIRRecords;
 impl FIRUIRRecords {
     const CONTINUATION_COLUMN: usize = 20;
@@ -21,9 +20,7 @@ impl FIRUIRRecords {
                 Some(ContinuationRecordApplicationType::StandardContinuation) => Ok(
                     ARINCRecord::FIRUIRContinuation(FIRUIRContinuationRecord::parse(input)?),
                 ),
-                _ => Err(RecordParseError {
-                    message: "Invalid continuation record application type".to_string(),
-                }),
+                _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
             }
         }
     }
@@ -111,7 +108,6 @@ pub struct FIRUIRContinuationRecord<'a> {
     pub sequence_number: RecordField<'a, SequenceNumber>,
     pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
     pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
-    pub notes: RecordField<'a, Notes>,
     pub file_record_number: RecordField<'a, FileRecordNumber>,
     pub cycle_date: RecordField<'a, CycleDate>,
 }
@@ -130,7 +126,6 @@ impl<'a> FIRUIRContinuationRecord<'a> {
             sequence_number:              RecordField::from_bytes(input, 16, 4)?,
             continuation_record_number:   RecordField::from_bytes(input, 20, 1)?,
             application_type:             RecordField::from_bytes(input, 21, 1)?,
-            notes:                        RecordField::from_bytes(input, 22, 102)?,
             file_record_number:           RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })

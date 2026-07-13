@@ -1,8 +1,7 @@
-
+use crate::parsers::arinc424::rev18::definitions::*;
 use crate::parsers::arinc424::rev18::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
 use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
-use crate::parsers::arinc424::rev18::definitions::*;
 pub(super) struct ControlledAirspaceRecords;
 impl ControlledAirspaceRecords {
     const CONTINUATION_COLUMN: usize = 25;
@@ -18,29 +17,12 @@ impl ControlledAirspaceRecords {
                 &input[Self::CONTINUATION_APPLICATION_COLUMN - 1
                     ..Self::CONTINUATION_APPLICATION_COLUMN],
             )? {
-                Some(ContinuationRecordApplicationType::PrimaryRecordExtension) => {
-                    Ok(ARINCRecord::ControlledAirspacePrimaryExtensionContinuation(
-                        ControlledAirspacePrimaryExtensionContinuationRecord::parse(input)?,
+                Some(ContinuationRecordApplicationType::CombinedControllingAgencyFormattedTimeOfOperationsContinuation) => {
+                    Ok(ARINCRecord::ControlledAirspaceControllingAgencyAndTimeContinuation(
+                        ControlledAirspaceControllingAgencyAndTimeContinuationRecord::parse(input)?,
                     ))
                 }
-                Some(ContinuationRecordApplicationType::FormattedTimeOfOperationsContinuation) => {
-                    Ok(ARINCRecord::ControlledAirspaceFormattedTimeContinuation(
-                        ControlledAirspaceFormattedTimeContinuationRecord::parse(input)?,
-                    ))
-                }
-                Some(ContinuationRecordApplicationType::NarrativeTimeOfOperationsContinuation) => {
-                    Ok(ARINCRecord::ControlledAirspaceNarrativeTimeContinuation(
-                        ControlledAirspaceNarrativeTimeContinuationRecord::parse(input)?,
-                    ))
-                }
-                Some(ContinuationRecordApplicationType::ControllingAgencyContinuation) => Ok(
-                    ARINCRecord::ControlledAirspaceControllingAgencyContinuation(
-                        ControlledAirspaceControllingAgencyContinuationRecord::parse(input)?,
-                    ),
-                ),
-                _ => Err(RecordParseError {
-                    message: "Invalid continuation record application type".to_string(),
-                }),
+                _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
             }
         }
     }
@@ -63,9 +45,8 @@ pub struct ControlledAirspacePrimaryRecord<'a> {
     pub sequence_number: RecordField<'a, SequenceNumber>,
     pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
     pub level: RecordField<'a, Level>,
-    pub time_code: RecordField<'a, PrimaryRecordTimeCode>,
+    pub time_code: RecordField<'a, StandardPrimaryRecordTimeCode>,
     pub notam: RecordField<'a, NotamFlag>,
-    pub uav: RecordField<'a, UnmannedAerialVehicleOnly>,
     pub boundary_via: RecordField<'a, BoundaryVia>,
     pub latitude: RecordField<'a, Latitude>,
     pub longitude: RecordField<'a, Longitude>,
@@ -103,7 +84,6 @@ impl<'a> ControlledAirspacePrimaryRecord<'a> {
             level:                        RecordField::from_bytes(input, 26, 1)?,
             time_code:                    RecordField::from_bytes(input, 27, 1)?,
             notam:                        RecordField::from_bytes(input, 28, 1)?,
-            uav:                          RecordField::from_bytes(input, 29, 1)?,
             boundary_via:                 RecordField::from_bytes(input, 31, 2)?,
             latitude:                     RecordField::from_bytes(input, 33, 9)?,
             longitude:                    RecordField::from_bytes(input, 42, 10)?,
@@ -123,9 +103,9 @@ impl<'a> ControlledAirspacePrimaryRecord<'a> {
     }
 }
 
-/// 4.1.25.2 Controlled Airspace Formatted Time Continuation Record
+/// 4.1.25.2 Controlled Airspace Controlling Agency And Time Continuation Record
 #[derive(Debug)]
-pub struct ControlledAirspaceFormattedTimeContinuationRecord<'a> {
+pub struct ControlledAirspaceControllingAgencyAndTimeContinuationRecord<'a> {
     pub record_type: RecordField<'a, RecordType>,
     pub customer_area_code: RecordField<'a, CustomerAreaCode>,
     pub section: RecordField<'a, Section>,
@@ -140,7 +120,7 @@ pub struct ControlledAirspaceFormattedTimeContinuationRecord<'a> {
     pub sequence_number: RecordField<'a, SequenceNumber>,
     pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
     pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
-    pub time_code: RecordField<'a, ContinuationRecordTimeCode>,
+    pub time_code: RecordField<'a, StandardContinuationRecordTimeCode>,
     pub notam: RecordField<'a, NotamFlag>,
     pub time_indicator: RecordField<'a, TimeIndicator>,
     pub time_of_operation_1: RecordField<'a, TimeOfOperation>,
@@ -150,13 +130,13 @@ pub struct ControlledAirspaceFormattedTimeContinuationRecord<'a> {
     pub time_of_operation_5: RecordField<'a, TimeOfOperation>,
     pub time_of_operation_6: RecordField<'a, TimeOfOperation>,
     pub time_of_operation_7: RecordField<'a, TimeOfOperation>,
-    pub timezone: RecordField<'a, Timezone>,
+    pub controlling_agency: RecordField<'a, ControllingAgency>,
     pub file_record_number: RecordField<'a, FileRecordNumber>,
     pub cycle_date: RecordField<'a, CycleDate>,
 }
 
 #[rustfmt::skip]
-impl<'a> ControlledAirspaceFormattedTimeContinuationRecord<'a> {
+impl<'a> ControlledAirspaceControllingAgencyAndTimeContinuationRecord<'a> {
     pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                  RecordField::from_bytes(input, 1, 1)?,
@@ -183,161 +163,6 @@ impl<'a> ControlledAirspaceFormattedTimeContinuationRecord<'a> {
             time_of_operation_5:          RecordField::from_bytes(input, 70, 10)?,
             time_of_operation_6:          RecordField::from_bytes(input, 80, 10)?,
             time_of_operation_7:          RecordField::from_bytes(input, 90, 10)?,
-            timezone:                     RecordField::from_bytes(input, 100, 3)?,
-            file_record_number:           RecordField::from_bytes(input, 124, 5)?,
-            cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
-        })
-    }
-}
-
-/// 4.1.25.3 Controlled Airspace Primary Extension Continuation Record
-#[derive(Debug)]
-pub struct ControlledAirspacePrimaryExtensionContinuationRecord<'a> {
-    pub record_type: RecordField<'a, RecordType>,
-    pub customer_area_code: RecordField<'a, CustomerAreaCode>,
-    pub section: RecordField<'a, Section>,
-    pub subsection: RecordField<'a, GenericSubsection>,
-    pub icao_code: RecordField<'a, IcaoCode>,
-    pub airspace_type: RecordField<'a, ControlledAirspaceType>,
-    pub airspace_center: RecordField<'a, ControlledAirspaceCenter>,
-    pub section_code: RecordField<'a, Section>,
-    pub subsection_code: RecordField<'a, GenericSubsection>,
-    pub airspace_classification: RecordField<'a, ControlledAirspaceClassification>,
-    pub multiple_code: RecordField<'a, MultipleCode>,
-    pub sequence_number: RecordField<'a, SequenceNumber>,
-    pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
-    pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
-
-    pub speed_limit_1: RecordField<'a, SpeedLimit>,
-    pub speed_limit_1_altitude: RecordField<'a, SpeedLimitAltitude>,
-    pub speed_limit_1_aircraft_category_type:
-        RecordField<'a, ProcedureDesignAircraftCategoryOrType>,
-    pub speed_limit_2: RecordField<'a, SpeedLimit>,
-    pub speed_limit_2_altitude: RecordField<'a, SpeedLimitAltitude>,
-    pub speed_limit_2_aircraft_category_type:
-        RecordField<'a, ProcedureDesignAircraftCategoryOrType>,
-
-    pub file_record_number: RecordField<'a, FileRecordNumber>,
-    pub cycle_date: RecordField<'a, CycleDate>,
-}
-
-#[rustfmt::skip]
-impl<'a> ControlledAirspacePrimaryExtensionContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
-        Ok(Self {
-            record_type:                            RecordField::from_bytes(input, 1, 1)?,
-            customer_area_code:                     RecordField::from_bytes(input, 2, 3)?,
-            section:                                RecordField::from_bytes(input, 5, 1)?,
-            subsection:                             RecordField::from_bytes(input, 6, 1)?,
-            icao_code:                              RecordField::from_bytes(input, 7, 2)?,
-            airspace_type:                          RecordField::from_bytes(input, 9, 1)?,
-            airspace_center:                        RecordField::from_bytes(input, 10, 5)?,
-            section_code:                           RecordField::from_bytes(input, 15, 1)?,
-            subsection_code:                        RecordField::from_bytes(input, 16, 1)?,
-            airspace_classification:                RecordField::from_bytes(input, 17, 1)?,
-            multiple_code:                          RecordField::from_bytes(input, 20, 1)?,
-            sequence_number:                        RecordField::from_bytes(input, 21, 4)?,
-            continuation_record_number:             RecordField::from_bytes(input, 25, 1)?,
-            application_type:                       RecordField::from_bytes(input, 26, 1)?,
-            speed_limit_1:                          RecordField::from_bytes(input, 27, 3)?,
-            speed_limit_1_altitude:                 RecordField::from_bytes(input, 30, 5)?,
-            speed_limit_1_aircraft_category_type:   RecordField::from_bytes(input, 35, 1)?,
-            speed_limit_2:                          RecordField::from_bytes(input, 36, 3)?,
-            speed_limit_2_altitude:                 RecordField::from_bytes(input, 39, 5)?,
-            speed_limit_2_aircraft_category_type:   RecordField::from_bytes(input, 44, 1)?,
-            file_record_number:                     RecordField::from_bytes(input, 124, 5)?,
-            cycle_date:                             RecordField::from_bytes(input, 129, 4)?,
-        })
-    }
-}
-
-/// 4.1.25.4 Controlled Airspace Narrative Time Continuation Record
-#[derive(Debug)]
-pub struct ControlledAirspaceNarrativeTimeContinuationRecord<'a> {
-    pub record_type: RecordField<'a, RecordType>,
-    pub customer_area_code: RecordField<'a, CustomerAreaCode>,
-    pub section: RecordField<'a, Section>,
-    pub subsection: RecordField<'a, GenericSubsection>,
-    pub icao_code: RecordField<'a, IcaoCode>,
-    pub airspace_type: RecordField<'a, ControlledAirspaceType>,
-    pub airspace_center: RecordField<'a, ControlledAirspaceCenter>,
-    pub section_code: RecordField<'a, Section>,
-    pub subsection_code: RecordField<'a, GenericSubsection>,
-    pub airspace_classification: RecordField<'a, ControlledAirspaceClassification>,
-    pub multiple_code: RecordField<'a, MultipleCode>,
-    pub sequence_number: RecordField<'a, SequenceNumber>,
-    pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
-    pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
-    pub time_narrative: RecordField<'a, TimeNarrative>,
-    pub file_record_number: RecordField<'a, FileRecordNumber>,
-    pub cycle_date: RecordField<'a, CycleDate>,
-}
-
-#[rustfmt::skip]
-impl<'a> ControlledAirspaceNarrativeTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
-        Ok(Self {
-            record_type:                  RecordField::from_bytes(input, 1, 1)?,
-            customer_area_code:           RecordField::from_bytes(input, 2, 3)?,
-            section:                      RecordField::from_bytes(input, 5, 1)?,
-            subsection:                   RecordField::from_bytes(input, 6, 1)?,
-            icao_code:                    RecordField::from_bytes(input, 7, 2)?,
-            airspace_type:                RecordField::from_bytes(input, 9, 1)?,
-            airspace_center:              RecordField::from_bytes(input, 10, 5)?,
-            section_code:                 RecordField::from_bytes(input, 15, 1)?,
-            subsection_code:              RecordField::from_bytes(input, 16, 1)?,
-            airspace_classification:      RecordField::from_bytes(input, 17, 1)?,
-            multiple_code:                RecordField::from_bytes(input, 20, 1)?,
-            sequence_number:              RecordField::from_bytes(input, 21, 4)?,
-            continuation_record_number:   RecordField::from_bytes(input, 25, 1)?,
-            application_type:             RecordField::from_bytes(input, 26, 1)?,
-            time_narrative:               RecordField::from_bytes(input, 27, 97)?,
-            file_record_number:           RecordField::from_bytes(input, 124, 5)?,
-            cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
-        })
-    }
-}
-
-/// 4.1.25.5 Controlled Airspace Controlling Agency Continuation Record
-#[derive(Debug)]
-pub struct ControlledAirspaceControllingAgencyContinuationRecord<'a> {
-    pub record_type: RecordField<'a, RecordType>,
-    pub customer_area_code: RecordField<'a, CustomerAreaCode>,
-    pub section: RecordField<'a, Section>,
-    pub subsection: RecordField<'a, GenericSubsection>,
-    pub icao_code: RecordField<'a, IcaoCode>,
-    pub airspace_type: RecordField<'a, ControlledAirspaceType>,
-    pub airspace_center: RecordField<'a, ControlledAirspaceCenter>,
-    pub section_code: RecordField<'a, Section>,
-    pub subsection_code: RecordField<'a, GenericSubsection>,
-    pub airspace_classification: RecordField<'a, ControlledAirspaceClassification>,
-    pub multiple_code: RecordField<'a, MultipleCode>,
-    pub sequence_number: RecordField<'a, SequenceNumber>,
-    pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
-    pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
-    pub controlling_agency: RecordField<'a, ControllingAgency>,
-    pub file_record_number: RecordField<'a, FileRecordNumber>,
-    pub cycle_date: RecordField<'a, CycleDate>,
-}
-
-#[rustfmt::skip]
-impl<'a> ControlledAirspaceControllingAgencyContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
-        Ok(Self {
-            record_type:                  RecordField::from_bytes(input, 1, 1)?,
-            customer_area_code:           RecordField::from_bytes(input, 2, 3)?,
-            section:                      RecordField::from_bytes(input, 5, 1)?,
-            subsection:                   RecordField::from_bytes(input, 6, 1)?,
-            icao_code:                    RecordField::from_bytes(input, 7, 2)?,
-            airspace_type:                RecordField::from_bytes(input, 9, 1)?,
-            airspace_center:              RecordField::from_bytes(input, 10, 5)?,
-            section_code:                 RecordField::from_bytes(input, 15, 1)?,
-            subsection_code:              RecordField::from_bytes(input, 16, 1)?,
-            airspace_classification:      RecordField::from_bytes(input, 17, 1)?,
-            multiple_code:                RecordField::from_bytes(input, 20, 1)?,
-            sequence_number:              RecordField::from_bytes(input, 21, 4)?,
-            continuation_record_number:   RecordField::from_bytes(input, 25, 1)?,
-            application_type:             RecordField::from_bytes(input, 26, 1)?,
             controlling_agency:           RecordField::from_bytes(input, 100, 24)?,
             file_record_number:           RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,

@@ -30,9 +30,7 @@ impl PreferredRouteRecords {
                 Some(_) => Ok(ARINCRecord::PreferredGeneralRoutePrimary(
                     PreferredGeneralRoutePrimaryRecord::parse(input)?,
                 )),
-                None => Err(RecordParseError {
-                    message: "Invalid preferred route VIA code".to_string(),
-                }),
+                None => Err(RecordParseError::new("Invalid preferred route VIA code".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
             }
         } else {
             match ContinuationRecordApplicationType::from_bytes(
@@ -54,9 +52,7 @@ impl PreferredRouteRecords {
                         PreferredRouteNarrativeTimeContinuationRecord::parse(input)?,
                     ))
                 }
-                _ => Err(RecordParseError {
-                    message: "Invalid continuation record application type".to_string(),
-                }),
+                _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
             }
         }
     }

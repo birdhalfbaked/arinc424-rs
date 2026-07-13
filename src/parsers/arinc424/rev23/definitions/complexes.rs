@@ -1494,13 +1494,11 @@ pub enum NameFormatType1 {
     AirportRunwayRelatedFix,
     UIRFix,
     VFRCheckpointReportingPointAsFix,
+    NotApplicable,
 }
 
 impl ParseableField for NameFormatType1 {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
         Ok(Some(match bytes {
             b"A" => NameFormatType1::AbeamFix,
             b"B" => NameFormatType1::BearingDistanceFix,
@@ -1517,6 +1515,7 @@ impl ParseableField for NameFormatType1 {
             b"T" => NameFormatType1::AirportRunwayRelatedFix,
             b"U" => NameFormatType1::UIRFix,
             b"V" => NameFormatType1::VFRCheckpointReportingPointAsFix,
+            [BLANK] => NameFormatType1::NotApplicable,
             _ => {
                 return Err(FieldParseError::new(
                     "Invalid name format indicator".to_string(),
@@ -1534,12 +1533,10 @@ pub enum NameFormatType2 {
 }
 impl NameFormatType2 {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(Some(NameFormatType2::NotApplicable));
-        }
         Ok(Some(match bytes {
             b"O" => NameFormatType2::LocalizerMarkerWithPublishedIdentifier,
             b"M" => NameFormatType2::LocalizerMarkerWithoutPublishedIdentifier,
+            [BLANK] => NameFormatType2::NotApplicable,
             _ => {
                 return Err(FieldParseError::new(
                     "Invalid name format indicator".to_string(),
@@ -1568,10 +1565,11 @@ impl ParseableField for NameFormat {
 }
 
 /// 5.207 Sector From / Sector To
+/// Note: This should resolve to degrees, but for now we will keep it as is
 #[derive(Debug, PartialEq, Eq)]
 pub struct SectorFromTo {
-    pub from: Box<str>,
-    pub to: Box<str>,
+    pub from: char,
+    pub to: char,
 }
 impl ParseableField for SectorFromTo {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
@@ -1583,16 +1581,10 @@ impl ParseableField for SectorFromTo {
                 "Invalid sector in 'from' or 'to' position".to_string(),
             ));
         }
-        let from_str = Box::from(std::str::from_utf8(&bytes[0..1]).map_err(|e| {
-            FieldParseError::new(format!("Could not convert 'from' sector to string: {}", e))
-        })?);
 
-        let to_str = Box::from(std::str::from_utf8(&bytes[1..2]).map_err(|e| {
-            FieldParseError::new(format!("Could not convert 'to' sector to string: {}", e))
-        })?);
         Ok(Some(SectorFromTo {
-            from: from_str,
-            to: to_str,
+            from: bytes[0] as char,
+            to: bytes[1] as char,
         }))
     }
 }
@@ -1918,8 +1910,8 @@ pub enum GLSStationType1 {
 impl ParseableField for GLSStationType1 {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
         Ok(Some(match bytes {
-            b"LAAS" => GLSStationType1::LAASOrGLSGroundStation,
-            b"SCAT1" => GLSStationType1::SCAT1Station,
+            b"L" => GLSStationType1::LAASOrGLSGroundStation,
+            b"C" => GLSStationType1::SCAT1Station,
             _ => {
                 return Err(FieldParseError::new("Invalid GLS station type".to_string()));
             }

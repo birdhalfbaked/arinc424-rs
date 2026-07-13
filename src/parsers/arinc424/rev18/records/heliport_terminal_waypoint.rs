@@ -1,7 +1,7 @@
+use crate::parsers::arinc424::rev18::definitions::*;
 use crate::parsers::arinc424::rev18::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
 use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
-use crate::parsers::arinc424::rev18::definitions::*;
 pub(super) struct HeliportTerminalWaypointRecords;
 impl HeliportTerminalWaypointRecords {
     const CONTINUATION_COLUMN: usize = 22;
@@ -13,23 +13,29 @@ impl HeliportTerminalWaypointRecords {
                 HeliportTerminalWaypointPrimaryRecord::parse(input)?,
             ))
         } else {
-            match ContinuationRecordApplicationType::from_bytes(
-                &input[Self::CONTINUATION_APPLICATION_COLUMN - 1
-                    ..Self::CONTINUATION_APPLICATION_COLUMN],
-            )? {
-                Some(ContinuationRecordApplicationType::StandardContinuation) => {
-                    Ok(ARINCRecord::HeliportTerminalWaypointContinuation(
-                        HeliportTerminalWaypointContinuationRecord::parse(input)?,
-                    ))
-                }
-                Some(ContinuationRecordApplicationType::FlightPlanningContinuation) => Ok(
-                    ARINCRecord::HeliportTerminalWaypointFlightPlanningContinuation(
-                        HeliportTerminalWaypointFlightPlanningContinuationRecord::parse(input)?,
+            if input[Self::CONTINUATION_APPLICATION_COLUMN - 1].is_ascii_digit() {
+                Ok(
+                    ARINCRecord::HeliportTerminalWaypointChangedDataContinuation(
+                        HeliportTerminalWaypointChangedDataContinuationRecord::parse(input)?,
                     ),
-                ),
-                _ => Err(RecordParseError {
-                    message: "Invalid continuation record application type".to_string(),
-                }),
+                )
+            } else {
+                match ContinuationRecordApplicationType::from_bytes(
+                    &input[Self::CONTINUATION_APPLICATION_COLUMN - 1
+                        ..Self::CONTINUATION_APPLICATION_COLUMN],
+                )? {
+                    Some(ContinuationRecordApplicationType::StandardContinuation) => {
+                        Ok(ARINCRecord::HeliportTerminalWaypointContinuation(
+                            HeliportTerminalWaypointContinuationRecord::parse(input)?,
+                        ))
+                    }
+                    Some(ContinuationRecordApplicationType::FlightPlanningContinuation) => Ok(
+                        ARINCRecord::HeliportTerminalWaypointFlightPlanningContinuation(
+                            HeliportTerminalWaypointFlightPlanningContinuationRecord::parse(input)?,
+                        ),
+                    ),
+                    _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
+                }
             }
         }
     }
@@ -73,7 +79,7 @@ impl<'a> HeliportTerminalWaypointPrimaryRecord<'a> {
             waypoint_icao_code:             RecordField::from_bytes(input, 20, 2)?,
             continuation_record_number:     RecordField::from_bytes(input, 22, 1)?,
             waypoint_type:                  RecordField::from_bytes(input, 27, 3)?,
-            waypoint_usage:                 RecordField::from_bytes(input, 31, 1)?,
+            waypoint_usage:                 RecordField::from_bytes(input, 30, 2)?,
             waypoint_latitude:              RecordField::from_bytes(input, 33, 9)?,
             waypoint_longitude:             RecordField::from_bytes(input, 42, 10)?,
             dynamic_magnetic_variation:     RecordField::from_bytes(input, 75, 5)?,
@@ -140,6 +146,8 @@ pub struct HeliportTerminalWaypointFlightPlanningContinuationRecord<'a> {
     pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
     pub fir_identifier: RecordField<'a, FirUirIdentifier>,
     pub uir_identifier: RecordField<'a, FirUirIdentifier>,
+    pub start_end_indicator: RecordField<'a, StartEndIndicator>,
+    pub start_end_date: RecordField<'a, StartEndDate>,
     pub file_record_number: RecordField<'a, FileRecordNumber>,
     pub cycle_date: RecordField<'a, CycleDate>,
 }
@@ -160,8 +168,14 @@ impl<'a> HeliportTerminalWaypointFlightPlanningContinuationRecord<'a> {
             application_type:                   RecordField::from_bytes(input, 23, 1)?,
             fir_identifier:                     RecordField::from_bytes(input, 24, 4)?,
             uir_identifier:                     RecordField::from_bytes(input, 28, 4)?,
+            start_end_indicator:                RecordField::from_bytes(input, 32, 1)?,
+            start_end_date:                     RecordField::from_bytes(input, 33, 11)?,
             file_record_number:                 RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                         RecordField::from_bytes(input, 129, 4)?,
         })
     }
 }
+
+/// 4.2.2.4 Heliport Terminal Waypoint Changed Data Continuation Record
+pub type HeliportTerminalWaypointChangedDataContinuationRecord<'a> =
+    HeliportTerminalWaypointPrimaryRecord<'a>;

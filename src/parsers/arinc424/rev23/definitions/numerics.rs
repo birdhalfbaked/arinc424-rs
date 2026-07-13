@@ -24,58 +24,16 @@ pub type Theta = FloatNumeric<-1>;
 pub type Rho = FloatNumeric<-1>;
 
 /// 5.26 Outbound Course
-pub type OutboundCourse = FloatNumeric<-1>;
+pub type OutboundCourse = BearingNumeric;
 
 /// 5.27 Route Distance From
 pub type RouteDistanceFrom = TimeDistanceNumeric<-1>;
 
 /// 5.28 Inbound Course
-pub type InboundCourse = FloatNumeric<-1>;
+pub type InboundCourse = BearingNumeric;
 
 /// 5.30 Altitude / Minimum Altitude
-#[derive(Debug, PartialEq, Eq)]
-pub enum MinimumAltitude {
-    Established(AltitudeNumeric),
-    Unknown,
-    NotEstablished,
-}
-
-impl ParseableField for MinimumAltitude {
-    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        let trimmed_bytes = bytes.trim_ascii();
-        if trimmed_bytes.is_empty() {
-            return Ok(None);
-        }
-        match trimmed_bytes {
-            b"UNKNN" => Ok(Some(MinimumAltitude::Unknown)),
-            b"NESTB" => Ok(Some(MinimumAltitude::NotEstablished)),
-            _ => {
-                let altitude = AltitudeNumeric::from_bytes(&bytes)?;
-                if let Some(altitude) = altitude {
-                    Ok(Some(MinimumAltitude::Established(altitude)))
-                } else {
-                    Ok(None)
-                }
-            }
-        }
-    }
-}
-
-#[test]
-pub fn test_altitude_minimum_altitude() {
-    let r = MinimumAltitude::from_bytes(&[b'F', b'L', b'1', b'0', b'0']);
-    if let Ok(Some(MinimumAltitude::Established(altitude))) = r {
-        assert_eq!(altitude, AltitudeNumeric(10000));
-    } else {
-        panic!("Failed to parse altitude minimum altitude");
-    }
-    let r = MinimumAltitude::from_bytes(&[b'-', b'1', b'1', b'0', b'0']);
-    if let Ok(Some(MinimumAltitude::Established(altitude))) = r {
-        assert_eq!(altitude, AltitudeNumeric(-1100));
-    } else {
-        panic!("Failed to parse altitude minimum altitude");
-    }
-}
+pub type MinimumAltitude = MinimumAltitudeNumeric;
 
 /// 5.31 File Record Number
 pub type FileRecordNumber = UintNumeric;
@@ -83,8 +41,11 @@ pub type FileRecordNumber = UintNumeric;
 /// 5.32 Cycle Date
 pub type CycleDate = UintNumeric;
 
-/// 5.34 VOR/NDB Frequency
-pub type VORNDBFrequency = FloatNumeric<-2>;
+/// 5.34(A) VOR Frequency
+pub type VORFrequency = FloatNumeric<-2>;
+
+/// 5.34(B) NDB Frequency
+pub type NDBFrequency = FloatNumeric<-1>;
 
 /// 5.36 Latitude
 pub type Latitude = LatitudeNumeric;
@@ -111,7 +72,7 @@ pub type LocalizerPosition = IntNumeric;
 pub type GlideslopePosition = IntNumeric;
 
 /// 5.51 Localizer Width (LOC WIDTH)
-pub type LocalizerWidth = FloatNumeric<-1>;
+pub type LocalizerWidth = FloatNumeric<-2>;
 
 /// 5.52 Glideslope angle (GS ANGLE) Minimum Elevation Angle (MIN ELEV ANGLE)
 pub type GlideslopeAngle = FloatNumeric<-2>;
@@ -129,10 +90,10 @@ pub type AirportHeliportElevation = IntNumeric;
 pub type RunwayLength = UintNumeric;
 
 /// 5.58 Runway Bearing (RWY BRG)
-pub type RunwayBearing = FloatNumeric<-1>;
+pub type RunwayBearing = BearingNumeric;
 
 /// 5.62 Inbound Holding Course (IB HOLD CRS)
-pub type InboundHoldingCourse = FloatNumeric<-1>;
+pub type InboundHoldingCourse = BearingNumeric;
 
 /// 5.64 Leg Length (LEG LENGTH)
 pub type LegLength = FloatNumeric<-1>;
@@ -266,7 +227,7 @@ pub type AirwayRestrictionAltitude = UintNumeric;
 pub type MLSChannel = UintNumeric;
 
 /// 5.167 MLS Azimuth/Back Azimuth Bearing
-pub type MLSAzimuthBearing = FloatNumeric<-1>;
+pub type MLSAzimuthBearing = BearingNumeric;
 
 /// 5.168 MLS Azimuth/Back Azimuth Proportional Angle
 pub type MLSAzimuthProportionalAngle = UintNumeric;
@@ -284,7 +245,7 @@ pub type MLSNominalElevationAngle = FloatNumeric<-2>;
 pub type HoldingSpeed = UintNumeric;
 
 /// 5.184 Communication Altitude
-pub type CommunicationsAltitude = UintNumeric;
+pub type CommunicationsAltitude = AltitudeNumeric;
 
 /// 5.188 Communications Distance
 pub type CommunicationsDistance = UintNumeric;
@@ -322,7 +283,7 @@ pub type FlightPlanningAltitude = UintNumeric;
 pub type SBASGBASChannel = UintNumeric;
 
 /// 5.245 GLS Service Volume Radius
-pub type GlsServiceVolumeRadius = UintNumeric;
+pub type GLSServiceVolumeRadius = UintNumeric;
 
 /// 5.248 GLS WGS84 Station Elevation
 ///

@@ -40,9 +40,7 @@ impl EnrouteAirwayRestrictionRecords {
                                 EnrouteAirwayRestrictionAltitudeExclusionNarrativeTimeContinuationRecord::parse(input)?,
                             ))
                         }
-                        _ => Err(RecordParseError {
-                            message: "Invalid continuation record application type".to_string(),
-                        }),
+                        _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
                     }
                 }
             }
@@ -63,9 +61,7 @@ impl EnrouteAirwayRestrictionRecords {
                                 )?,
                             ),
                         ),
-                        _ => Err(RecordParseError {
-                            message: "Invalid continuation record application type".to_string(),
-                        }),
+                        _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
                     }
                 }
             }
@@ -89,9 +85,7 @@ impl EnrouteAirwayRestrictionRecords {
                                 EnrouteAirwayRestrictionSeasonalClosureNarrativeTimeContinuationRecord::parse(input)?,
                             ))
                         }
-                        _ => Err(RecordParseError {
-                            message: "Invalid continuation record application type".to_string(),
-                        })
+                        _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned())))
                     }
                 }
             }
@@ -119,15 +113,11 @@ impl EnrouteAirwayRestrictionRecords {
                                 EnrouteAirwayRestrictionCruisingTableReplacementNarrativeTimeContinuationRecord::parse(input)?,
                             ))
                         }
-                        _ => Err(RecordParseError {
-                            message: "Invalid continuation record application type".to_string(),
-                        }),
+                        _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
                     }
                 }
             }
-            _ => Err(RecordParseError {
-                message: "Invalid restriction record type".to_string(),
-            }),
+            _ => Err(RecordParseError::new("Invalid restriction record type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
         }
     }
 }

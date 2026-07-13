@@ -13,28 +13,33 @@ impl EnrouteAirwayRecords {
                 EnrouteAirwayPrimaryRecord::parse(input)?,
             ))
         } else {
-            match ContinuationRecordApplicationType::from_bytes(
+            if let Ok(Some(application_type)) = ContinuationRecordApplicationType::from_bytes(
                 &input[Self::CONTINUATION_APPLICATION_COLUMN - 1
                     ..Self::CONTINUATION_APPLICATION_COLUMN],
-            )? {
-                Some(ContinuationRecordApplicationType::StandardContinuation) => {
-                    Ok(ARINCRecord::EnrouteAirwayContinuation(
-                        EnrouteAirwayContinuationRecord::parse(input)?,
-                    ))
+            ) {
+                match application_type {
+                    ContinuationRecordApplicationType::StandardContinuation => {
+                        Ok(ARINCRecord::EnrouteAirwayContinuation(
+                            EnrouteAirwayContinuationRecord::parse(input)?,
+                        ))
+                    }
+                    ContinuationRecordApplicationType::FlightPlanningContinuation => {
+                        Ok(ARINCRecord::EnrouteAirwayFlightPlanningContinuation(
+                            EnrouteAirwayFlightPlanningContinuationRecord::parse(input)?,
+                        ))
+                    }
+                    _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
                 }
-                Some(ContinuationRecordApplicationType::FlightPlanningContinuation) => {
-                    Ok(ARINCRecord::EnrouteAirwayFlightPlanningContinuation(
-                        EnrouteAirwayFlightPlanningContinuationRecord::parse(input)?,
-                    ))
-                }
-                _ => Err(RecordParseError {
-                    message: "Invalid continuation record application type".to_string(),
-                }),
+            } else {
+                Ok(ARINCRecord::EnrouteAirwayChangedDataContinuation(
+                    EnrouteAirwayChangedDataContinuationRecord::parse(input)?,
+                ))
             }
         }
     }
 }
 
+/// 4.1.6.1 Enroute Airway Primary Record
 #[derive(Debug)]
 pub struct EnrouteAirwayPrimaryRecord<'a> {
     pub record_type: RecordField<'a, RecordType>,
@@ -58,26 +63,15 @@ pub struct EnrouteAirwayPrimaryRecord<'a> {
     pub recommended_navaid: RecordField<'a, RecommendedNavaid>,
     pub recommended_navaid_icao_code: RecordField<'a, IcaoCode>,
     pub rnp: RecordField<'a, RequiredNavigationPerformance>,
-    pub recommended_navaid_section_code: RecordField<'a, Section>,
-    pub recommended_navaid_subsection_code: RecordField<'a, NavaidSubsection>,
-    pub outbound_course_unit: RecordField<'a, MagneticTrueIndicator>,
     pub theta: RecordField<'a, Theta>,
     pub rho: RecordField<'a, Rho>,
-    pub outbound_course: RecordField<'a, OutboundCourse>,
+    pub outbound_magnetic_course: RecordField<'a, OutboundCourse>,
     pub route_distance_from: RecordField<'a, RouteDistanceFrom>,
-    pub inbound_course: RecordField<'a, InboundCourse>,
-    pub inbound_course_unit: RecordField<'a, MagneticTrueIndicator>,
+    pub inbound_magnetic_course: RecordField<'a, InboundCourse>,
     pub minimum_altitude_1: RecordField<'a, MinimumAltitude>,
     pub minimum_altitude_2: RecordField<'a, MinimumAltitude>,
     pub maximum_altitude_1: RecordField<'a, MaximumAltitude>,
     pub fix_radius_transition: RecordField<'a, FixedRadiusTransitionIndicator>,
-    pub vertical_scale_factor: RecordField<'a, VerticalScaleFactor>,
-    pub rvsm_minimum_level: RecordField<'a, RVSMMinimumLevel>,
-    pub vsf_rvsm_maximum_level: RecordField<'a, RVSMMaximumLevel>,
-    pub maximum_altitude_2: RecordField<'a, MaximumAltitude>,
-    pub route_qualifier1: RecordField<'a, EnrouteAirwayRouteTypeQualifier1>,
-    pub route_qualifier2: RecordField<'a, EnrouteAirwayRouteTypeQualifier2>,
-    pub route_qualifier3: RecordField<'a, EnrouteAirwayRouteTypeQualifier3>,
     pub file_record_number: RecordField<'a, FileRecordNumber>,
     pub cycle_date: RecordField<'a, CycleDate>,
 }
@@ -107,32 +101,22 @@ impl<'a> EnrouteAirwayPrimaryRecord<'a> {
             recommended_navaid:                   RecordField::from_bytes(input, 51, 4)?,
             recommended_navaid_icao_code:         RecordField::from_bytes(input, 55, 2)?,
             rnp:                                  RecordField::from_bytes(input, 57, 3)?,
-            recommended_navaid_section_code:      RecordField::from_bytes(input, 60, 1)?,
-            recommended_navaid_subsection_code:   RecordField::from_bytes(input, 61, 1)?,
-            outbound_course_unit:                 RecordField::from_bytes(input, 62, 1)?,
             theta:                                RecordField::from_bytes(input, 63, 4)?,
             rho:                                  RecordField::from_bytes(input, 67, 4)?,
-            outbound_course:                      RecordField::from_bytes(input, 71, 4)?,
+            outbound_magnetic_course:             RecordField::from_bytes(input, 71, 4)?,
             route_distance_from:                  RecordField::from_bytes(input, 75, 4)?,
-            inbound_course:                       RecordField::from_bytes(input, 79, 4)?,
-            inbound_course_unit:                  RecordField::from_bytes(input, 83, 1)?,
+            inbound_magnetic_course:              RecordField::from_bytes(input, 79, 4)?,
             minimum_altitude_1:                   RecordField::from_bytes(input, 84, 5)?,
             minimum_altitude_2:                   RecordField::from_bytes(input, 89, 5)?,
             maximum_altitude_1:                   RecordField::from_bytes(input, 94, 5)?,
             fix_radius_transition:                RecordField::from_bytes(input, 99, 3)?,
-            vertical_scale_factor:                RecordField::from_bytes(input, 102, 3)?,
-            rvsm_minimum_level:                   RecordField::from_bytes(input, 105, 3)?,
-            vsf_rvsm_maximum_level:               RecordField::from_bytes(input, 108, 3)?,
-            maximum_altitude_2:                   RecordField::from_bytes(input, 116, 5)?,
-            route_qualifier1:                     RecordField::from_bytes(input, 121, 1)?,
-            route_qualifier2:                     RecordField::from_bytes(input, 122, 1)?,
-            route_qualifier3:                     RecordField::from_bytes(input, 123, 1)?,
             file_record_number:                   RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                           RecordField::from_bytes(input, 129, 4)?,
         })
     }
 }
 
+/// 4.1.6.2 Enroute Airway Continuation Record
 #[derive(Debug)]
 pub struct EnrouteAirwayContinuationRecord<'a> {
     pub record_type: RecordField<'a, RecordType>,
@@ -175,6 +159,7 @@ impl<'a> EnrouteAirwayContinuationRecord<'a> {
     }
 }
 
+/// 4.1.6.3 Enroute Airway Flight Planning Continuation Record
 #[derive(Debug)]
 pub struct EnrouteAirwayFlightPlanningContinuationRecord<'a> {
     pub record_type: RecordField<'a, RecordType>,
@@ -189,6 +174,8 @@ pub struct EnrouteAirwayFlightPlanningContinuationRecord<'a> {
     pub fix_subsection_code: RecordField<'a, GenericSubsection>,
     pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
     pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
+    pub start_end_indicator: RecordField<'a, StartEndIndicator>,
+    pub start_end_date: RecordField<'a, StartEndDate>,
     // restricted airspace block 1
     pub restricted_airspace_1_icao_code: RecordField<'a, IcaoCode>,
     pub restricted_airspace_1_type: RecordField<'a, RestrictiveAirspaceType>,
@@ -230,6 +217,8 @@ impl<'a> EnrouteAirwayFlightPlanningContinuationRecord<'a> {
             fix_subsection_code:                     RecordField::from_bytes(input, 38, 1)?,
             continuation_record_number:              RecordField::from_bytes(input, 39, 1)?,
             application_type:                        RecordField::from_bytes(input, 40, 1)?,
+            start_end_indicator:                     RecordField::from_bytes(input, 41, 1)?,
+            start_end_date:                          RecordField::from_bytes(input, 42, 11)?,
             restricted_airspace_1_icao_code:         RecordField::from_bytes(input, 67, 2)?,
             restricted_airspace_1_type:              RecordField::from_bytes(input, 69, 1)?,
             restricted_airspace_1_designation:       RecordField::from_bytes(input, 70, 10)?,
@@ -252,3 +241,6 @@ impl<'a> EnrouteAirwayFlightPlanningContinuationRecord<'a> {
        })
     }
 }
+
+/// 4.1.6.4 Enroute Airway Changed Data Continuation Record
+pub type EnrouteAirwayChangedDataContinuationRecord<'a> = EnrouteAirwayPrimaryRecord<'a>;

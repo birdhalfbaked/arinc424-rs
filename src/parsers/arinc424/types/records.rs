@@ -11,21 +11,30 @@ use std::any::type_name;
 #[derive(Debug)]
 pub struct RecordParseError {
     pub message: String,
+    pub raw_line: String,
+}
+
+impl RecordParseError {
+    pub fn new(message: String, raw_line: Option<String>) -> Self {
+        Self {
+            message,
+            raw_line: raw_line.unwrap_or_else(|| "".to_string()),
+        }
+    }
 }
 impl From<FieldParseError> for RecordParseError {
     fn from(error: FieldParseError) -> Self {
-        Self {
-            message: if let (Some(column), Some(column_type)) = (error.column, error.column_type) {
-                format!(
-                    "Record parse error: {} at column {} of type {}",
-                    error.message,
-                    column,
-                    column_type.split("::").last().unwrap_or(&column_type)
-                )
-            } else {
-                format!("Record parse error: {}", error.message)
-            },
-        }
+        let message = if let (Some(column), Some(column_type)) = (error.column, error.column_type) {
+            format!(
+                "Record parse error: {} at column {} of type {}",
+                error.message,
+                column,
+                column_type.split("::").last().unwrap_or(&column_type)
+            )
+        } else {
+            format!("Record parse error: {}", error.message)
+        };
+        Self::new(message, None)
     }
 }
 #[derive(Debug)]

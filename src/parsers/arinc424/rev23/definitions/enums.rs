@@ -14,9 +14,6 @@ pub enum RecordType {
 
 impl ParseableField for RecordType {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
         Ok(Some(match bytes {
             b"S" => RecordType::Standard,
             b"T" => RecordType::Tailored,
@@ -42,9 +39,6 @@ pub enum Section {
 
 impl ParseableField for Section {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
         Ok(Some(match bytes {
             b"A" => Section::MORA,
             b"D" => Section::Navaid,
@@ -71,9 +65,6 @@ pub enum MORASubsection {
 
 impl ParseableField for MORASubsection {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
         Ok(Some(match bytes {
             b"S" => MORASubsection::GridMORA,
             _ => {
@@ -123,9 +114,6 @@ pub enum EnrouteSubsection {
 
 impl ParseableField for EnrouteSubsection {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
         Ok(Some(match bytes {
             b"A" => EnrouteSubsection::Waypoints,
             b"M" => EnrouteSubsection::AirwayMarkers,
@@ -161,9 +149,6 @@ pub enum HeliportSubsection {
 
 impl ParseableField for HeliportSubsection {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
         Ok(Some(match bytes {
             b"A" => HeliportSubsection::ReferencePoints,
             b"C" => HeliportSubsection::TerminalWaypoints,
@@ -210,9 +195,6 @@ pub enum AirportSubsection {
 
 impl ParseableField for AirportSubsection {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
         Ok(Some(match bytes {
             b"A" => AirportSubsection::ReferencePoints,
             b"B" => AirportSubsection::Gates,
@@ -276,9 +258,6 @@ pub enum TablesSubsection {
 
 impl ParseableField for TablesSubsection {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
         Ok(Some(match bytes {
             b"C" => TablesSubsection::CruisingTables,
             b"G" => TablesSubsection::GeographicalReference,
@@ -303,9 +282,6 @@ pub enum AirspaceSubsection {
 
 impl ParseableField for AirspaceSubsection {
     fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
-        if bytes.trim_ascii_end().is_empty() {
-            return Ok(None);
-        }
         Ok(Some(match bytes {
             b"C" => AirspaceSubsection::ControlledAirspace,
             b"F" => AirspaceSubsection::FIRUIR,
@@ -2402,7 +2378,7 @@ impl ParseableField for DistanceDescription {
     }
 }
 
-/// 5.197 Modulation
+/// 5.198 Modulation
 #[derive(Debug, PartialEq, Eq)]
 pub enum Modulation {
     AM,

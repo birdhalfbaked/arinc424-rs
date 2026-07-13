@@ -35,9 +35,7 @@ impl CompanyRouteRecords {
                 ),
             })
         } else {
-            Err(RecordParseError {
-                message: "Invalid company route VIA code".to_string(),
-            })
+            Err(RecordParseError::new("Invalid company route VIA code".to_string(), Some(String::from_utf8_lossy(input).into_owned())))
         }
     }
 }

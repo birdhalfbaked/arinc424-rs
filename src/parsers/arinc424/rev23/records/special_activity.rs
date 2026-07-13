@@ -13,9 +13,7 @@ impl SpecialActivityRecords {
                 SpecialActivityAreaPrimaryRecord::parse(input)?,
             ))
         } else {
-            Err(RecordParseError {
-                message: "Invalid continuation record application type".to_string(),
-            })
+            Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned())))
         }
     }
 }
@@ -25,16 +23,12 @@ impl SpecialActivityRecords {
 fn parse_communications_frequency<'a>(
     input: &'a [u8],
 ) -> Result<RecordField<'a, CommunicationsFrequency>, RecordParseError> {
-    let frequency_unit = FrequencyUnits::from_bytes(&input[45..46])?.ok_or(RecordParseError {
-        message: "Invalid frequency units".to_string(),
-    })?;
+    let frequency_unit = FrequencyUnits::from_bytes(&input[45..46])?.ok_or(RecordParseError::new("Invalid frequency units".to_string(), Some(String::from_utf8_lossy(input).into_owned())))?;
     let frequency_bytes = &input[86..92];
     let frequency = match frequency_unit {
         FrequencyUnits::HF => Some(CommunicationsFrequency::HighFrequency(
             HighFrequencyCommunicationsFrequency::from_bytes(frequency_bytes)?.ok_or(
-                RecordParseError {
-                    message: "Invalid transmit frequency".to_string(),
-                },
+                RecordParseError::new("Invalid transmit frequency".to_string(), Some(String::from_utf8_lossy(input).into_owned())),
             )?,
         )),
         FrequencyUnits::VHFNonStandardSpacing
@@ -43,23 +37,17 @@ fn parse_communications_frequency<'a>(
         | FrequencyUnits::VHF50KHzSpacing
         | FrequencyUnits::VHF100KHzSpacing => Some(CommunicationsFrequency::VeryHighFrequency(
             VeryHighFrequencyCommunicationsFrequency::from_bytes(frequency_bytes)?.ok_or(
-                RecordParseError {
-                    message: "Invalid transmit frequency".to_string(),
-                },
+                RecordParseError::new("Invalid transmit frequency".to_string(), Some(String::from_utf8_lossy(input).into_owned())),
             )?,
         )),
         FrequencyUnits::UHF => Some(CommunicationsFrequency::UltraHighFrequency(
             UltraHighFrequencyCommunicationsFrequency::from_bytes(frequency_bytes)?.ok_or(
-                RecordParseError {
-                    message: "Invalid transmit frequency".to_string(),
-                },
+                RecordParseError::new("Invalid transmit frequency".to_string(), Some(String::from_utf8_lossy(input).into_owned())),
             )?,
         )),
         FrequencyUnits::DigitalService => None,
         _ => {
-            return Err(RecordParseError {
-                message: "Invalid frequency units".to_string(),
-            });
+            return Err(RecordParseError::new("Invalid frequency units".to_string(), Some(String::from_utf8_lossy(input).into_owned())));
         }
     };
     Ok(RecordField {

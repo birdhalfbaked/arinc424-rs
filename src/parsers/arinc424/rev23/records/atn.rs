@@ -11,9 +11,7 @@ impl ATNRecords {
                 input,
             )?))
         } else {
-            Err(RecordParseError {
-                message: "Invalid record type".to_string(),
-            })
+            Err(RecordParseError::new("Invalid record type".to_string(), Some(String::from_utf8_lossy(input).into_owned())))
         }
     }
 }

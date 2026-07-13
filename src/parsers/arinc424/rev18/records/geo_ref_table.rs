@@ -22,9 +22,7 @@ impl GeographicalReferenceTableRecords {
                         GeographicalReferenceTableContinuationRecord::parse(input)?,
                     ))
                 }
-                _ => Err(RecordParseError {
-                    message: "Invalid continuation record application type".to_string(),
-                }),
+                _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
             }
         }
     }
@@ -101,7 +99,6 @@ pub struct GeographicalReferenceTableContinuationRecord<'a> {
     pub geographical_entity: RecordField<'a, GeographicalEntity>,
     pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
     pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
-    pub notes: RecordField<'a, Notes>,
     pub file_record_number: RecordField<'a, FileRecordNumber>,
     pub cycle_date: RecordField<'a, CycleDate>,
 }
@@ -119,7 +116,6 @@ impl<'a> GeographicalReferenceTableContinuationRecord<'a> {
             geographical_entity:                       RecordField::from_bytes(input, 10, 29)?,
             continuation_record_number:                RecordField::from_bytes(input, 39, 1)?,
             application_type:                          RecordField::from_bytes(input, 40, 1)?,
-            notes:                                     RecordField::from_bytes(input, 41, 83)?,
             file_record_number:                        RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                                RecordField::from_bytes(input, 129, 4)?,
         })

@@ -1,9 +1,9 @@
-use crate::parsers::arinc424::rev18::records::record::ARINCRecord;
+use crate::parsers::arinc424::rev18_faa::definitions::*;
+use crate::parsers::arinc424::rev18_faa::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
 use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
-use crate::parsers::arinc424::rev18::definitions::*;
-pub(super) struct AirportSBASRecords;
-impl AirportSBASRecords {
+pub(super) struct PathPointRecords;
+impl PathPointRecords {
     const CONTINUATION_COLUMN: usize = 27;
     const CONTINUATION_APPLICATION_COLUMN: usize = 28;
     const DISCRIMINATOR_COLUMN: usize = 20;
@@ -12,15 +12,13 @@ impl AirportSBASRecords {
         if is_primary_record(input, Self::CONTINUATION_COLUMN) {
             if input[Self::DISCRIMINATOR_COLUMN - 1..Self::DISCRIMINATOR_COLUMN + 1] == [b'R', b'W']
             {
-                Ok(ARINCRecord::AirportRunwaySBASPathPointPrimary(
-                    AirportRunwaySBASPathPointPrimaryRecord::parse(input)?,
+                Ok(ARINCRecord::AirportPathPointPrimary(
+                    AirportPathPointPrimaryRecord::parse(input)?,
                 ))
             } else {
-                Ok(
-                    ARINCRecord::AirportFinalApproachCourseAsRunwaySBASPathPointPrimary(
-                        AirportFinalApproachCourseAsRunwaySBASPathPointPrimaryRecord::parse(input)?,
-                    ),
-                )
+                Ok(ARINCRecord::HeliportPathPointPrimary(
+                    HeliportPathPointPrimaryRecord::parse(input)?,
+                ))
             }
         } else {
             if input[Self::DISCRIMINATOR_COLUMN - 1..Self::DISCRIMINATOR_COLUMN + 1] == [b'R', b'W']
@@ -30,13 +28,14 @@ impl AirportSBASRecords {
                         ..Self::CONTINUATION_APPLICATION_COLUMN],
                 )? {
                     Some(ContinuationRecordApplicationType::PrimaryRecordExtension) => {
-                        Ok(ARINCRecord::AirportRunwaySBASPathPointContinuation(
-                            AirportRunwaySBASPathPointContinuationRecord::parse(input)?,
+                        Ok(ARINCRecord::AirportPathPointContinuation(
+                            AirportPathPointContinuationRecord::parse(input)?,
                         ))
                     }
-                    _ => Err(RecordParseError {
-                        message: "Invalid continuation record application type".to_string(),
-                    }),
+                    _ => Err(RecordParseError::new(
+                        "Invalid continuation record application type".to_string(),
+                        Some(String::from_utf8_lossy(input).into_owned()),
+                    )),
                 }
             } else {
                 match ContinuationRecordApplicationType::from_bytes(
@@ -44,13 +43,14 @@ impl AirportSBASRecords {
                         ..Self::CONTINUATION_APPLICATION_COLUMN],
                 )? {
                     Some(ContinuationRecordApplicationType::PrimaryRecordExtension) => {
-                        Ok(ARINCRecord::AirportFinalApproachCourseAsRunwaySBASPathPointContinuation(
-                            AirportFinalApproachCourseAsRunwaySBASPathPointContinuationRecord::parse(input)?,
+                        Ok(ARINCRecord::HeliportPathPointContinuation(
+                            HeliportPathPointContinuationRecord::parse(input)?,
                         ))
                     }
-                    _ => Err(RecordParseError {
-                        message: "Invalid continuation record application type".to_string(),
-                    }),
+                    _ => Err(RecordParseError::new(
+                        "Invalid continuation record application type".to_string(),
+                        Some(String::from_utf8_lossy(input).into_owned()),
+                    )),
                 }
             }
         }
@@ -62,12 +62,12 @@ fn parse_path_point_tch<'a>(
 ) -> Result<RecordField<'a, PathPointTCH>, RecordParseError> {
     let tch_units_indicator = TCHUnitsIndicator::from_bytes(&input[108..109])
         .map_err(|e| e.with_context("TCHUnitsIndicator", 109))?;
-    let tch_value_bytes = &input[103..108];
+    let tch_value_bytes = &input[102..108];
     let tch_value = RecordField {
         value: match tch_units_indicator {
             Some(TCHUnitsIndicator::Feet) => {
                 if let Some(tch_inner_value) = PathPointTCHFeet::from_bytes(tch_value_bytes)
-                    .map_err(|e| e.with_context("PathPointTCH::Feet", 104))?
+                    .map_err(|e| e.with_context("PathPointTCH::Feet", 103))?
                 {
                     Some(PathPointTCH::Feet(tch_inner_value))
                 } else {
@@ -84,9 +84,10 @@ fn parse_path_point_tch<'a>(
                 }
             }
             None => {
-                return Err(RecordParseError {
-                    message: "Invalid TCH units indicator".to_string(),
-                })?;
+                return Err(RecordParseError::new(
+                    "Invalid TCH units indicator".to_string(),
+                    Some(String::from_utf8_lossy(input).into_owned()),
+                ))?;
             }
         },
         raw_bytes: tch_value_bytes,
@@ -94,9 +95,9 @@ fn parse_path_point_tch<'a>(
     Ok(tch_value)
 }
 
-/// 4.1.28.1(A) Airport Runway SBAS Path Point Primary Record
+/// 4.1.28.1(A) Airport Path Point Primary Record
 #[derive(Debug)]
-pub struct AirportRunwaySBASPathPointPrimaryRecord<'a> {
+pub struct AirportPathPointPrimaryRecord<'a> {
     pub record_type: RecordField<'a, RecordType>,
     pub customer_area_code: RecordField<'a, CustomerAreaCode>,
     pub section: RecordField<'a, Section>,
@@ -107,19 +108,19 @@ pub struct AirportRunwaySBASPathPointPrimaryRecord<'a> {
     pub runway_identifier: RecordField<'a, RunwayIdentifier>,
     pub operation_type: RecordField<'a, SBASOperationType>,
     pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
-    pub route_indicator: RecordField<'a, SBASGBASRouteIndicator>,
+    pub route_indicator: RecordField<'a, RouteIndicator>,
     pub sbas_service_provider_identifier: RecordField<'a, SbasServiceProviderIdentifier>,
     pub reference_path_data_selector: RecordField<'a, ReferencePathDataSelector>,
     pub reference_path_identifier: RecordField<'a, ReferencePathIdentifier>,
-    pub approach_performance_designator: RecordField<'a, GBASApproachPerformanceDesignator>,
+    pub approach_performance_designator: RecordField<'a, ApproachPerformanceDesignator>,
     pub landing_threshold_point_latitude: RecordField<'a, Latitude>,
     pub landing_threshold_point_longitude: RecordField<'a, Longitude>,
     pub landing_threshold_point_ellipsoid_height: RecordField<'a, WGS84EllipsoidHeight>,
-    pub glide_path_angle: RecordField<'a, SBASGBASGlidePathAngle>,
+    pub glide_path_angle: RecordField<'a, GlidePathAngle>,
     pub flight_path_alignment_point_latitude: RecordField<'a, Latitude>,
     pub flight_path_alignment_point_longitude: RecordField<'a, Longitude>,
     pub course_width_at_threshold: RecordField<'a, CourseWidthAtThreshold>,
-    pub length_offset: RecordField<'a, SBASGBASLengthOffset>,
+    pub length_offset: RecordField<'a, PathPointLengthOffset>,
     pub path_point_tch: RecordField<'a, PathPointTCH>,
     pub tch_units_indicator: RecordField<'a, TCHUnitsIndicator>,
     pub horizontal_alert_limit: RecordField<'a, HorizontalAlertLimit>,
@@ -130,7 +131,7 @@ pub struct AirportRunwaySBASPathPointPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> AirportRunwaySBASPathPointPrimaryRecord<'a> {
+impl<'a> AirportPathPointPrimaryRecord<'a> {
     pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         let tch_value = parse_path_point_tch(input)?;
         Ok(Self {
@@ -168,9 +169,9 @@ impl<'a> AirportRunwaySBASPathPointPrimaryRecord<'a> {
     }
 }
 
-/// 4.1.28.1(B) Airport Final Approach Course as Runway SBAS Path Point Primary Record
+/// 4.1.28.1(B) Heliport Path Point Primary Record
 #[derive(Debug)]
-pub struct AirportFinalApproachCourseAsRunwaySBASPathPointPrimaryRecord<'a> {
+pub struct HeliportPathPointPrimaryRecord<'a> {
     pub record_type: RecordField<'a, RecordType>,
     pub customer_area_code: RecordField<'a, CustomerAreaCode>,
     pub section: RecordField<'a, Section>,
@@ -178,22 +179,22 @@ pub struct AirportFinalApproachCourseAsRunwaySBASPathPointPrimaryRecord<'a> {
     pub airport_icao_code: RecordField<'a, IcaoCode>,
     pub subsection: RecordField<'a, GenericSubsection>,
     pub approach_identifier: RecordField<'a, ApproachRouteIdentifier>,
-    pub final_approach_course_as_runway: RecordField<'a, FinalApproachCourseAsRunway>,
+    pub helipad_identifier: RecordField<'a, PadIdentifier>,
     pub operation_type: RecordField<'a, SBASOperationType>,
     pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
-    pub route_indicator: RecordField<'a, SBASGBASRouteIndicator>,
+    pub route_indicator: RecordField<'a, RouteIndicator>,
     pub sbas_service_provider_identifier: RecordField<'a, SbasServiceProviderIdentifier>,
     pub reference_path_data_selector: RecordField<'a, ReferencePathDataSelector>,
     pub reference_path_identifier: RecordField<'a, ReferencePathIdentifier>,
-    pub approach_performance_designator: RecordField<'a, GBASApproachPerformanceDesignator>,
+    pub approach_performance_designator: RecordField<'a, ApproachPerformanceDesignator>,
     pub landing_threshold_point_latitude: RecordField<'a, Latitude>,
     pub landing_threshold_point_longitude: RecordField<'a, Longitude>,
     pub landing_threshold_point_ellipsoid_height: RecordField<'a, WGS84EllipsoidHeight>,
-    pub glide_path_angle: RecordField<'a, SBASGBASGlidePathAngle>,
+    pub glide_path_angle: RecordField<'a, GlidePathAngle>,
     pub flight_path_alignment_point_latitude: RecordField<'a, Latitude>,
     pub flight_path_alignment_point_longitude: RecordField<'a, Longitude>,
     pub course_width_at_threshold: RecordField<'a, CourseWidthAtThreshold>,
-    pub length_offset: RecordField<'a, SBASGBASLengthOffset>,
+    pub length_offset: RecordField<'a, PathPointLengthOffset>,
     pub path_point_tch: RecordField<'a, PathPointTCH>,
     pub tch_units_indicator: RecordField<'a, TCHUnitsIndicator>,
     pub horizontal_alert_limit: RecordField<'a, HorizontalAlertLimit>,
@@ -204,7 +205,7 @@ pub struct AirportFinalApproachCourseAsRunwaySBASPathPointPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> AirportFinalApproachCourseAsRunwaySBASPathPointPrimaryRecord<'a> {
+impl<'a> HeliportPathPointPrimaryRecord<'a> {
     pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         let tch_value = parse_path_point_tch(input)?;
         Ok(Self {
@@ -215,7 +216,7 @@ impl<'a> AirportFinalApproachCourseAsRunwaySBASPathPointPrimaryRecord<'a> {
             airport_icao_code:                          RecordField::from_bytes(input, 11, 2)?,
             subsection:                                 RecordField::from_bytes(input, 13, 1)?,
             approach_identifier:                        RecordField::from_bytes(input, 14, 6)?,
-            final_approach_course_as_runway:            RecordField::from_bytes(input, 20, 2)?,
+            helipad_identifier:                         RecordField::from_bytes(input, 20, 4)?,
             operation_type:                             RecordField::from_bytes(input, 25, 2)?,
             continuation_record_number:                 RecordField::from_bytes(input, 27, 1)?,
             route_indicator:                            RecordField::from_bytes(input, 28, 1)?,
@@ -242,9 +243,9 @@ impl<'a> AirportFinalApproachCourseAsRunwaySBASPathPointPrimaryRecord<'a> {
     }
 }
 
-/// 4.1.28.2(A) Airport Runway SBAS Path Point Continuation Record
+/// 4.1.28.2(A) Airport Path Point Continuation Record
 #[derive(Debug)]
-pub struct AirportRunwaySBASPathPointContinuationRecord<'a> {
+pub struct AirportPathPointContinuationRecord<'a> {
     pub record_type: RecordField<'a, RecordType>,
     pub customer_area_code: RecordField<'a, CustomerAreaCode>,
     pub section: RecordField<'a, Section>,
@@ -260,14 +261,14 @@ pub struct AirportRunwaySBASPathPointContinuationRecord<'a> {
     pub fpap_orthometric_height: RecordField<'a, OrthometricHeight>,
     pub ltp_orthometric_height: RecordField<'a, OrthometricHeight>,
     pub approach_type_identifier: RecordField<'a, ApproachTypeIdentifier>,
-    pub gbas_sbas_channel_number: RecordField<'a, SBASGBASChannel>,
-    pub sbas_final_approach_course: RecordField<'a, SBASFinalApproachCourse>,
+    pub gbas_sbas_channel_number: RecordField<'a, GLSPathPointChannel>,
+    pub helicopter_procedure_course: RecordField<'a, HelicopterProcedureCourse>,
     pub file_record_number: RecordField<'a, FileRecordNumber>,
     pub cycle_date: RecordField<'a, CycleDate>,
 }
 
 #[rustfmt::skip]
-impl<'a> AirportRunwaySBASPathPointContinuationRecord<'a> {
+impl<'a> AirportPathPointContinuationRecord<'a> {
     pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                                RecordField::from_bytes(input, 1, 1)?,
@@ -286,16 +287,16 @@ impl<'a> AirportRunwaySBASPathPointContinuationRecord<'a> {
             ltp_orthometric_height:                     RecordField::from_bytes(input, 41, 6)?,
             approach_type_identifier:                   RecordField::from_bytes(input, 47, 10)?,
             gbas_sbas_channel_number:                   RecordField::from_bytes(input, 57, 5)?,
-            sbas_final_approach_course:                 RecordField::from_bytes(input, 62, 4)?,
+            helicopter_procedure_course:                RecordField::from_bytes(input, 72, 3)?,
             file_record_number:                         RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                                 RecordField::from_bytes(input, 129, 4)?,
         })
     }
 }
 
-/// 4.1.28.2(B) Airport Final Approach Course as Runway SBAS Path Point Continuation Record
+/// 4.1.28.2(B) Heliport Path Point Continuation Record
 #[derive(Debug)]
-pub struct AirportFinalApproachCourseAsRunwaySBASPathPointContinuationRecord<'a> {
+pub struct HeliportPathPointContinuationRecord<'a> {
     pub record_type: RecordField<'a, RecordType>,
     pub customer_area_code: RecordField<'a, CustomerAreaCode>,
     pub section: RecordField<'a, Section>,
@@ -303,7 +304,7 @@ pub struct AirportFinalApproachCourseAsRunwaySBASPathPointContinuationRecord<'a>
     pub airport_icao_code: RecordField<'a, IcaoCode>,
     pub subsection: RecordField<'a, GenericSubsection>,
     pub approach_identifier: RecordField<'a, ApproachRouteIdentifier>,
-    pub final_approach_course_as_runway: RecordField<'a, FinalApproachCourseAsRunway>,
+    pub helipad_identifier: RecordField<'a, PadIdentifier>,
     pub operation_type: RecordField<'a, SBASOperationType>,
     pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
     pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
@@ -311,14 +312,14 @@ pub struct AirportFinalApproachCourseAsRunwaySBASPathPointContinuationRecord<'a>
     pub fpap_orthometric_height: RecordField<'a, OrthometricHeight>,
     pub ltp_orthometric_height: RecordField<'a, OrthometricHeight>,
     pub approach_type_identifier: RecordField<'a, ApproachTypeIdentifier>,
-    pub gbas_sbas_channel_number: RecordField<'a, SBASGBASChannel>,
-    pub sbas_final_approach_course: RecordField<'a, SBASFinalApproachCourse>,
+    pub gbas_sbas_channel_number: RecordField<'a, GLSPathPointChannel>,
+    pub helicopter_procedure_course: RecordField<'a, HelicopterProcedureCourse>,
     pub file_record_number: RecordField<'a, FileRecordNumber>,
     pub cycle_date: RecordField<'a, CycleDate>,
 }
 
 #[rustfmt::skip]
-impl<'a> AirportFinalApproachCourseAsRunwaySBASPathPointContinuationRecord<'a> {
+impl<'a> HeliportPathPointContinuationRecord<'a> {
     pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                                RecordField::from_bytes(input, 1, 1)?,
@@ -328,7 +329,7 @@ impl<'a> AirportFinalApproachCourseAsRunwaySBASPathPointContinuationRecord<'a> {
             airport_icao_code:                          RecordField::from_bytes(input, 11, 2)?,
             subsection:                                 RecordField::from_bytes(input, 13, 1)?,
             approach_identifier:                        RecordField::from_bytes(input, 14, 6)?,
-            final_approach_course_as_runway:            RecordField::from_bytes(input, 20, 2)?,
+            helipad_identifier:                         RecordField::from_bytes(input, 20, 4)?,
             operation_type:                             RecordField::from_bytes(input, 25, 2)?,
             continuation_record_number:                 RecordField::from_bytes(input, 27, 1)?,
             application_type:                           RecordField::from_bytes(input, 28, 1)?,
@@ -337,7 +338,7 @@ impl<'a> AirportFinalApproachCourseAsRunwaySBASPathPointContinuationRecord<'a> {
             ltp_orthometric_height:                     RecordField::from_bytes(input, 41, 6)?,
             approach_type_identifier:                   RecordField::from_bytes(input, 47, 10)?,
             gbas_sbas_channel_number:                   RecordField::from_bytes(input, 57, 5)?,
-            sbas_final_approach_course:                 RecordField::from_bytes(input, 62, 4)?,
+            helicopter_procedure_course:                RecordField::from_bytes(input, 72, 3)?,
             file_record_number:                         RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                                 RecordField::from_bytes(input, 129, 4)?,
         })

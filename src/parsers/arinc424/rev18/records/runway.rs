@@ -1,8 +1,7 @@
-
+use crate::parsers::arinc424::rev18::definitions::*;
 use crate::parsers::arinc424::rev18::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
 use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
-use crate::parsers::arinc424::rev18::definitions::*;
 pub(super) struct RunwayRecords;
 impl RunwayRecords {
     const CONTINUATION_COLUMN: usize = 22;
@@ -26,9 +25,7 @@ impl RunwayRecords {
                         RunwaySimulationContinuationRecord::parse(input)?,
                     ))
                 }
-                _ => Err(RecordParseError {
-                    message: "Invalid continuation record application type".to_string(),
-                }),
+                _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
             }
         }
     }
@@ -47,21 +44,19 @@ pub struct RunwayPrimaryRecord<'a> {
     pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
     pub runway_length: RecordField<'a, RunwayLength>,
     pub runway_bearing: RecordField<'a, RunwayBearing>,
-    pub landing_threshold_coordinates_source: RecordField<'a, GovernmentSource>,
-    pub landing_threshold_latitude: RecordField<'a, Latitude>,
-    pub landing_threshold_longitude: RecordField<'a, Longitude>,
+    pub runway_latitude: RecordField<'a, Latitude>,
+    pub runway_longitude: RecordField<'a, Longitude>,
     pub runway_gradient: RecordField<'a, RunwayGradient>,
-    pub landing_threshold_elevation_type: RecordField<'a, ElevationType>,
-    pub landing_threshold_ellipsoid_height: RecordField<'a, WGS84EllipsoidHeight>,
+    pub runway_ellipsoid_height: RecordField<'a, WGS84EllipsoidHeight>,
     pub landing_threshold_elevation: RecordField<'a, LandingThresholdElevation>,
     pub displaced_threshold_distance: RecordField<'a, ThresholdDisplacementDistance>,
     pub runway_width: RecordField<'a, RunwayWidth>,
     pub tch_value_indicator: RecordField<'a, TCHValueIndicator>,
+    pub guidance_1_reference_path_identifier: RecordField<'a, LocalizerMlsGlsIdentifier>,
+    pub guidance_1_category_class: RecordField<'a, IlsMlsGlsCategory>,
     pub stopway: RecordField<'a, Stopway>,
-    pub threshold_crossing_height: RecordField<'a, ThresholdCrossingHeight>,
-    pub runway_accuracy_compliance_flag: RecordField<'a, RunwayAccuracyComplianceFlag>,
-    pub landing_threshold_elevation_accuracy_compliance_flag:
-        RecordField<'a, LandingThresholdElevationAccuracyComplianceFlag>,
+    pub guidance_2_reference_path_identifier: RecordField<'a, LocalizerMlsGlsIdentifier>,
+    pub guidance_2_category_class: RecordField<'a, IlsMlsGlsCategory>,
     pub runway_description: RecordField<'a, RunwayDescription>,
     pub file_record_number: RecordField<'a, FileRecordNumber>,
     pub cycle_data: RecordField<'a, CycleDate>,
@@ -81,20 +76,19 @@ impl<'a> RunwayPrimaryRecord<'a> {
             continuation_record_number:                             RecordField::from_bytes(input, 22, 1)?,
             runway_length:                                          RecordField::from_bytes(input, 23, 5)?,
             runway_bearing:                                         RecordField::from_bytes(input, 28, 4)?,
-            landing_threshold_coordinates_source:                   RecordField::from_bytes(input, 32, 1)?,
-            landing_threshold_latitude:                             RecordField::from_bytes(input, 33, 9)?,
-            landing_threshold_longitude:                            RecordField::from_bytes(input, 42, 10)?,
-            runway_gradient:                                        RecordField::from_bytes(input, 52, 6)?,
-            landing_threshold_elevation_type:                       RecordField::from_bytes(input, 60, 1)?,
-            landing_threshold_ellipsoid_height:                     RecordField::from_bytes(input, 61, 6)?,
+            runway_latitude:                                        RecordField::from_bytes(input, 33, 9)?,
+            runway_longitude:                                       RecordField::from_bytes(input, 42, 10)?,
+            runway_gradient:                                        RecordField::from_bytes(input, 52, 5)?,
+            runway_ellipsoid_height:                                RecordField::from_bytes(input, 61, 6)?,
             landing_threshold_elevation:                            RecordField::from_bytes(input, 67, 5)?,
             displaced_threshold_distance:                           RecordField::from_bytes(input, 72, 4)?,
-            runway_width:                                           RecordField::from_bytes(input, 77, 4)?,
+            runway_width:                                           RecordField::from_bytes(input, 78, 3)?,
             tch_value_indicator:                                    RecordField::from_bytes(input, 81, 1)?,
+            guidance_1_reference_path_identifier:                   RecordField::from_bytes(input, 82, 4)?,
+            guidance_1_category_class:                              RecordField::from_bytes(input, 86, 1)?,
             stopway:                                                RecordField::from_bytes(input, 87, 4)?,
-            threshold_crossing_height:                              RecordField::from_bytes(input, 96, 3)?,
-            runway_accuracy_compliance_flag:                        RecordField::from_bytes(input, 99, 1)?,
-            landing_threshold_elevation_accuracy_compliance_flag:   RecordField::from_bytes(input, 100,1)?,
+            guidance_2_reference_path_identifier:                   RecordField::from_bytes(input, 91, 4)?,
+            guidance_2_category_class:                              RecordField::from_bytes(input, 95, 1)?,
             runway_description:                                     RecordField::from_bytes(input, 102, 22)?,
             file_record_number:                                     RecordField::from_bytes(input, 124, 5)?,
             cycle_data:                                             RecordField::from_bytes(input, 129, 4)?,
@@ -115,14 +109,6 @@ pub struct RunwayContinuationRecord<'a> {
     pub continuation_record_number: RecordField<'a, ContinuationRecordNumber>,
     pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
     pub notes: RecordField<'a, Notes>,
-    pub runway_surface_type: RecordField<'a, SurfaceType>,
-    pub runway_surface_code: RecordField<'a, RunwaySurfaceCode>,
-    pub runway_starter_extension: RecordField<'a, RunwayStarterExtension>,
-    pub tora: RecordField<'a, TORA>,
-    pub toda: RecordField<'a, TODA>,
-    pub asda: RecordField<'a, ASDA>,
-    pub lda: RecordField<'a, LDA>,
-    pub runway_usage: RecordField<'a, RunwayUsageIndicator>,
     pub file_record_number: RecordField<'a, FileRecordNumber>,
     pub cycle_data: RecordField<'a, CycleDate>,
 }
@@ -141,14 +127,6 @@ impl<'a> RunwayContinuationRecord<'a> {
             continuation_record_number:                             RecordField::from_bytes(input, 22, 1)?,
             application_type:                                       RecordField::from_bytes(input, 23, 1)?,
             notes:                                                  RecordField::from_bytes(input, 24, 69)?,
-            runway_surface_type:                                    RecordField::from_bytes(input, 93, 4)?,
-            runway_surface_code:                                    RecordField::from_bytes(input, 97, 1)?,
-            runway_starter_extension:                               RecordField::from_bytes(input, 98, 4)?,
-            tora:                                                   RecordField::from_bytes(input, 102, 5)?,
-            toda:                                                   RecordField::from_bytes(input, 107, 5)?,
-            asda:                                                   RecordField::from_bytes(input, 112, 5)?,
-            lda:                                                    RecordField::from_bytes(input, 117, 5)?,
-            runway_usage:                                           RecordField::from_bytes(input, 122, 1)?,
             file_record_number:                                     RecordField::from_bytes(input, 124, 5)?,
             cycle_data:                                             RecordField::from_bytes(input, 129, 4)?,
         })

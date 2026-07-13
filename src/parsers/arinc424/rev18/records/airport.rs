@@ -1,7 +1,7 @@
+use crate::parsers::arinc424::rev18::definitions::*;
 use crate::parsers::arinc424::rev18::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
 use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
-use crate::parsers::arinc424::rev18::definitions::*;
 pub(super) struct AirportRecords;
 impl AirportRecords {
     const CONTINUATION_COLUMN: usize = 22;
@@ -13,26 +13,31 @@ impl AirportRecords {
                 input,
             )?))
         } else {
-            match ContinuationRecordApplicationType::from_bytes(
-                &input[Self::CONTINUATION_APPLICATION_COLUMN
-                    ..Self::CONTINUATION_APPLICATION_COLUMN + 1],
-            )? {
-                Some(ContinuationRecordApplicationType::StandardContinuation) => Ok(
-                    ARINCRecord::AirportContinuation(AirportContinuationRecord::parse(input)?),
-                ),
-                Some(ContinuationRecordApplicationType::FlightPlanningContinuation) => {
-                    Ok(ARINCRecord::AirportFlightPlanningContinuation(
-                        AirportFlightPlanningContinuationRecord::parse(input)?,
-                    ))
+            if let Ok(Some(application_type)) = ContinuationRecordApplicationType::from_bytes(
+                &input[Self::CONTINUATION_APPLICATION_COLUMN - 1
+                    ..Self::CONTINUATION_APPLICATION_COLUMN],
+            ) {
+                match application_type {
+                    ContinuationRecordApplicationType::StandardContinuation => Ok(
+                        ARINCRecord::AirportContinuation(AirportContinuationRecord::parse(input)?),
+                    ),
+                    ContinuationRecordApplicationType::FlightPlanningContinuation => {
+                        Ok(ARINCRecord::AirportFlightPlanningContinuation(
+                            AirportFlightPlanningContinuationRecord::parse(input)?,
+                        ))
+                    }
+                    _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
                 }
-                _ => Err(RecordParseError {
-                    message: "Invalid continuation record application type".to_string(),
-                }),
+            } else {
+                Ok(ARINCRecord::AirportChangedDataContinuation(
+                    AirportChangedDataContinuationRecord::parse(input)?,
+                ))
             }
         }
     }
 }
 
+/// 4.1.7.1 Airport Primary Record
 #[derive(Debug)]
 pub struct AirportPrimaryRecord<'a> {
     pub record_type: RecordField<'a, RecordType>,
@@ -61,7 +66,6 @@ pub struct AirportPrimaryRecord<'a> {
     pub daylight_indicator: RecordField<'a, DaylightTimeObservedIndicator>,
     pub magnetic_true_indicator: RecordField<'a, MagneticTrueIndicator>,
     pub datum_code: RecordField<'a, DatumCode>,
-    pub vfr_checkpoint_flag: RecordField<'a, VFRCheckpointFlag>,
     pub airport_name: RecordField<'a, NameOfFacility>,
     pub file_record_number: RecordField<'a, FileRecordNumber>,
     pub cycle_date: RecordField<'a, CycleDate>,
@@ -97,7 +101,6 @@ impl<'a> AirportPrimaryRecord<'a> {
             daylight_indicator:                  RecordField::from_bytes(input, 85, 1)?,
             magnetic_true_indicator:             RecordField::from_bytes(input, 86, 1)?,
             datum_code:                          RecordField::from_bytes(input, 87, 3)?,
-            vfr_checkpoint_flag:                 RecordField::from_bytes(input, 90, 1)?,
             airport_name:                        RecordField::from_bytes(input, 94, 30)?,
             file_record_number:                  RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                          RecordField::from_bytes(input, 129, 4)?,
@@ -105,6 +108,7 @@ impl<'a> AirportPrimaryRecord<'a> {
     }
 }
 
+/// 4.1.7.2 Airport Continuation Record
 #[derive(Debug)]
 pub struct AirportContinuationRecord<'a> {
     pub record_type: RecordField<'a, RecordType>,
@@ -141,6 +145,7 @@ impl<'a> AirportContinuationRecord<'a> {
     }
 }
 
+/// 4.1.7.3 Airport Flight Planning Continuation Record
 #[derive(Debug)]
 pub struct AirportFlightPlanningContinuationRecord<'a> {
     pub record_type: RecordField<'a, RecordType>,
@@ -154,6 +159,8 @@ pub struct AirportFlightPlanningContinuationRecord<'a> {
     pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
     pub fir_identifier: RecordField<'a, FirUirIdentifier>,
     pub uir_identifier: RecordField<'a, FirUirIdentifier>,
+    pub start_end_indicator: RecordField<'a, StartEndIndicator>,
+    pub start_end_date: RecordField<'a, StartEndDate>,
     pub controlled_airspace_indicator: RecordField<'a, ControlledAirspaceIndicator>,
     pub controlled_airspace_airport_identifier: RecordField<'a, AirportHeliportIdentifier>,
     pub controlled_airspace_airport_icao_code: RecordField<'a, IcaoCode>,
@@ -176,6 +183,8 @@ impl<'a> AirportFlightPlanningContinuationRecord<'a> {
             application_type:                         RecordField::from_bytes(input, 23, 1)?,
             fir_identifier:                           RecordField::from_bytes(input, 24, 4)?,
             uir_identifier:                           RecordField::from_bytes(input, 28, 4)?,
+            start_end_indicator:                      RecordField::from_bytes(input, 32, 1)?,
+            start_end_date:                           RecordField::from_bytes(input, 33, 11)?,
             controlled_airspace_indicator:            RecordField::from_bytes(input, 67, 1)?,
             controlled_airspace_airport_identifier:   RecordField::from_bytes(input, 68, 4)?,
             controlled_airspace_airport_icao_code:    RecordField::from_bytes(input, 72, 2)?,
@@ -184,3 +193,6 @@ impl<'a> AirportFlightPlanningContinuationRecord<'a> {
         })
     }
 }
+
+/// 4.1.7.4 Airport Changed Data Continuation Record
+pub type AirportChangedDataContinuationRecord<'a> = AirportPrimaryRecord<'a>;
