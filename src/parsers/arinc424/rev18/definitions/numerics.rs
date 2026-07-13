@@ -9,6 +9,9 @@
 //! For example, 5.27 - Route Distance From encodes both a time and a distance.
 //!
 //! To handle this, there are specific fields that capture the union of the two types appropriately.
+
+use crate::parsers::arinc424::rev18::definitions::enums::FrequencyUnits;
+
 use crate::parsers::arinc424::types::fields::*;
 
 /// 5.12 Sequence Number
@@ -170,6 +173,35 @@ pub enum CommunicationsFrequency {
     UltraHighFrequency(UltraHighFrequencyCommunicationsFrequency),
 }
 
+impl CommunicationsFrequency {
+    pub fn parse(
+        unit_bytes: &[u8],
+        frequency_bytes: &[u8],
+    ) -> Result<Option<Self>, FieldParseError> {
+        let frequency_unit = FrequencyUnits::from_bytes(unit_bytes)?
+            .ok_or(FieldParseError::new("Invalid frequency units".to_string()))?;
+        match frequency_unit {
+            FrequencyUnits::HF => Ok(Some(CommunicationsFrequency::HighFrequency(
+                HighFrequencyCommunicationsFrequency::from_bytes(frequency_bytes)?.ok_or(
+                    FieldParseError::new("Invalid receive frequency".to_string()),
+                )?,
+            ))),
+            FrequencyUnits::VHF | FrequencyUnits::VHF8_33KHzSpacing => {
+                Ok(Some(CommunicationsFrequency::VeryHighFrequency(
+                    VeryHighFrequencyCommunicationsFrequency::from_bytes(frequency_bytes)?.ok_or(
+                        FieldParseError::new("Invalid transmit frequency".to_string()),
+                    )?,
+                )))
+            }
+            FrequencyUnits::UHF => Ok(Some(CommunicationsFrequency::UltraHighFrequency(
+                UltraHighFrequencyCommunicationsFrequency::from_bytes(frequency_bytes)?.ok_or(
+                    FieldParseError::new("Invalid transmit frequency".to_string()),
+                )?,
+            ))),
+        }
+    }
+}
+
 /// 5.109 Runway Width
 pub type RunwayWidth = UintNumeric;
 
@@ -208,6 +240,12 @@ pub type MLSAzimuthProportionalAngle = UintNumeric;
 
 /// 5.169 MLS Elevation Angle Span
 pub type MLSElevationAngleSpan = FloatNumeric<-1>;
+
+/// 5.170 Decision Height
+pub type DecisionHeight = UintNumeric;
+
+/// 5.171 Minimum Descent Height
+pub type MinimumDescentHeight = UintNumeric;
 
 /// 5.172 MLS Azimuth/Back Azimuth Coverage Sector
 pub type MLSAzimuthCoverageSector = UintNumeric;

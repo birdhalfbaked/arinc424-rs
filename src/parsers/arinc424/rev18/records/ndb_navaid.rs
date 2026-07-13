@@ -13,26 +13,34 @@ impl NDBNavaidRecords {
                 NDBNavaidPrimaryRecord::parse(input)?,
             ))
         } else {
-            match ContinuationRecordApplicationType::from_bytes(
+            if let Ok(Some(application_type)) = ContinuationRecordApplicationType::from_bytes(
                 &input[Self::CONTINUATION_APPLICATION_COLUMN - 1
                     ..Self::CONTINUATION_APPLICATION_COLUMN],
-            )? {
-                Some(ContinuationRecordApplicationType::StandardContinuation) => Ok(
-                    ARINCRecord::NDBNavaidContinuation(NDBNavaidContinuationRecord::parse(input)?),
-                ),
-                Some(ContinuationRecordApplicationType::SimulationContinuation) => {
-                    Ok(ARINCRecord::NDBNavaidSimulationContinuation(
-                        NDBNavaidSimulationContinuationRecord::parse(input)?,
-                    ))
+            ) {
+                match application_type {
+                    ContinuationRecordApplicationType::StandardContinuation => {
+                        Ok(ARINCRecord::NDBNavaidContinuation(
+                            NDBNavaidContinuationRecord::parse(input)?,
+                        ))
+                    }
+                    ContinuationRecordApplicationType::SimulationContinuation => {
+                        Ok(ARINCRecord::NDBNavaidSimulationContinuation(
+                            NDBNavaidSimulationContinuationRecord::parse(input)?,
+                        ))
+                    }
+                    ContinuationRecordApplicationType::FlightPlanningContinuation => {
+                        Ok(ARINCRecord::NDBNavaidFlightPlanningContinuation(
+                            NDBNavaidFlightPlanningContinuationRecord::parse(input)?,
+                        ))
+                    }
+                    _ => Err(RecordParseError {
+                        message: "Invalid continuation record application type".to_string(),
+                    }),
                 }
-                Some(ContinuationRecordApplicationType::FlightPlanningContinuation) => {
-                    Ok(ARINCRecord::NDBNavaidFlightPlanningContinuation(
-                        NDBNavaidFlightPlanningContinuationRecord::parse(input)?,
-                    ))
-                }
-                _ => Err(RecordParseError {
-                    message: "Invalid continuation record application type".to_string(),
-                }),
+            } else {
+                Ok(ARINCRecord::NDBNavaidChangedDataContinuation(
+                    NDBNavaidChangedDataContinuationRecord::parse(input)?,
+                ))
             }
         }
     }
@@ -55,7 +63,6 @@ pub struct NDBNavaidPrimaryRecord<'a> {
     pub ndb_latitude: RecordField<'a, Latitude>,
     pub ndb_longitude: RecordField<'a, Longitude>,
     pub magnetic_variation: RecordField<'a, MagneticVariation>,
-    pub vfr_checkpoint_flag: RecordField<'a, VFRCheckpointFlag>,
     pub datum_code: RecordField<'a, DatumCode>,
     pub ndb_name: RecordField<'a, NameOfFacility>,
     pub file_record_number: RecordField<'a, FileRecordNumber>,
@@ -80,7 +87,6 @@ impl<'a> NDBNavaidPrimaryRecord<'a> {
             ndb_latitude:                   RecordField::from_bytes(input, 33, 9)?,
             ndb_longitude:                  RecordField::from_bytes(input, 42, 10)?,
             magnetic_variation:             RecordField::from_bytes(input, 75, 5)?,
-            vfr_checkpoint_flag:            RecordField::from_bytes(input, 80, 1)?,
             datum_code:                     RecordField::from_bytes(input, 91, 3)?,
             ndb_name:                       RecordField::from_bytes(input, 94, 30)?,
             file_record_number:             RecordField::from_bytes(input, 124, 5)?,
@@ -184,12 +190,8 @@ pub struct NDBNavaidFlightPlanningContinuationRecord<'a> {
     pub application_type: RecordField<'a, ContinuationRecordApplicationType>,
     pub fir_identifier: RecordField<'a, FirUirIdentifier>,
     pub uir_identifier: RecordField<'a, FirUirIdentifier>,
-    pub fir_fra_entry_point: RecordField<'a, FIRFRATransitionType>,
-    pub fir_fra_exit_point: RecordField<'a, FIRFRATransitionType>,
-    pub fir_fra_arrival_transition: RecordField<'a, FIRFRATransitionType>,
-    pub fir_fra_departure_transition: RecordField<'a, FIRFRATransitionType>,
-    pub fir_fra_intermediate_point: RecordField<'a, FIRFRATransitionType>,
-    pub fir_fra_terminal_holding_point: RecordField<'a, FIRFRATransitionType>,
+    pub start_end_indicator: RecordField<'a, StartEndIndicator>,
+    pub start_end_date: RecordField<'a, StartEndDate>,
     pub file_record_number: RecordField<'a, FileRecordNumber>,
     pub cycle_date: RecordField<'a, CycleDate>,
 }
@@ -210,14 +212,13 @@ impl<'a> NDBNavaidFlightPlanningContinuationRecord<'a> {
             application_type:                   RecordField::from_bytes(input, 23, 1)?,
             fir_identifier:                     RecordField::from_bytes(input, 24, 4)?,
             uir_identifier:                     RecordField::from_bytes(input, 28, 4)?,
-            fir_fra_entry_point:                RecordField::from_bytes(input, 44, 1)?,
-            fir_fra_exit_point:                 RecordField::from_bytes(input, 45, 1)?,
-            fir_fra_arrival_transition:         RecordField::from_bytes(input, 46, 1)?,
-            fir_fra_departure_transition:       RecordField::from_bytes(input, 47, 1)?,
-            fir_fra_intermediate_point:         RecordField::from_bytes(input, 48, 1)?,
-            fir_fra_terminal_holding_point:     RecordField::from_bytes(input, 49, 1)?,
+            start_end_indicator:                RecordField::from_bytes(input, 32, 1)?,
+            start_end_date:                     RecordField::from_bytes(input, 33, 11)?,
             file_record_number:                 RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                         RecordField::from_bytes(input, 129, 4)?,
         })
     }
 }
+
+/// 4.1.3.5 NDB Changed Data Continuation Record
+pub type NDBNavaidChangedDataContinuationRecord<'a> = NDBNavaidPrimaryRecord<'a>;

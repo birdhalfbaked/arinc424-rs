@@ -1415,6 +1415,28 @@ pub enum PadDimensions {
     Circular(CircularPadDimensions),
 }
 
+impl ParseableField for PadDimensions {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        // assume if 000 on the last three bytes then it's a circular pad
+        if bytes.ends_with(b"000") {
+            Ok(Some(PadDimensions::Circular(
+                CircularPadDimensions::from_bytes(bytes)?.ok_or(FieldParseError::new(
+                    "Invalid circular pad dimensions".to_string(),
+                ))?,
+            )))
+        } else {
+            Ok(Some(PadDimensions::Rectangular(
+                RectangularPadDimensions::from_bytes(bytes)?.ok_or(FieldParseError::new(
+                    "Invalid rectangular pad dimensions".to_string(),
+                ))?,
+            )))
+        }
+    }
+}
+
 // Timezone (ugh)
 
 #[derive(Debug, PartialEq, Eq)]

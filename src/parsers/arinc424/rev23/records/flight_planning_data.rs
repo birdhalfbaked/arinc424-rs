@@ -1,8 +1,7 @@
-
+use crate::parsers::arinc424::rev23::definitions::*;
 use crate::parsers::arinc424::rev23::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
 use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
-use crate::parsers::arinc424::rev23::definitions::*;
 pub(super) struct FlightPlanningDataRecords;
 impl FlightPlanningDataRecords {
     const CONTINUATION_COLUMN: usize = 70;
@@ -192,7 +191,7 @@ impl<'a> FlightPlanningSIDSTARDataPrimaryRecord<'a> {
             altitude_description:                                 RecordField::from_bytes(input, 108, 1)?,
             altitude_1:                                           RecordField::from_bytes(input, 109, 3)?,
             altitude_2:                                           RecordField::from_bytes(input, 112, 3)?,
-            speed_limit:                                          RecordField::from_bytes(input, 1115, 3)?,
+            speed_limit:                                          RecordField::from_bytes(input, 115, 3)?,
             initial_cruise_table:                                 RecordField::from_bytes(input, 118, 2)?,
             speed_limit_description:                              RecordField::from_bytes(input, 120, 1)?,
             file_record_number:                                   RecordField::from_bytes(input, 124, 5)?,
@@ -295,7 +294,7 @@ impl<'a> FlightPlanningApproachDataPrimaryRecord<'a> {
             altitude_description:                                 RecordField::from_bytes(input, 108, 1)?,
             altitude_1:                                           RecordField::from_bytes(input, 109, 3)?,
             altitude_2:                                           RecordField::from_bytes(input, 112, 3)?,
-            speed_limit:                                          RecordField::from_bytes(input, 1115, 3)?,
+            speed_limit:                                          RecordField::from_bytes(input, 115, 3)?,
             initial_cruise_table:                                 RecordField::from_bytes(input, 118, 2)?,
             speed_limit_description:                              RecordField::from_bytes(input, 120, 1)?,
             file_record_number:                                   RecordField::from_bytes(input, 124, 5)?,

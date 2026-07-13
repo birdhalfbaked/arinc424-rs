@@ -118,7 +118,9 @@ pub type EnrouteTransition = LengthLimitedIdentifier<5, false>;
 pub type TerminalAlternateAirport = LengthLimitedIdentifier<4, false>;
 
 /// 5.105 Callsign
-pub type Callsign = LengthLimitedIdentifier<25, false>;
+/// Note: This is specced as being 25 characters long, but the record for comms shows 30 characters.
+///     Thus we change this to 30 characters to match the record.
+pub type Callsign = LengthLimitedIdentifier<30, false>;
 
 /// 5.107 ATA/IATA Designator
 pub type AtaIataDesignator = LengthLimitedIdentifier<3, true>;
@@ -186,6 +188,9 @@ pub type EnrouteAlternateAirportHeliport = LengthLimitedIdentifier<4, false>;
 
 /// 5.151 FIR/UIR Address
 pub type FirUirAddress = LengthLimitedIdentifier<4, true>;
+
+/// 5.153 Start/End Date
+pub type StartEndDate = LengthLimitedIdentifier<11, false>;
 
 /// 5.154 Airway Restriction Identifier
 ///

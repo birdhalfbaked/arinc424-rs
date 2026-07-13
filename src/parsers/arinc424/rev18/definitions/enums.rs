@@ -961,7 +961,7 @@ pub enum ContinuationRecordApplicationType {
     CombinedControllingAgencyFormattedTimeOfOperationsContinuation,
     ControllingAgencyContinuation,
     PrimaryRecordExtension,
-    VHFNavaidNavaidLimitationContinuation,
+    VHFNavaidLimitationContinuation,
     SectorNarrativeContinuation,
     FormattedTimeOfOperationsContinuation,
     NarrativeTimeOfOperationsContinuation,
@@ -983,7 +983,7 @@ impl ParseableField for ContinuationRecordApplicationType {
             b"C" => ContinuationRecordApplicationType::ControllingAgencyContinuation,
             b"E" => ContinuationRecordApplicationType::PrimaryRecordExtension,
             b"L" => {
-                ContinuationRecordApplicationType::VHFNavaidNavaidLimitationContinuation
+                ContinuationRecordApplicationType::VHFNavaidLimitationContinuation
             }
             b"N" => ContinuationRecordApplicationType::SectorNarrativeContinuation,
             b"T" => ContinuationRecordApplicationType::FormattedTimeOfOperationsContinuation,
@@ -1679,6 +1679,32 @@ impl ParseableField for FigureOfMerit {
             b"9" => FigureOfMerit::NavaidOutOfService,
             _ => {
                 return Err(FieldParseError::new("Invalid figure of merit".to_string()));
+            }
+        }))
+    }
+}
+
+/// 5.152 Start End Indicator
+#[derive(Debug, PartialEq, Eq)]
+pub enum StartEndIndicator {
+    ChangeDate,
+    EndDate,
+    StartDate,
+}
+
+impl ParseableField for StartEndIndicator {
+    fn from_bytes(bytes: &[u8]) -> Result<Option<Self>, FieldParseError> {
+        if bytes.trim_ascii_end().is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(match bytes {
+            b"C" => StartEndIndicator::ChangeDate,
+            b"E" => StartEndIndicator::EndDate,
+            b"S" => StartEndIndicator::StartDate,
+            _ => {
+                return Err(FieldParseError::new(
+                    "Invalid start end indicator".to_string(),
+                ));
             }
         }))
     }
