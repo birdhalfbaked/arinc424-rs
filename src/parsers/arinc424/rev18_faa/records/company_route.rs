@@ -1,6 +1,9 @@
 use crate::parsers::arinc424::rev18_faa::definitions::*;
+
 use crate::parsers::arinc424::rev18_faa::records::record::ARINCRecord;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError};
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError,
+};
 
 pub(super) struct CompanyRouteRecords;
 impl CompanyRouteRecords {
@@ -48,8 +51,12 @@ pub struct CompanyRoutePrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> CompanyRoutePrimaryRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for CompanyRoutePrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "CompanyRoutePrimaryRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(CompanyRoutePrimaryRecord {
             record_type:                            RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                     RecordField::from_bytes(input, 2,3)?,
@@ -83,5 +90,9 @@ impl<'a> CompanyRoutePrimaryRecord<'a> {
             file_record_number:                     RecordField::from_bytes(input, 124,5)?,
             cycle_date:                             RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

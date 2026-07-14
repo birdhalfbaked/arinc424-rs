@@ -1,8 +1,10 @@
-
 use crate::parsers::arinc424::rev23::records::record::ARINCRecord;
-use crate::parsers::arinc424::types::fields::*;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+
 use crate::parsers::arinc424::rev23::definitions::*;
+use crate::parsers::arinc424::types::fields::*;
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct LocalizerGlideslopeRecords;
 impl LocalizerGlideslopeRecords {
     const CONTINUATION_COLUMN: usize = 22;
@@ -41,7 +43,10 @@ impl LocalizerGlideslopeRecords {
                         LocalizerGlideslopeSimulationContinuationRecord::parse(input)?,
                     ))
                 }
-                _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
+                _ => Err(RecordParseError::new(
+                    "Invalid continuation record application type".to_string(),
+                    Some(String::from_utf8_lossy(input).into_owned()),
+                )),
             }
         }
     }
@@ -83,8 +88,12 @@ pub struct AirportLocalizerGlideslopePrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> AirportLocalizerGlideslopePrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for AirportLocalizerGlideslopePrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "AirportLocalizerGlideslopePrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                              RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                       RecordField::from_bytes(input, 2, 3)?,
@@ -117,6 +126,10 @@ impl<'a> AirportLocalizerGlideslopePrimaryRecord<'a> {
             file_record_number:                       RecordField::from_bytes(input, 124, 5)?,
             cycle_data:                               RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -156,8 +169,12 @@ pub struct HeliportLocalizerGlideslopePrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> HeliportLocalizerGlideslopePrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for HeliportLocalizerGlideslopePrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "HeliportLocalizerGlideslopePrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                              RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                       RecordField::from_bytes(input, 2, 3)?,
@@ -191,6 +208,10 @@ impl<'a> HeliportLocalizerGlideslopePrimaryRecord<'a> {
             cycle_data:                               RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
+    }
 }
 
 /// 4.1.11.2 Localizer Glideslope Continuation Record
@@ -212,8 +233,12 @@ pub struct LocalizerGlideslopeContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> LocalizerGlideslopeContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for LocalizerGlideslopeContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "LocalizerGlideslopeContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                              RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                       RecordField::from_bytes(input, 2, 3)?,
@@ -229,6 +254,10 @@ impl<'a> LocalizerGlideslopeContinuationRecord<'a> {
             file_record_number:                       RecordField::from_bytes(input, 124, 5)?,
             cycle_data:                               RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -259,8 +288,12 @@ pub struct LocalizerGlideslopeSimulationContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> LocalizerGlideslopeSimulationContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for LocalizerGlideslopeSimulationContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "LocalizerGlideslopeSimulationContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                              RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                       RecordField::from_bytes(input, 2, 3)?,
@@ -284,5 +317,9 @@ impl<'a> LocalizerGlideslopeSimulationContinuationRecord<'a> {
             file_record_number:                       RecordField::from_bytes(input, 124, 5)?,
             cycle_data:                               RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

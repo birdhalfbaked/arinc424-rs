@@ -1,7 +1,10 @@
 use crate::parsers::arinc424::rev18_faa::definitions::*;
+
 use crate::parsers::arinc424::rev18_faa::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct AirportCommsRecords;
 impl AirportCommsRecords {
     const CONTINUATION_COLUMN: usize = 26;
@@ -49,6 +52,8 @@ fn parse_communications_frequency<'a>(
         CommunicationsFrequency::parse(unit_bytes, communications_frequency_bytes)?;
     Ok(RecordField {
         raw_bytes: communications_frequency_bytes,
+        start_column: 16,
+        end_column: 23,
         value: communications_frequency,
     })
 }
@@ -96,8 +101,12 @@ pub struct AirportCommsPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> AirportCommsPrimaryRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for AirportCommsPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "AirportCommsPrimaryRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
 
         let communications_frequency = parse_communications_frequency(input)?;
 
@@ -141,6 +150,10 @@ impl<'a> AirportCommsPrimaryRecord<'a> {
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
+    }
 }
 
 // 4.1.14.2 Airport Communications Sector Narrative Continuation Record
@@ -164,8 +177,12 @@ pub struct AirportCommsSectorNarrativeContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> AirportCommsSectorNarrativeContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for AirportCommsSectorNarrativeContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "AirportCommsSectorNarrativeContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         let communications_frequency = parse_communications_frequency(input)?;
         Ok(Self {
             record_type:                      RecordField::from_bytes(input, 1, 1)?,
@@ -184,6 +201,10 @@ impl<'a> AirportCommsSectorNarrativeContinuationRecord<'a> {
             file_record_number:               RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                       RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -217,8 +238,12 @@ pub struct AirportCommsTimeContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> AirportCommsTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for AirportCommsTimeContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "AirportCommsTimeContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         let communications_frequency = parse_communications_frequency(input)?;
         Ok(Self {
             record_type:                            RecordField::from_bytes(input, 1, 1)?,
@@ -246,5 +271,9 @@ impl<'a> AirportCommsTimeContinuationRecord<'a> {
             file_record_number:                     RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                             RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

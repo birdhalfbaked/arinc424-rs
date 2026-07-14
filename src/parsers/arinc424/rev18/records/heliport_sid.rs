@@ -1,7 +1,10 @@
 use crate::parsers::arinc424::rev18::definitions::*;
+
 use crate::parsers::arinc424::rev18::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct HeliportSIDRecords;
 impl HeliportSIDRecords {
     const CONTINUATION_COLUMN: usize = 39;
@@ -23,7 +26,10 @@ impl HeliportSIDRecords {
                             HeliportSIDFlightPlanningContinuationRecord::parse(input)?,
                         ))
                     }
-                    _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
+                    _ => Err(RecordParseError::new(
+                        "Invalid continuation record application type".to_string(),
+                        Some(String::from_utf8_lossy(input).into_owned()),
+                    )),
                 }
             } else {
                 Ok(ARINCRecord::HeliportSIDChangedDataContinuation(
@@ -85,8 +91,12 @@ pub struct HeliportSIDPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl <'a> HeliportSIDPrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for HeliportSIDPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "HeliportSIDPrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                          RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                   RecordField::from_bytes(input, 2, 3)?,
@@ -135,6 +145,10 @@ impl <'a> HeliportSIDPrimaryRecord<'a> {
             cycle_date:                           RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
+    }
 }
 
 /// 4.1.9.3(A) Airport SID Flight Planning Continuation Record
@@ -164,8 +178,12 @@ pub struct HeliportSIDFlightPlanningContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl <'a> HeliportSIDFlightPlanningContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for HeliportSIDFlightPlanningContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "HeliportSIDFlightPlanningContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                        RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                 RecordField::from_bytes(input, 2, 3)?,
@@ -189,6 +207,10 @@ impl <'a> HeliportSIDFlightPlanningContinuationRecord<'a> {
             file_record_number:                 RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                         RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 

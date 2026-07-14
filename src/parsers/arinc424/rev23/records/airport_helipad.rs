@@ -1,7 +1,10 @@
 use crate::parsers::arinc424::rev23::records::record::ARINCRecord;
-use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+
 use crate::parsers::arinc424::rev23::definitions::*;
+use crate::parsers::arinc424::types::fields::ParseableField;
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct AirportHelipadRecords;
 impl AirportHelipadRecords {
     const CONTINUATION_COLUMN: usize = 22;
@@ -12,7 +15,10 @@ impl AirportHelipadRecords {
                 HelipadPrimaryRecord::parse(input)?,
             ))
         } else {
-            Err(RecordParseError::new("Invalid record type".to_string(), Some(String::from_utf8_lossy(input).into_owned())))
+            Err(RecordParseError::new(
+                "Invalid record type".to_string(),
+                Some(String::from_utf8_lossy(input).into_owned()),
+            ))
         }
     }
 }
@@ -54,7 +60,10 @@ fn parse_pad_dimensions<'a>(
         }
         Some(HelipadShape::Undefined) => None,
         None => {
-            return Err(RecordParseError::new("Invalid helipad shape".to_string(), Some(String::from_utf8_lossy(input).into_owned())));
+            return Err(RecordParseError::new(
+                "Invalid helipad shape".to_string(),
+                Some(String::from_utf8_lossy(input).into_owned()),
+            ));
         }
     };
     let fato_dimension_value = match HelipadShape::from_bytes(shape_bytes)? {
@@ -79,7 +88,10 @@ fn parse_pad_dimensions<'a>(
         }
         Some(HelipadShape::Undefined) => None,
         None => {
-            return Err(RecordParseError::new("Invalid helipad shape".to_string(), Some(String::from_utf8_lossy(input).into_owned())));
+            return Err(RecordParseError::new(
+                "Invalid helipad shape".to_string(),
+                Some(String::from_utf8_lossy(input).into_owned()),
+            ));
         }
     };
     let safety_area_dimension_value = match HelipadShape::from_bytes(shape_bytes)? {
@@ -104,7 +116,10 @@ fn parse_pad_dimensions<'a>(
         }
         Some(HelipadShape::Undefined) => None,
         None => {
-            return Err(RecordParseError::new("Invalid helipad shape".to_string(), Some(String::from_utf8_lossy(input).into_owned())));
+            return Err(RecordParseError::new(
+                "Invalid helipad shape".to_string(),
+                Some(String::from_utf8_lossy(input).into_owned()),
+            ));
         }
     };
 
@@ -112,14 +127,20 @@ fn parse_pad_dimensions<'a>(
         RecordField {
             raw_bytes: tlof_dimension_bytes,
             value: tlof_dimension_value,
+            start_column: 23,
+            end_column: 30,
         },
         RecordField {
             raw_bytes: fato_dimension_bytes,
             value: fato_dimension_value,
+            start_column: 70,
+            end_column: 77,
         },
         RecordField {
             raw_bytes: safety_area_dimension_bytes,
             value: safety_area_dimension_value,
+            start_column: 78,
+            end_column: 85,
         },
     ))
 }
@@ -158,11 +179,14 @@ pub struct HelipadPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> HelipadPrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for HelipadPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "HelipadPrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
 
         let (tlof_dimensions, fato_dimensions, safety_area_dimensions) = parse_pad_dimensions(input)?;
-
 
         Ok(Self {
             record_type:                       RecordField::from_bytes(input, 1, 1)?,
@@ -194,5 +218,9 @@ impl<'a> HelipadPrimaryRecord<'a> {
             file_record_number:                RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                        RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

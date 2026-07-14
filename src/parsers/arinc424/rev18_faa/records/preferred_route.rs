@@ -1,7 +1,10 @@
 use crate::parsers::arinc424::rev18_faa::definitions::*;
+
 use crate::parsers::arinc424::rev18_faa::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct PreferredRouteRecords;
 impl PreferredRouteRecords {
     const CONTINUATION_COLUMN: usize = 39;
@@ -72,8 +75,12 @@ pub struct PreferredRoutePrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> PreferredRoutePrimaryRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for PreferredRoutePrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "PreferredRoutePrimaryRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(PreferredRoutePrimaryRecord {
             record_type:                      RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:               RecordField::from_bytes(input, 2, 3)?,
@@ -112,6 +119,10 @@ impl<'a> PreferredRoutePrimaryRecord<'a> {
             cycle_date:                       RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
+    }
 }
 
 /// 4.1.24.2 Preferred Route Time Continuation Record
@@ -140,8 +151,12 @@ pub struct PreferredRouteTimeContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> PreferredRouteTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for PreferredRouteTimeContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "PreferredRouteTimeContinuationRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(PreferredRouteTimeContinuationRecord {
             record_type:                  RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:           RecordField::from_bytes(input, 2, 3)?,
@@ -165,6 +180,10 @@ impl<'a> PreferredRouteTimeContinuationRecord<'a> {
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
+    }
 }
 
 /// 4.1.24.3 Preferred Route Continuation Record
@@ -185,8 +204,12 @@ pub struct PreferredRouteContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> PreferredRouteContinuationRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for PreferredRouteContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "PreferredRouteContinuationRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(PreferredRouteContinuationRecord {
             record_type:                  RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:           RecordField::from_bytes(input, 2, 3)?,
@@ -201,5 +224,9 @@ impl<'a> PreferredRouteContinuationRecord<'a> {
             file_record_number:           RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

@@ -5,6 +5,7 @@
 //!
 
 use crate::parsers::arinc424::rev23::records::*;
+
 use crate::parsers::arinc424::types::fields::BLANK;
 use crate::parsers::arinc424::types::records::RecordParseError;
 
@@ -394,7 +395,10 @@ impl<'a> ARINCRecord<'a> {
             [b'U', b'C'] => ControlledAirspaceRecords::parse(input),
             [b'U', b'F'] => FIRUIRRecords::parse(input),
             [b'U', b'R'] => RestrictiveAirspaceRecords::parse(input),
-            _ => Err(RecordParseError::new("Invalid record type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
+            _ => Err(RecordParseError::new(
+                "Invalid record type".to_string(),
+                Some(String::from_utf8_lossy(input).into_owned()),
+            )),
         }
     }
 }

@@ -1,8 +1,10 @@
-
 use crate::parsers::arinc424::rev23::records::record::ARINCRecord;
-use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError};
+
 use crate::parsers::arinc424::rev23::definitions::*;
+use crate::parsers::arinc424::types::fields::ParseableField;
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError,
+};
 pub(super) struct HelicopterCompanyRouteRecords;
 impl HelicopterCompanyRouteRecords {
     const VIA_COLUMN: usize = 50;
@@ -40,7 +42,10 @@ impl HelicopterCompanyRouteRecords {
                 ),
             })
         } else {
-            Err(RecordParseError::new("Invalid company route VIA code".to_string(), Some(String::from_utf8_lossy(input).into_owned())))
+            Err(RecordParseError::new(
+                "Invalid company route VIA code".to_string(),
+                Some(String::from_utf8_lossy(input).into_owned()),
+            ))
         }
     }
 }
@@ -91,8 +96,12 @@ pub struct HelicopterCompanySIDRoutePrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> HelicopterCompanySIDRoutePrimaryRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for HelicopterCompanySIDRoutePrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "HelicopterCompanySIDRoutePrimaryRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(HelicopterCompanySIDRoutePrimaryRecord {
             record_type:                                      RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                               RecordField::from_bytes(input, 2,3)?,
@@ -135,6 +144,10 @@ impl<'a> HelicopterCompanySIDRoutePrimaryRecord<'a> {
             file_record_number:                               RecordField::from_bytes(input, 124,5)?,
             cycle_date:                                       RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -184,8 +197,12 @@ pub struct HelicopterCompanySTARRoutePrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> HelicopterCompanySTARRoutePrimaryRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for HelicopterCompanySTARRoutePrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "HelicopterCompanySTARRoutePrimaryRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(HelicopterCompanySTARRoutePrimaryRecord {
             record_type:                                      RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                               RecordField::from_bytes(input, 2,3)?,
@@ -228,6 +245,10 @@ impl<'a> HelicopterCompanySTARRoutePrimaryRecord<'a> {
             file_record_number:                               RecordField::from_bytes(input, 124,5)?,
             cycle_date:                                       RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -279,8 +300,12 @@ pub struct HelicopterCompanyApproachRoutePrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> HelicopterCompanyApproachRoutePrimaryRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for HelicopterCompanyApproachRoutePrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "HelicopterCompanyApproachRoutePrimaryRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(HelicopterCompanyApproachRoutePrimaryRecord {
             record_type:                                      RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                               RecordField::from_bytes(input, 2,3)?,
@@ -323,6 +348,10 @@ impl<'a> HelicopterCompanyApproachRoutePrimaryRecord<'a> {
             file_record_number:                               RecordField::from_bytes(input, 124,5)?,
             cycle_date:                                       RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -370,8 +399,12 @@ pub struct HelicopterCompanyAirwayRoutePrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> HelicopterCompanyAirwayRoutePrimaryRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for HelicopterCompanyAirwayRoutePrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "HelicopterCompanyAirwayRoutePrimaryRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(HelicopterCompanyAirwayRoutePrimaryRecord {
             record_type:                                      RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                               RecordField::from_bytes(input, 2,3)?,
@@ -412,6 +445,10 @@ impl<'a> HelicopterCompanyAirwayRoutePrimaryRecord<'a> {
             file_record_number:                               RecordField::from_bytes(input, 124,5)?,
             cycle_date:                                       RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -457,8 +494,12 @@ pub struct HelicopterCompanyGeneralRoutePrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> HelicopterCompanyGeneralRoutePrimaryRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for HelicopterCompanyGeneralRoutePrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "HelicopterCompanyGeneralRoutePrimaryRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(HelicopterCompanyGeneralRoutePrimaryRecord {
             record_type:                                      RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                               RecordField::from_bytes(input, 2,3)?,
@@ -495,5 +536,9 @@ impl<'a> HelicopterCompanyGeneralRoutePrimaryRecord<'a> {
             file_record_number:                               RecordField::from_bytes(input, 124,5)?,
             cycle_date:                                       RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

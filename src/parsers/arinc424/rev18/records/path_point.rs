@@ -1,7 +1,10 @@
 use crate::parsers::arinc424::rev18::definitions::*;
+
 use crate::parsers::arinc424::rev18::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct PathPointRecords;
 impl PathPointRecords {
     const CONTINUATION_COLUMN: usize = 27;
@@ -91,6 +94,8 @@ fn parse_path_point_tch<'a>(
             }
         },
         raw_bytes: tch_value_bytes,
+        start_column: 102,
+        end_column: 108,
     };
     Ok(tch_value)
 }
@@ -131,8 +136,12 @@ pub struct AirportPathPointPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> AirportPathPointPrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for AirportPathPointPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "AirportPathPointPrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         let tch_value = parse_path_point_tch(input)?;
         Ok(Self {
             record_type:                                RecordField::from_bytes(input, 1, 1)?,
@@ -166,6 +175,10 @@ impl<'a> AirportPathPointPrimaryRecord<'a> {
             file_record_number:                         RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                                 RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -205,8 +218,12 @@ pub struct HeliportPathPointPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> HeliportPathPointPrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for HeliportPathPointPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "HeliportPathPointPrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         let tch_value = parse_path_point_tch(input)?;
         Ok(Self {
             record_type:                                RecordField::from_bytes(input, 1, 1)?,
@@ -241,6 +258,10 @@ impl<'a> HeliportPathPointPrimaryRecord<'a> {
             cycle_date:                                 RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
+    }
 }
 
 /// 4.1.28.2(A) Airport Path Point Continuation Record
@@ -268,8 +289,12 @@ pub struct AirportPathPointContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> AirportPathPointContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for AirportPathPointContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "AirportPathPointContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                                RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                         RecordField::from_bytes(input, 2, 3)?,
@@ -291,6 +316,10 @@ impl<'a> AirportPathPointContinuationRecord<'a> {
             file_record_number:                         RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                                 RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -319,8 +348,12 @@ pub struct HeliportPathPointContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> HeliportPathPointContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for HeliportPathPointContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "HeliportPathPointContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                                RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                         RecordField::from_bytes(input, 2, 3)?,
@@ -342,5 +375,9 @@ impl<'a> HeliportPathPointContinuationRecord<'a> {
             file_record_number:                         RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                                 RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

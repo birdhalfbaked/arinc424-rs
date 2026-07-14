@@ -1,6 +1,9 @@
 use crate::parsers::arinc424::rev23::records::record::ARINCRecord;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+
 use crate::parsers::arinc424::rev23::definitions::*;
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct ATNRecords;
 impl ATNRecords {
     const CONTINUATION_COLUMN: usize = 19;
@@ -11,7 +14,10 @@ impl ATNRecords {
                 input,
             )?))
         } else {
-            Err(RecordParseError::new("Invalid record type".to_string(), Some(String::from_utf8_lossy(input).into_owned())))
+            Err(RecordParseError::new(
+                "Invalid record type".to_string(),
+                Some(String::from_utf8_lossy(input).into_owned()),
+            ))
         }
     }
 }
@@ -42,8 +48,12 @@ pub struct ATNDataPrimaryRecord<'a> {
     pub cycle_date: RecordField<'a, CycleDate>,
 }
 
-impl<'a> ATNDataPrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for ATNDataPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "ATNDataPrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type: RecordField::from_bytes(input, 1, 1)?,
             section: RecordField::from_bytes(input, 5, 1)?,
@@ -65,5 +75,9 @@ impl<'a> ATNDataPrimaryRecord<'a> {
             file_record_number: RecordField::from_bytes(input, 124, 5)?,
             cycle_date: RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

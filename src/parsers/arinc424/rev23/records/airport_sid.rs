@@ -1,8 +1,10 @@
-
 use crate::parsers::arinc424::rev23::records::record::ARINCRecord;
-use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+
 use crate::parsers::arinc424::rev23::definitions::*;
+use crate::parsers::arinc424::types::fields::ParseableField;
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct AirportSIDRecords;
 impl AirportSIDRecords {
     const CONTINUATION_COLUMN: usize = 39;
@@ -94,8 +96,12 @@ pub struct AirportSIDPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl <'a> AirportSIDPrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for AirportSIDPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "AirportSIDPrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                          RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                   RecordField::from_bytes(input, 2, 3)?,
@@ -149,6 +155,10 @@ impl <'a> AirportSIDPrimaryRecord<'a> {
             cycle_date:                           RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
+    }
 }
 
 #[derive(Debug)]
@@ -199,8 +209,12 @@ pub struct AirportSIDPrimaryExtensionContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl <'a> AirportSIDPrimaryExtensionContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for AirportSIDPrimaryExtensionContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "AirportSIDPrimaryExtensionContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                        RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                 RecordField::from_bytes(input, 2, 3)?,
@@ -247,6 +261,10 @@ impl <'a> AirportSIDPrimaryExtensionContinuationRecord<'a> {
             cycle_date:                         RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
+    }
 }
 
 #[derive(Debug)]
@@ -278,8 +296,12 @@ pub struct AirportSIDFlightPlanningContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl <'a> AirportSIDFlightPlanningContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for AirportSIDFlightPlanningContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "AirportSIDFlightPlanningContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                        RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                 RecordField::from_bytes(input, 2, 3)?,
@@ -306,6 +328,10 @@ impl <'a> AirportSIDFlightPlanningContinuationRecord<'a> {
             file_record_number:                 RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                         RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -337,8 +363,12 @@ pub struct AirportSIDProcedureNameContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl <'a> AirportSIDProcedureNameContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for AirportSIDProcedureNameContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "AirportSIDProcedureNameContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                        RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                 RecordField::from_bytes(input, 2, 3)?,
@@ -364,5 +394,9 @@ impl <'a> AirportSIDProcedureNameContinuationRecord<'a> {
             file_record_number:                 RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                         RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

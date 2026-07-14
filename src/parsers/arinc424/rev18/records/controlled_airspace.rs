@@ -1,7 +1,10 @@
 use crate::parsers::arinc424::rev18::definitions::*;
+
 use crate::parsers::arinc424::rev18::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct ControlledAirspaceRecords;
 impl ControlledAirspaceRecords {
     const CONTINUATION_COLUMN: usize = 25;
@@ -65,8 +68,12 @@ pub struct ControlledAirspacePrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> ControlledAirspacePrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for ControlledAirspacePrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "ControlledAirspacePrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                  RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:           RecordField::from_bytes(input, 2, 3)?,
@@ -100,6 +107,10 @@ impl<'a> ControlledAirspacePrimaryRecord<'a> {
             file_record_number:           RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -136,8 +147,12 @@ pub struct ControlledAirspaceControllingAgencyAndTimeContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> ControlledAirspaceControllingAgencyAndTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for ControlledAirspaceControllingAgencyAndTimeContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "ControlledAirspaceControllingAgencyAndTimeContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                  RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:           RecordField::from_bytes(input, 2, 3)?,
@@ -167,5 +182,9 @@ impl<'a> ControlledAirspaceControllingAgencyAndTimeContinuationRecord<'a> {
             file_record_number:           RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

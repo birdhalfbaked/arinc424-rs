@@ -1,7 +1,10 @@
 use crate::parsers::arinc424::rev18_faa::definitions::*;
+
 use crate::parsers::arinc424::rev18_faa::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct EnrouteCommsRecords;
 impl EnrouteCommsRecords {
     const CONTINUATION_COLUMN: usize = 22;
@@ -46,6 +49,8 @@ fn parse_communications_frequency<'a>(
         CommunicationsFrequency::parse(unit_bytes, communications_frequency_bytes)?;
     Ok(RecordField {
         raw_bytes: communications_frequency_bytes,
+        start_column: 46,
+        end_column: 53,
         value: communications_frequency,
     })
 }
@@ -87,8 +92,12 @@ pub struct EnrouteCommsPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> EnrouteCommsPrimaryRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for EnrouteCommsPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "EnrouteCommsPrimaryRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         let comms_frequency = parse_communications_frequency(input)?;
         Ok(Self {
             record_type:                  RecordField::from_bytes(input, 1, 1)?,
@@ -124,6 +133,10 @@ impl<'a> EnrouteCommsPrimaryRecord<'a> {
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
+    }
 }
 
 // 4.1.23.2 Enroute Communications Callsign And Time Continuation Record
@@ -153,8 +166,12 @@ pub struct EnrouteCommsCallsignAndTimeContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> EnrouteCommsCallsignAndTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for EnrouteCommsCallsignAndTimeContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "EnrouteCommsCallsignAndTimeContinuationRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         let comms_frequency = parse_communications_frequency(input)?;
         Ok(Self {
             record_type:                  RecordField::from_bytes(input, 1, 1)?,
@@ -179,6 +196,10 @@ impl<'a> EnrouteCommsCallsignAndTimeContinuationRecord<'a> {
             file_record_number:           RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -210,8 +231,12 @@ pub struct EnrouteCommsTimeContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> EnrouteCommsTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for EnrouteCommsTimeContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "EnrouteCommsTimeContinuationRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         let comms_frequency = parse_communications_frequency(input)?;
         Ok(Self {
             record_type:                  RecordField::from_bytes(input, 1, 1)?,
@@ -237,5 +262,9 @@ impl<'a> EnrouteCommsTimeContinuationRecord<'a> {
             file_record_number:           RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

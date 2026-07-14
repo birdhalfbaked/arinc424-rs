@@ -10,6 +10,7 @@
 #[cfg(test)]
 use crate::test_util::assert_within_epsilon;
 use std::convert::Into;
+use std::fmt::Debug;
 use std::str::FromStr;
 
 pub trait ParseableField: Sized {
@@ -665,14 +666,8 @@ impl<const LEN: usize, const EXACT: bool> ParseableField for LengthLimitedIdenti
     }
 }
 
-impl<const LEN: usize, const EXACT: bool> Into<Box<str>> for LengthLimitedIdentifier<LEN, EXACT> {
-    fn into(self: LengthLimitedIdentifier<LEN, EXACT>) -> Box<str> {
-        self.0
-    }
-}
-
-impl<const LEN: usize, const EXACT: bool> Into<String> for LengthLimitedIdentifier<LEN, EXACT> {
-    fn into(self: LengthLimitedIdentifier<LEN, EXACT>) -> String {
-        self.0.into()
+impl<const LEN: usize, const EXACT: bool> AsRef<str> for LengthLimitedIdentifier<LEN, EXACT> {
+    fn as_ref(&self) -> &str {
+        self.0.as_ref()
     }
 }
