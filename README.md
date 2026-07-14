@@ -47,7 +47,7 @@ The ARINC 424 parser is designed for efficient memory use: parsed records borrow
 
 Example:
 
-```
+```rust
 use lib_airnav::parsers::arinc424::parser::{Arinc424Parser, Arinc424Version};
 
 use std::fs::File;
