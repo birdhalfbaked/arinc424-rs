@@ -152,7 +152,28 @@ impl<'a> Arinc424RecordSpec<'a> for HeliportCommsPrimaryRecord<'a> {
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.sector_facility.value.is_none() {
+            validation_result.extend_messages(
+                "sector facility reference",
+                is_valid_reference(
+                    &self.sector_facility,
+                    &self.sector_facility_section,
+                    &self.sector_facility_subsection,
+                ),
+            );
+        }
+        if !self.remote_facility.value.is_none() {
+            validation_result.extend_messages(
+                "remote facility reference",
+                is_valid_reference(
+                    &self.remote_facility,
+                    &self.remote_facility_section,
+                    &self.remote_facility_subsection,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }
 

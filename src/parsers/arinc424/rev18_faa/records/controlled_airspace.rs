@@ -110,7 +110,18 @@ impl<'a> Arinc424RecordSpec<'a> for ControlledAirspacePrimaryRecord<'a> {
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.airspace_center.value.is_none() {
+            validation_result.extend_messages(
+                "airspace center reference",
+                is_valid_reference(
+                    &self.airspace_center,
+                    &self.section_code,
+                    &self.subsection_code,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }
 
@@ -185,6 +196,17 @@ impl<'a> Arinc424RecordSpec<'a> for ControlledAirspaceControllingAgencyAndTimeCo
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.airspace_center.value.is_none() {
+            validation_result.extend_messages(
+                "airspace center reference",
+                is_valid_reference(
+                    &self.airspace_center,
+                    &self.section_code,
+                    &self.subsection_code,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }

@@ -74,12 +74,12 @@ pub struct PreferredRoutePrimaryRecord<'a> {
     pub cycle_date: RecordField<'a, CycleDate>,
 }
 
-#[rustfmt::skip]
 impl<'a> Arinc424RecordSpec<'a> for PreferredRoutePrimaryRecord<'a> {
     fn record_name() -> &'static str {
         "PreferredRoutePrimaryRecord"
     }
-
+    
+    #[rustfmt::skip]
     fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(PreferredRoutePrimaryRecord {
             record_type:                      RecordField::from_bytes(input, 1, 1)?,
@@ -121,7 +121,38 @@ impl<'a> Arinc424RecordSpec<'a> for PreferredRoutePrimaryRecord<'a> {
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.to_fix_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "to fix identifier reference",
+                is_valid_reference(
+                    &self.to_fix_identifier,
+                    &self.to_fix_section_code,
+                    &self.to_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.initial_point.value.is_none() {
+            validation_result.extend_messages(
+                "initial point reference",
+                is_valid_reference(
+                    &self.initial_point,
+                    &self.initial_point_section_code,
+                    &self.initial_point_subsection_code,
+                ),
+            );
+        }
+        if !self.terminus_point.value.is_none() {
+            validation_result.extend_messages(
+                "terminus point reference",
+                is_valid_reference(
+                    &self.terminus_point,
+                    &self.terminus_point_section_code,
+                    &self.terminus_point_subsection_code,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }
 

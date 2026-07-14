@@ -63,12 +63,12 @@ pub struct HoldingPatternPrimaryRecord<'a> {
     pub cycle_date: RecordField<'a, CycleDate>,
 }
 
-#[rustfmt::skip]
 impl<'a> Arinc424RecordSpec<'a> for HoldingPatternPrimaryRecord<'a> {
     fn record_name() -> &'static str {
         "HoldingPatternPrimaryRecord"
     }
-
+    
+    #[rustfmt::skip]
     fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                                RecordField::from_bytes(input, 1, 1)?,
@@ -99,7 +99,18 @@ impl<'a> Arinc424RecordSpec<'a> for HoldingPatternPrimaryRecord<'a> {
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.fix_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "fix identifier reference",
+                is_valid_reference(
+                    &self.fix_identifier,
+                    &self.fix_section_code,
+                    &self.fix_subsection_code,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }
 
@@ -152,6 +163,17 @@ impl<'a> Arinc424RecordSpec<'a> for HoldingPatternContinuationRecord<'a> {
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.fix_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "fix identifier reference",
+                is_valid_reference(
+                    &self.fix_identifier,
+                    &self.fix_section_code,
+                    &self.fix_subsection_code,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }

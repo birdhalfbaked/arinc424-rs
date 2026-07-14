@@ -8,7 +8,7 @@ use crate::parsers::arinc424::types::fields::LengthLimitedIdentifier;
 pub fn is_valid_reference(
     reference: &RecordField<impl ParseableField>,
     section: &RecordField<Section>,
-    subsection: &RecordField<GenericSubsection>,
+    subsection: &RecordField<impl ParseableField>,
 ) -> Vec<RecordValidationMessage> {
     let mut messages = Vec::new();
     let field_positions = vec![

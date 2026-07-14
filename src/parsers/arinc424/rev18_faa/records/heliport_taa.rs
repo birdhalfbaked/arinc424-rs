@@ -74,12 +74,12 @@ pub struct HeliportTAAPrimaryRecord<'a> {
     pub cycle_date: RecordField<'a, CycleDate>,
 }
 
-#[rustfmt::skip]
 impl<'a> Arinc424RecordSpec<'a> for HeliportTAAPrimaryRecord<'a> {
     fn record_name() -> &'static str {
         "HeliportTAAPrimaryRecord"
     }
-
+    
+    #[rustfmt::skip]
     fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                             RecordField::from_bytes(input, 1, 1)?,
@@ -121,7 +121,18 @@ impl<'a> Arinc424RecordSpec<'a> for HeliportTAAPrimaryRecord<'a> {
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.taa_waypoint.value.is_none() {
+            validation_result.extend_messages(
+                "taa waypoint reference",
+                is_valid_reference(
+                    &self.taa_waypoint,
+                    &self.taa_waypoint_section,
+                    &self.taa_waypoint_subsection,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }
 
@@ -148,12 +159,12 @@ pub struct HeliportTAAContinuationRecord<'a> {
     pub cycle_date: RecordField<'a, CycleDate>,
 }
 
-#[rustfmt::skip]
 impl<'a> Arinc424RecordSpec<'a> for HeliportTAAContinuationRecord<'a> {
     fn record_name() -> &'static str {
         "HeliportTAAContinuationRecord"
     }
-
+    
+    #[rustfmt::skip]
     fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                             RecordField::from_bytes(input, 1, 1)?,
@@ -178,6 +189,17 @@ impl<'a> Arinc424RecordSpec<'a> for HeliportTAAContinuationRecord<'a> {
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.taa_waypoint.value.is_none() {
+            validation_result.extend_messages(
+                "taa waypoint reference",
+                is_valid_reference(
+                    &self.taa_waypoint,
+                    &self.taa_waypoint_section,
+                    &self.taa_waypoint_subsection,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }

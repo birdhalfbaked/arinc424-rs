@@ -88,6 +88,17 @@ impl<'a> Arinc424RecordSpec<'a> for AlternatePrimaryRecord<'a> {
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.relation_airport_or_fix.value.is_none() {
+            validation_result.extend_messages(
+                "relation airport or fix reference",
+                is_valid_reference(
+                    &self.relation_airport_or_fix,
+                    &self.relation_section,
+                    &self.relation_subsection,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }

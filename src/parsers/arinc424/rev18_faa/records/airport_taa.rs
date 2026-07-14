@@ -121,7 +121,18 @@ impl<'a> Arinc424RecordSpec<'a> for AirportTAAPrimaryRecord<'a> {
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.taa_waypoint.value.is_none() {
+            validation_result.extend_messages(
+                "taa waypoint reference",
+                is_valid_reference(
+                    &self.taa_waypoint,
+                    &self.taa_waypoint_section,
+                    &self.taa_waypoint_subsection,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }
 
@@ -178,6 +189,17 @@ impl<'a> Arinc424RecordSpec<'a> for AirportTAAContinuationRecord<'a> {
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.taa_waypoint.value.is_none() {
+            validation_result.extend_messages(
+                "taa waypoint reference",
+                is_valid_reference(
+                    &self.taa_waypoint,
+                    &self.taa_waypoint_section,
+                    &self.taa_waypoint_subsection,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }

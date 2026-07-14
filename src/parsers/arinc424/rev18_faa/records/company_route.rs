@@ -93,6 +93,37 @@ impl<'a> Arinc424RecordSpec<'a> for CompanyRoutePrimaryRecord<'a> {
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.from_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "from identifier reference",
+                is_valid_reference(
+                    &self.from_identifier,
+                    &self.from_section_code,
+                    &self.from_subsection_code,
+                ),
+            );
+        }
+        if !self.to_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "to identifier reference",
+                is_valid_reference(
+                    &self.to_identifier,
+                    &self.to_section_code,
+                    &self.to_subsection_code,
+                ),
+            );
+        }
+        if !self.to_fix.value.is_none() {
+            validation_result.extend_messages(
+                "to fix reference",
+                is_valid_reference(
+                    &self.to_fix,
+                    &self.to_fix_section,
+                    &self.to_fix_subsection,
+                ),  
+            );
+        }
+        validation_result.as_result()
     }
 }

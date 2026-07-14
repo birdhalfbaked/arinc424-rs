@@ -69,12 +69,12 @@ pub struct MLSPrimaryRecord<'a> {
     pub cycle_data: RecordField<'a, CycleDate>,
 }
 
-#[rustfmt::skip]
 impl<'a> Arinc424RecordSpec<'a> for MLSPrimaryRecord<'a> {
     fn record_name() -> &'static str {
         "MLSPrimaryRecord"
     }
-
+    
+    #[rustfmt::skip]
     fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                        RecordField::from_bytes(input, 1, 1)?,
@@ -115,7 +115,18 @@ impl<'a> Arinc424RecordSpec<'a> for MLSPrimaryRecord<'a> {
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.supporting_facility_id.value.is_none() {
+            validation_result.extend_messages(
+                "supporting facility reference",
+                is_valid_reference(
+                    &self.supporting_facility_id,
+                    &self.supporting_facility_section,
+                    &self.supporting_facility_subsection,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }
 

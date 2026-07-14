@@ -123,7 +123,16 @@ impl<'a> Arinc424RecordSpec<'a> for AirportMSAPrimaryRecord<'a> {
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        validation_result.extend_messages(
+            "msa center reference",
+            is_valid_reference(
+                &self.msa_center,
+                &self.msa_center_section_code,
+                &self.msa_center_subsection_code,
+            ),
+        );
+        validation_result.as_result()
     }
 }
 
@@ -176,6 +185,15 @@ impl<'a> Arinc424RecordSpec<'a> for AirportMSAContinuationRecord<'a> {
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        validation_result.extend_messages(
+            "msa center reference",
+            is_valid_reference(
+                &self.msa_center,
+                &self.msa_center_section_code,
+                &self.msa_center_subsection_code,
+            ),
+        );
+        validation_result.as_result()
     }
 }

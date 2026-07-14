@@ -188,7 +188,38 @@ impl<'a> Arinc424RecordSpec<'a> for FlightPlanningSIDSTARPrimaryRecord<'a> {
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.runway_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "runway transition fix reference",
+                is_valid_reference(
+                    &self.runway_transition_fix,
+                    &self.runway_transition_fix_section_code,
+                    &self.runway_transition_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.common_segment_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "common segment transition fix reference",
+                is_valid_reference(
+                    &self.common_segment_transition_fix,
+                    &self.common_segment_transition_fix_section_code,
+                    &self.common_segment_transition_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.enroute_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "enroute transition fix reference",
+                is_valid_reference(
+                    &self.enroute_transition_fix,
+                    &self.enroute_transition_fix_section_code,
+                    &self.enroute_transition_fix_subsection_code,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }
 
@@ -299,7 +330,38 @@ impl<'a> Arinc424RecordSpec<'a> for FlightPlanningApproachPrimaryRecord<'a> {
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.runway_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "runway transition fix reference",
+                is_valid_reference(
+                    &self.runway_transition_fix,
+                    &self.runway_transition_fix_section_code,
+                    &self.runway_transition_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.common_segment_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "common segment transition fix reference",
+                is_valid_reference(
+                    &self.common_segment_transition_fix,
+                    &self.common_segment_transition_fix_section_code,
+                    &self.common_segment_transition_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.enroute_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "enroute transition fix reference",
+                is_valid_reference(
+                    &self.enroute_transition_fix,
+                    &self.enroute_transition_fix_section_code,
+                    &self.enroute_transition_fix_subsection_code,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }
 
@@ -428,7 +490,80 @@ impl<'a> Arinc424RecordSpec<'a> for FlightPlanningSIDSTARContinuationRecord<'a> 
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.runway_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "runway transition fix reference",
+                is_valid_reference(
+                    &self.runway_transition_fix,
+                    &self.runway_transition_fix_section_code,
+                    &self.runway_transition_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.common_segment_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "common segment transition fix reference",
+                is_valid_reference(
+                    &self.common_segment_transition_fix,
+                    &self.common_segment_transition_fix_section_code,
+                    &self.common_segment_transition_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.enroute_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "enroute transition fix reference",
+                is_valid_reference(
+                    &self.enroute_transition_fix,
+                    &self.enroute_transition_fix_section_code,
+                    &self.enroute_transition_fix_subsection_code,
+                ),
+            );
+        }
+
+        if !self.intermediate_fix_1_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "intermediate fix 1 reference",
+                is_valid_reference(
+                    &self.intermediate_fix_1_identifier,
+                    &self.intermediate_fix_1_section_code,
+                    &self.intermediate_fix_1_subsection_code,
+                ),
+            );
+        }
+        if !self.intermediate_fix_2_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "intermediate fix 2 reference",
+                is_valid_reference(
+                    &self.intermediate_fix_2_identifier,
+                    &self.intermediate_fix_2_section_code,
+                    &self.intermediate_fix_2_subsection_code,
+                ),
+            );
+        }
+        if !self.intermediate_fix_3_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "intermediate fix 3 reference",
+                is_valid_reference(
+                    &self.intermediate_fix_3_identifier,
+                    &self.intermediate_fix_3_section_code,
+                    &self.intermediate_fix_3_subsection_code,
+                ),
+            );
+        }
+        if !self.intermediate_fix_4_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "intermediate fix 4 reference",
+                is_valid_reference(
+                    &self.intermediate_fix_4_identifier,
+                    &self.intermediate_fix_4_section_code,
+                    &self.intermediate_fix_4_subsection_code,
+                ),
+            );
+        }
+
+        validation_result.as_result()
     }
 }
 
@@ -557,7 +692,80 @@ impl<'a> Arinc424RecordSpec<'a> for FlightPlanningApproachContinuationRecord<'a>
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.runway_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "runway transition fix reference",
+                is_valid_reference(
+                    &self.runway_transition_fix,
+                    &self.runway_transition_fix_section_code,
+                    &self.runway_transition_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.common_segment_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "common segment transition fix reference",
+                is_valid_reference(
+                    &self.common_segment_transition_fix,
+                    &self.common_segment_transition_fix_section_code,
+                    &self.common_segment_transition_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.enroute_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "enroute transition fix reference",
+                is_valid_reference(
+                    &self.enroute_transition_fix,
+                    &self.enroute_transition_fix_section_code,
+                    &self.enroute_transition_fix_subsection_code,
+                ),
+            );
+        }
+
+        if !self.intermediate_fix_1_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "intermediate fix 1 reference",
+                is_valid_reference(
+                    &self.intermediate_fix_1_identifier,
+                    &self.intermediate_fix_1_section_code,
+                    &self.intermediate_fix_1_subsection_code,
+                ),
+            );
+        }
+        if !self.intermediate_fix_2_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "intermediate fix 2 reference",
+                is_valid_reference(
+                    &self.intermediate_fix_2_identifier,
+                    &self.intermediate_fix_2_section_code,
+                    &self.intermediate_fix_2_subsection_code,
+                ),
+            );
+        }
+        if !self.intermediate_fix_3_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "intermediate fix 3 reference",
+                is_valid_reference(
+                    &self.intermediate_fix_3_identifier,
+                    &self.intermediate_fix_3_section_code,
+                    &self.intermediate_fix_3_subsection_code,
+                ),
+            );
+        }
+        if !self.intermediate_fix_4_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "intermediate fix 4 reference",
+                is_valid_reference(
+                    &self.intermediate_fix_4_identifier,
+                    &self.intermediate_fix_4_section_code,
+                    &self.intermediate_fix_4_subsection_code,
+                ),
+            );
+        }
+
+        validation_result.as_result()
     }
 }
 
@@ -652,7 +860,38 @@ impl<'a> Arinc424RecordSpec<'a> for FlightPlanningSIDSTARTimeContinuationRecord<
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.runway_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "runway transition fix reference",
+                is_valid_reference(
+                    &self.runway_transition_fix,
+                    &self.runway_transition_fix_section_code,
+                    &self.runway_transition_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.common_segment_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "common segment transition fix reference",
+                is_valid_reference(
+                    &self.common_segment_transition_fix,
+                    &self.common_segment_transition_fix_section_code,
+                    &self.common_segment_transition_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.enroute_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "enroute transition fix reference",
+                is_valid_reference(
+                    &self.enroute_transition_fix,
+                    &self.enroute_transition_fix_section_code,
+                    &self.enroute_transition_fix_subsection_code,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }
 
@@ -747,6 +986,37 @@ impl<'a> Arinc424RecordSpec<'a> for FlightPlanningApproachTimeContinuationRecord
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.runway_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "runway transition fix reference",
+                is_valid_reference(
+                    &self.runway_transition_fix,
+                    &self.runway_transition_fix_section_code,
+                    &self.runway_transition_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.common_segment_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "common segment transition fix reference",
+                is_valid_reference(
+                    &self.common_segment_transition_fix,
+                    &self.common_segment_transition_fix_section_code,
+                    &self.common_segment_transition_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.enroute_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "enroute transition fix reference",
+                is_valid_reference(
+                    &self.enroute_transition_fix,
+                    &self.enroute_transition_fix_section_code,
+                    &self.enroute_transition_fix_subsection_code,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }

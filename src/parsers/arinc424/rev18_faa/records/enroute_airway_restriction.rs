@@ -204,7 +204,28 @@ impl<'a> Arinc424RecordSpec<'a> for EnrouteAirwayRestrictionAltitudeExclusionPri
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.start_fix_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "start fix identifier reference",
+                is_valid_reference(
+                    &self.start_fix_identifier,
+                    &self.start_fix_section_code,
+                    &self.start_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.end_fix_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "end fix identifier reference",
+                is_valid_reference(
+                    &self.end_fix_identifier,
+                    &self.end_fix_section_code,
+                    &self.end_fix_subsection_code,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }
 
@@ -354,7 +375,28 @@ impl<'a> Arinc424RecordSpec<'a> for EnrouteAirwayRestrictionNoteRestrictionPrima
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.start_fix_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "start fix identifier reference",
+                is_valid_reference(
+                    &self.start_fix_identifier,
+                    &self.start_fix_section_code,
+                    &self.start_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.end_fix_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "end fix identifier reference",
+                is_valid_reference(
+                    &self.end_fix_identifier,
+                    &self.end_fix_section_code,
+                    &self.end_fix_subsection_code,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }
 
@@ -472,7 +514,28 @@ impl<'a> Arinc424RecordSpec<'a> for EnrouteAirwayRestrictionSeasonalClosurePrima
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.start_fix_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "start fix identifier reference",
+                is_valid_reference(
+                    &self.start_fix_identifier,
+                    &self.start_fix_section_code,
+                    &self.start_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.end_fix_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "end fix identifier reference",
+                is_valid_reference(
+                    &self.end_fix_identifier,
+                    &self.end_fix_section_code,
+                    &self.end_fix_subsection_code,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }
 
@@ -547,7 +610,28 @@ impl<'a> Arinc424RecordSpec<'a> for EnrouteAirwayRestrictionCruisingTableReplace
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.start_fix_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "start fix identifier reference",
+                is_valid_reference(
+                    &self.start_fix_identifier,
+                    &self.start_fix_section_code,
+                    &self.start_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.end_fix_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "end fix identifier reference",
+                is_valid_reference(
+                    &self.end_fix_identifier,
+                    &self.end_fix_section_code,
+                    &self.end_fix_subsection_code,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }
 

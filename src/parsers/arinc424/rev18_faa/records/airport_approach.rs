@@ -178,14 +178,36 @@ impl<'a> Arinc424RecordSpec<'a> for AirportApproachMSACenterFixPrimaryRecord<'a>
 
     fn validate(&self) -> Result<(), RecordValidationError> {
         let mut validation_result = RecordValidationError::new(Self::record_name());
-        validation_result.extend_messages(
-            "fix reference",
-            is_valid_reference(
-                &self.fix_identifier,
-                &self.fix_section_code,
-                &self.fix_subsection_code,
-            ),
-        );
+        if !self.fix_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "fix reference",
+                is_valid_reference(
+                    &self.fix_identifier,
+                    &self.fix_section_code,
+                    &self.fix_subsection_code,
+                ),
+            );
+        }
+        if !self.recommended_navaid.value.is_none() {
+            validation_result.extend_messages(
+                "recommended navaid reference",
+                is_valid_reference(
+                    &self.recommended_navaid,
+                    &self.recommended_navaid_section_code,
+                    &self.recommended_navaid_subsection_code,
+                ),
+            );
+        }
+        if !self.center_fix.value.is_none() {
+            validation_result.extend_messages(
+                "center fix reference",
+                is_valid_reference(
+                    &self.center_fix,
+                    &self.center_fix_section_code,
+                    &self.center_fix_subsection_code,
+                ),
+            );
+        }
         validation_result.extend_messages(
             "route type and qualifier",
             is_valid_route_type_and_qualifier_combination(
@@ -419,7 +441,26 @@ impl<'a> Arinc424RecordSpec<'a> for AirportApproachPrimaryExtensionContinuationR
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.fix_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "fix reference",
+                is_valid_reference(
+                    &self.fix_identifier,
+                    &self.fix_section_code,
+                    &self.fix_subsection_code,
+                ),
+            );
+        }
+        validation_result.extend_messages(
+            "route type and qualifier",
+            is_valid_route_type_and_qualifier_combination(
+                &self.route_type,
+                &self.route_qualifier_1,
+                &self.route_qualifier_2,
+            ),
+        );
+        validation_result.as_result()
     }
 }
 
@@ -486,7 +527,26 @@ impl<'a> Arinc424RecordSpec<'a> for AirportApproachFlightPlanningContinuationRec
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.fix_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "fix reference",
+                is_valid_reference(
+                    &self.fix_identifier,
+                    &self.fix_section_code,
+                    &self.fix_subsection_code,
+                ),
+            );
+        }
+        validation_result.extend_messages(
+            "route type and qualifier",
+            is_valid_route_type_and_qualifier_combination(
+                &self.route_type,
+                &self.route_qualifier_1,
+                &self.route_qualifier_2,
+            ),
+        );
+        validation_result.as_result()
     }
 }
 
@@ -567,6 +627,25 @@ impl<'a> Arinc424RecordSpec<'a> for AirportApproachProcedureDataContinuationReco
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.fix_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "fix reference",
+                is_valid_reference(
+                    &self.fix_identifier,
+                    &self.fix_section_code,
+                    &self.fix_subsection_code,
+                ),
+            );
+        }
+        validation_result.extend_messages(
+            "route type and qualifier",
+            is_valid_route_type_and_qualifier_combination(
+                &self.route_type,
+                &self.route_qualifier_1,
+                &self.route_qualifier_2,
+            ),
+        );
+        validation_result.as_result()
     }
 }

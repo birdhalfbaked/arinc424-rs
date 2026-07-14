@@ -71,12 +71,12 @@ pub struct HeliportTerminalWaypointPrimaryRecord<'a> {
     pub cycle_date: RecordField<'a, CycleDate>,
 }
 
-#[rustfmt::skip]
 impl<'a> Arinc424RecordSpec<'a> for HeliportTerminalWaypointPrimaryRecord<'a> {
     fn record_name() -> &'static str {
         "HeliportTerminalWaypointPrimaryRecord"
     }
-
+    
+    #[rustfmt::skip]
     fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                    RecordField::from_bytes(input, 1, 1)?,

@@ -152,7 +152,24 @@ impl<'a> Arinc424RecordSpec<'a> for AirportCommsPrimaryRecord<'a> {
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        validation_result.extend_messages(
+            "sector facility reference",
+            is_valid_reference(
+                &self.sector_facility,
+                &self.sector_facility_section,
+                &self.sector_facility_subsection,
+            ),
+        );
+        validation_result.extend_messages(
+            "remote facility reference",
+            is_valid_reference(
+                &self.remote_facility,
+                &self.remote_facility_section,
+                &self.remote_facility_subsection,
+            ),
+        );
+        validation_result.as_result()
     }
 }
 

@@ -75,12 +75,12 @@ pub struct HeliportMSAPrimaryRecord<'a> {
     pub cycle_date: RecordField<'a, CycleDate>,
 }
 
-#[rustfmt::skip]
 impl<'a> Arinc424RecordSpec<'a> for HeliportMSAPrimaryRecord<'a> {
     fn record_name() -> &'static str {
         "HeliportMSAPrimaryRecord"
     }
-
+    
+    #[rustfmt::skip]
     fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                  RecordField::from_bytes(input, 1, 1)?,
@@ -123,7 +123,18 @@ impl<'a> Arinc424RecordSpec<'a> for HeliportMSAPrimaryRecord<'a> {
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.msa_center.value.is_none() {
+            validation_result.extend_messages(
+                "msa center reference",
+                is_valid_reference(
+                    &self.msa_center,
+                    &self.msa_center_section_code,
+                    &self.msa_center_subsection_code,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }
 
@@ -176,6 +187,17 @@ impl<'a> Arinc424RecordSpec<'a> for HeliportMSAContinuationRecord<'a> {
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.msa_center.value.is_none() {
+            validation_result.extend_messages(
+                "msa center reference",
+                is_valid_reference(
+                    &self.msa_center,
+                    &self.msa_center_section_code,
+                    &self.msa_center_subsection_code,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }
