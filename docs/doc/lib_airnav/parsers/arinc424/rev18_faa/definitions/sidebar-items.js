@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["complexes","enums","identifiers","numerics"]};
+window.SIDEBAR_ITEMS = {"mod":["complexes","enums","identifiers","numerics","validators"]};

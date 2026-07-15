@@ -289,7 +289,7 @@
 //!
 //! Lower and upper limits are coded:
 //!
-//! ```ignore
+//! ```text
 //! GND A0000A
 //! ```
 //!
@@ -374,7 +374,7 @@
 //!
 //! The following are coded as:
 //!
-//! ```ignore
+//! ```text
 //! 000
 //! ```
 //!
@@ -418,7 +418,7 @@
 //!
 //! Route Qualifier 2:
 //!
-//! ```ignore
+//! ```text
 //! H
 //! ```
 //!
@@ -440,7 +440,7 @@
 //!
 //! - Newly added records
 //! - Modified records
-//! ```
+//!
 //!
 //!
 
