@@ -1,8 +1,10 @@
-
 use crate::parsers::arinc424::rev23::records::record::ARINCRecord;
-use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+
 use crate::parsers::arinc424::rev23::definitions::*;
+use crate::parsers::arinc424::types::fields::ParseableField;
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct RestrictiveAirspaceRecords;
 impl RestrictiveAirspaceRecords {
     const CONTINUATION_COLUMN: usize = 25;
@@ -33,7 +35,10 @@ impl RestrictiveAirspaceRecords {
                         RestrictiveAirspaceControllingAgencyContinuationRecord::parse(input)?,
                     ),
                 ),
-                _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
+                _ => Err(RecordParseError::new(
+                    "Invalid continuation record application type".to_string(),
+                    Some(String::from_utf8_lossy(input).into_owned()),
+                )),
             }
         }
     }
@@ -73,8 +78,12 @@ pub struct RestrictiveAirspacePrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> RestrictiveAirspacePrimaryRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for RestrictiveAirspacePrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "RestrictiveAirspacePrimaryRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                        RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                 RecordField::from_bytes(input, 2, 3)?,
@@ -105,6 +114,10 @@ impl<'a> RestrictiveAirspacePrimaryRecord<'a> {
             file_record_number:                 RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                         RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -138,8 +151,12 @@ pub struct RestrictiveAirspaceFormattedTimeContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> RestrictiveAirspaceFormattedTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for RestrictiveAirspaceFormattedTimeContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "RestrictiveAirspaceFormattedTimeContinuationRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                        RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                 RecordField::from_bytes(input, 2, 3)?,
@@ -167,6 +184,10 @@ impl<'a> RestrictiveAirspaceFormattedTimeContinuationRecord<'a> {
             cycle_date:                         RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
+    }
 }
 
 /// 4.1.18.3 Restrictive Airspace Narrative Time Continuation Record
@@ -189,8 +210,12 @@ pub struct RestrictiveAirspaceNarrativeTimeContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> RestrictiveAirspaceNarrativeTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for RestrictiveAirspaceNarrativeTimeContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "RestrictiveAirspaceNarrativeTimeContinuationRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                        RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                 RecordField::from_bytes(input, 2, 3)?,
@@ -207,6 +232,10 @@ impl<'a> RestrictiveAirspaceNarrativeTimeContinuationRecord<'a> {
             file_record_number:                 RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                         RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -230,8 +259,12 @@ pub struct RestrictiveAirspaceControllingAgencyContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> RestrictiveAirspaceControllingAgencyContinuationRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for RestrictiveAirspaceControllingAgencyContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "RestrictiveAirspaceControllingAgencyContinuationRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                        RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                 RecordField::from_bytes(input, 2, 3)?,
@@ -248,5 +281,9 @@ impl<'a> RestrictiveAirspaceControllingAgencyContinuationRecord<'a> {
             file_record_number:                 RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                         RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

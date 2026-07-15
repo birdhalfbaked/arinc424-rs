@@ -1,7 +1,10 @@
 use crate::parsers::arinc424::rev18_faa::definitions::*;
+
 use crate::parsers::arinc424::rev18_faa::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct HeliportCommsRecords;
 impl HeliportCommsRecords {
     const CONTINUATION_COLUMN: usize = 26;
@@ -49,6 +52,8 @@ fn parse_communications_frequency<'a>(
         CommunicationsFrequency::parse(unit_bytes, communications_frequency_bytes)?;
     Ok(RecordField {
         raw_bytes: communications_frequency_bytes,
+        start_column: 16,
+        end_column: 23,
         value: communications_frequency,
     })
 }
@@ -96,8 +101,12 @@ pub struct HeliportCommsPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> HeliportCommsPrimaryRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for HeliportCommsPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "HeliportCommsPrimaryRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
 
         let communications_frequency = parse_communications_frequency(input)?;
 
@@ -141,6 +150,39 @@ impl<'a> HeliportCommsPrimaryRecord<'a> {
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.sector_facility.value.is_none() {
+            validation_result.extend_messages(
+                "sector facility reference",
+                is_valid_reference(
+                    &self.sector_facility,
+                    &self.sector_facility_section,
+                    &self.sector_facility_subsection,
+                ),
+            );
+        }
+        if !self.remote_facility.value.is_none() {
+            validation_result.extend_messages(
+                "remote facility reference",
+                is_valid_reference(
+                    &self.remote_facility,
+                    &self.remote_facility_section,
+                    &self.remote_facility_subsection,
+                ),
+            );
+        }
+        validation_result.extend_messages(
+            "altitude description",
+            is_valid_altitude_description(
+                &self.section,
+                &self.subsection,
+                &self.altitude_description,
+            ),
+        );
+        validation_result.as_result()
+    }
 }
 
 // 4.1.14.2 Airport Communications Sector Narrative Continuation Record
@@ -164,8 +206,12 @@ pub struct HeliportCommsSectorNarrativeContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> HeliportCommsSectorNarrativeContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for HeliportCommsSectorNarrativeContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "HeliportCommsSectorNarrativeContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         let communications_frequency = parse_communications_frequency(input)?;
         Ok(Self {
             record_type:                      RecordField::from_bytes(input, 1, 1)?,
@@ -184,6 +230,10 @@ impl<'a> HeliportCommsSectorNarrativeContinuationRecord<'a> {
             file_record_number:               RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                       RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -217,8 +267,12 @@ pub struct HeliportCommsTimeContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> HeliportCommsTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for HeliportCommsTimeContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "HeliportCommsTimeContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         let communications_frequency = parse_communications_frequency(input)?;
         Ok(Self {
             record_type:                            RecordField::from_bytes(input, 1, 1)?,
@@ -246,5 +300,9 @@ impl<'a> HeliportCommsTimeContinuationRecord<'a> {
             file_record_number:                     RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                             RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

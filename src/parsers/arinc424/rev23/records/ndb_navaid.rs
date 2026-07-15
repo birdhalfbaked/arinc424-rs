@@ -1,7 +1,10 @@
 use crate::parsers::arinc424::rev23::definitions::*;
+
 use crate::parsers::arinc424::rev23::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct NDBNavaidRecords;
 impl NDBNavaidRecords {
     const CONTINUATION_COLUMN: usize = 22;
@@ -30,7 +33,10 @@ impl NDBNavaidRecords {
                         NDBNavaidFlightPlanningContinuationRecord::parse(input)?,
                     ))
                 }
-                _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
+                _ => Err(RecordParseError::new(
+                    "Invalid continuation record application type".to_string(),
+                    Some(String::from_utf8_lossy(input).into_owned()),
+                )),
             }
         }
     }
@@ -61,8 +67,12 @@ pub struct NDBNavaidPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> NDBNavaidPrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for NDBNavaidPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "NDBNavaidPrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                    RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:             RecordField::from_bytes(input, 2, 3)?,
@@ -85,6 +95,10 @@ impl<'a> NDBNavaidPrimaryRecord<'a> {
             cycle_date:                     RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
+    }
 }
 
 /// 4.1.3.2 NDB Navaid Continuation Record
@@ -106,8 +120,12 @@ pub struct NDBNavaidContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> NDBNavaidContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for NDBNavaidContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "NDBNavaidContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:         RecordField::from_bytes(input, 2, 3)?,
@@ -123,6 +141,10 @@ impl<'a> NDBNavaidContinuationRecord<'a> {
             file_record_number:         RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                 RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -146,8 +168,12 @@ pub struct NDBNavaidSimulationContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> NDBNavaidSimulationContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for NDBNavaidSimulationContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "NDBNavaidSimulationContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:         RecordField::from_bytes(input, 2, 3)?,
@@ -164,6 +190,10 @@ impl<'a> NDBNavaidSimulationContinuationRecord<'a> {
             file_record_number:         RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                 RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -193,8 +223,12 @@ pub struct NDBNavaidFlightPlanningContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> NDBNavaidFlightPlanningContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for NDBNavaidFlightPlanningContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "NDBNavaidFlightPlanningContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                        RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                 RecordField::from_bytes(input, 2, 3)?,
@@ -217,5 +251,9 @@ impl<'a> NDBNavaidFlightPlanningContinuationRecord<'a> {
             file_record_number:                 RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                         RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

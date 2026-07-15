@@ -9,7 +9,9 @@ use crate::parsers::arinc424::types::fields::{BLANK, FieldParseError, ParseableF
 /// 5.2 Record Type Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum RecordType {
+    /// S
     Standard,
+    /// T
     Tailored,
 }
 
@@ -28,16 +30,27 @@ impl ParseableField for RecordType {
 /// 5.3 Customer/Area Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum CustomerAreaCode {
+    /// AFR
     Africa,
+    /// CAN
     Canada,
+    /// EEU
     EasternEurope,
+    /// EUR
     Europe,
+    /// LAM
     LatinAmerica,
+    /// MES
     MiddleEast,
+    /// PAC
     Pacific,
+    /// SAM
     SouthAmerica,
+    /// SPA
     SouthPacific,
+    /// USA
     USA,
+    /// (other 3-char code)
     Customer(String),
 }
 
@@ -73,13 +86,21 @@ impl ParseableField for CustomerAreaCode {
 /// 5.4 Section Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum Section {
+    /// A
     MORA,
+    /// D
     Navaid,
+    /// E
     Enroute,
+    /// H
     Heliport,
+    /// P
     Airport,
+    /// R
     CompanyRoutes,
+    /// T
     Tables,
+    /// U
     Airspace,
 }
 
@@ -109,6 +130,7 @@ impl ParseableField for Section {
 /// 5.5(A) MORA Subsection Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum MORASubsection {
+    /// S
     GridMORA,
 }
 
@@ -128,7 +150,9 @@ impl ParseableField for MORASubsection {
 /// 5.5(B) Navaid Subsection Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum NavaidSubsection {
+    /// (blank)
     VHFNavaid,
+    /// B
     NDBNavaid,
 }
 
@@ -149,12 +173,19 @@ impl ParseableField for NavaidSubsection {
 /// 5.6(A) Enroute Subsection Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum EnrouteSubsection {
+    /// A
     Waypoints,
+    /// M
     AirwayMarkers,
+    /// P
     HoldingPatterns,
+    /// R
     AirwaysAndRoutes,
+    /// T
     PreferredRoutes,
+    /// U
     AirwayRestrictions,
+    /// V
     Communications,
 }
 
@@ -180,13 +211,21 @@ impl ParseableField for EnrouteSubsection {
 /// 5.6(B) Heliport Subsection Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum HeliportSubsection {
+    /// A
     Pads,
+    /// C
     TerminalWaypoints,
+    /// D
     SIDS,
+    /// E
     STARS,
+    /// F
     ApproachProcedures,
+    /// K
     TAA,
+    /// S
     MSA,
+    /// V
     Communications,
 }
 
@@ -213,22 +252,39 @@ impl ParseableField for HeliportSubsection {
 /// 5.6(C) Airport Subsection Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum AirportSubsection {
+    /// A
     ReferencePoints,
+    /// B
     Gates,
+    /// C
     TerminalWaypoints,
+    /// D
     SIDS,
+    /// E
     STARS,
+    /// F
     ApproachProcedures,
+    /// G
     Runways,
+    /// I
     LocalizerGlideslope,
+    /// K
     TAA,
+    /// L
     MLS,
+    /// M
     LocalizerMarker,
+    /// N
     TerminalNDB,
+    /// P
     PathPoint,
+    /// R
     FlightPlanningARRDEP,
+    /// S
     MSA,
+    /// T
     GLSStation,
+    /// V
     Communications,
 }
 
@@ -264,7 +320,9 @@ impl ParseableField for AirportSubsection {
 /// 5.6(D) Company Routes Subsection Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum CompanyRoutesSubsection {
+    /// (blank)
     CompanyRoutes,
+    /// A
     AlternateRecords,
 }
 
@@ -285,8 +343,11 @@ impl ParseableField for CompanyRoutesSubsection {
 /// 5.6(E) Tables Subsection Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum TablesSubsection {
+    /// C
     CruisingTables,
+    /// G
     GeographicalReference,
+    /// N
     RNAVNameTable,
 }
 
@@ -308,8 +369,11 @@ impl ParseableField for TablesSubsection {
 /// 5.6(F) Airspace Subsection Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum AirspaceSubsection {
+    /// C
     ControlledAirspace,
+    /// F
     FIRUIR,
+    /// R
     RestrictiveAirspace,
 }
 
@@ -331,12 +395,19 @@ impl ParseableField for AirspaceSubsection {
 /// 5.7.1(A) Enroute Airway Route Type
 #[derive(Debug, PartialEq, Eq)]
 pub enum EnrouteAirwayRouteType {
+    /// A
     AirlineAirway,
+    /// C
     Control,
+    /// D
     DirectRoute,
+    /// H
     HelicopterAirway,
+    /// O
     ConventionalDesignatedAirway,
+    /// R
     RNAVAirway,
+    /// S
     UndesignatedATSRoute,
 }
 
@@ -365,14 +436,23 @@ impl ParseableField for EnrouteAirwayRouteType {
 /// 5.7.1(B) Preferred Route Route Type
 #[derive(Debug, PartialEq, Eq)]
 pub enum PreferredRouteRouteType {
+    /// C
     NACommonRoute,
+    /// D
     PreferentialRoute,
+    /// J
     PACOTSRoute,
+    /// M
     TACANAustraliaRoute,
+    /// N
     NANonCommonRoute,
+    /// O
     PreferredOverflightRoute,
+    /// P
     PreferredRoute,
+    /// S
     TOSRoute,
+    /// T
     TECRoute,
 }
 
@@ -403,17 +483,29 @@ impl ParseableField for PreferredRouteRouteType {
 /// 5.7.1(C) SID Route Type
 #[derive(Debug, PartialEq, Eq)]
 pub enum SIDRouteType {
+    /// 0
     EngineOut,
+    /// 1
     RunwayTransition,
+    /// 2
     CommonRoute,
+    /// 3
     EnrouteTransition,
+    /// 4
     RNAVRunwayTransition,
+    /// 5
     RNAVCommonRoute,
+    /// 6
     RNAVEnrouteTransition,
+    /// F
     FMSRunwayTransition,
+    /// M
     FMSCommonRoute,
+    /// S
     FMSEnrouteTransition,
+    /// T
     VectorRunwayTransition,
+    /// V
     VectorEnrouteTransition,
 }
 
@@ -445,17 +537,29 @@ impl ParseableField for SIDRouteType {
 /// 5.7.1(D) STAR Route Type
 #[derive(Debug, PartialEq, Eq)]
 pub enum STARRouteType {
+    /// 1
     EnrouteTransition,
+    /// 2
     CommonRoute,
+    /// 3
     RunwayTransition,
+    /// 4
     RNAVEnrouteTransition,
+    /// 5
     RNAVCommonRoute,
+    /// 6
     RNAVRunwayTransition,
+    /// 7
     ProfileDescentEnrouteTransition,
+    /// 8
     ProfileDescentCommonRoute,
+    /// 9
     ProfileDescentRunwayTransition,
+    /// F
     FMSEnrouteTransition,
+    /// M
     FMSCommonRoute,
+    /// S
     FMSRunwayTransition,
 }
 
@@ -490,27 +594,49 @@ impl ParseableField for STARRouteType {
 /// 5.7.1(E) Airport Heliport Approach Route Type
 #[derive(Debug, PartialEq, Eq)]
 pub enum AirportHeliportApproachRouteType {
+    /// A
     ApproachTransition,
+    /// B
     LocalizerBackcourseApproach,
+    /// D
     VORDMEApproach,
+    /// F
     FMSApproach,
+    /// G
     IGSApproach,
+    /// H
     RNAVRNP,
+    /// I
     ILSApproach,
+    /// J
     GLSApproach,
+    /// L
     LOCApproach,
+    /// M
     MLSApproach,
+    /// N
     NDBApproach,
+    /// P
     GPSApproach,
+    /// Q
     NDBDMEApproach,
+    /// R
     RNAVApproach,
+    /// S
     VORTACApproach,
+    /// T
     TACANApproach,
+    /// U
     SDFApproach,
+    /// V
     VORApproach,
+    /// W
     MLSTypeAApproach,
+    /// X
     LDAApproach,
+    /// Y
     MLSTypeBCApproach,
+    /// Z
     MissedApproach,
 }
 
@@ -553,17 +679,29 @@ impl ParseableField for AirportHeliportApproachRouteType {
 /// 5.7.2 Route Type Qualifier 1
 #[derive(Debug, PartialEq, Eq)]
 pub enum RouteTypeQualifier1 {
+    /// A
     ARNPRequired,
+    /// D
     DMERequired,
+    /// F
     RNAVRNPRequired,
+    /// J
     GPSRequiredNoDMEDME,
+    /// L
     GBASProcedure,
+    /// N
     DMENotRequired,
+    /// P
     GNSSRequired,
+    /// R
     GPSOrDMEDMERequired,
+    /// T
     DMEDMERequired,
+    /// U
     GeneralRNAV,
+    /// V
     VORDMERNAV,
+    /// W
     RNAVWithFAS,
 }
 
@@ -596,11 +734,17 @@ impl ParseableField for RouteTypeQualifier1 {
 /// 5.7.3 Route Type Qualifier 2
 #[derive(Debug, PartialEq, Eq)]
 pub enum RouteTypeQualifier2 {
+    /// A
     PrimaryMissedApproach,
+    /// B
     SecondaryMissedApproach,
+    /// E
     EngineOutMissedApproach,
+    /// C
     ProcedureWithoutStraightInMinimums,
+    /// S
     ProcedureWithStraightInMinimums,
+    /// H
     HelicopterHelipadApproach,
 }
 
@@ -628,15 +772,25 @@ impl ParseableField for RouteTypeQualifier2 {
 /// 5.18 Boundary Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum BoundaryCode {
+    /// U
     USA,
+    /// C
     CanadaAlaska,
+    /// P
     Pacific,
+    /// L
     LatinAmerica,
+    /// S
     SouthAmerica,
+    /// 1
     SouthPacific,
+    /// E
     Europe,
+    /// 2
     EasternEurope,
+    /// M
     MiddleEastSouthAsia,
+    /// A
     Africa,
 }
 
@@ -666,8 +820,11 @@ impl ParseableField for BoundaryCode {
 /// 5.19 Level
 #[derive(Debug, PartialEq, Eq)]
 pub enum Level {
+    /// B
     AllAltitudes,
+    /// H
     HighLevelAirwaysAltitudes,
+    /// L
     LowLevelAirwaysAltitudes,
 }
 
@@ -690,8 +847,11 @@ impl ParseableField for Level {
 /// 5.20 Turn Direction
 #[derive(Debug, PartialEq, Eq)]
 pub enum TurnDirection {
+    /// L
     Left,
+    /// R
     Right,
+    /// E
     Either,
 }
 
@@ -716,7 +876,9 @@ impl ParseableField for TurnDirection {
 /// 5.22 Turn Direction Valid
 #[derive(Debug, PartialEq, Eq)]
 pub enum TurnDirectionValid {
+    /// Y
     Yes,
+    /// (blank)
     No,
 }
 
@@ -737,18 +899,30 @@ impl ParseableField for TurnDirectionValid {
 /// 5.29 Crossing Altitude Description
 #[derive(Debug, PartialEq, Eq)]
 pub enum CrossingAltitudeDescription {
+    /// \+
     AtOrAbove,
+    /// \-
     AtOrBelow,
+    /// @
     At,
+    /// B
     Between,
+    /// C
     AtOrAboveSecondAltitude,
+    /// G
     GlideslopeWithAtAltitude,
+    /// H
     GlideslopeWithAtOrAboveAltitude,
+    /// I
     GlideslopeInterceptWithAtAltitude,
+    /// J
     GlideslopeInterceptWithAtOrAboveAltitude,
     AtUntilInbound,
+    /// V
     AtOrAboveStepDown,
+    /// X
     AtStepDown,
+    /// Y
     AtOrBelowStepDown,
 }
 
@@ -783,8 +957,11 @@ impl ParseableField for CrossingAltitudeDescription {
 /// 5.49 Localizer Azimuth Position Reference (@, +, -)
 #[derive(Debug, PartialEq, Eq)]
 pub enum LocalizerAzimuthPositionReference {
+    /// @
     AheadOfApproachEnd,
+    /// +
     BeyondStopEnd,
+    /// -
     Aside,
 }
 
@@ -809,7 +986,9 @@ impl ParseableField for LocalizerAzimuthPositionReference {
 /// 5.63 Turn (TURN) for Holding Pattern records (TODO: investigate deduplication with 5.20 Turn Direction)
 #[derive(Debug, PartialEq, Eq)]
 pub enum Turn {
+    /// L
     Left,
+    /// R
     Right,
 }
 
@@ -828,17 +1007,29 @@ impl ParseableField for Turn {
 /// 5.77(A) Company Route VIA Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum CompanyRouteVIACode {
+    /// ALT
     AlternateAirport,
+    /// APP
     ApproachRoute,
+    /// AWY
     DesignatedAirway,
+    /// DIR
     DirectToFix,
+    /// INT
     InitialFix,
+    /// PRE
     PreferredRoute,
+    /// SID
     SID,
+    /// SDE
     SIDEnrouteTransition,
+    /// SDY
     SIDRunwayTransition,
+    /// STR
     STARProfileDescent,
+    /// STE
     STARProfileDescentEnrouteTransition,
+    /// STY
     STARProfileDescentRunwayTransition,
 }
 
@@ -871,12 +1062,19 @@ impl ParseableField for CompanyRouteVIACode {
 
 /// 5.77(B) Preferred Route VIA Code
 pub enum PreferredRouteVIACode {
+    /// AWY
     DesignatedAirway,
+    /// DIR
     DirectToFix,
+    /// INT
     InitialFix,
+    /// RVF
     RouteViaFix,
+    /// RNF
     RouteViaFixNotPermitted,
+    /// SID
     SID,
+    /// STR
     STARProfileDescent,
 }
 
@@ -905,14 +1103,23 @@ impl ParseableField for PreferredRouteVIACode {
 /// 5.80 ILS/MLS/GLS Category (CAT)
 #[derive(Debug, PartialEq, Eq)]
 pub enum IlsMlsGlsCategory {
+    /// 0
     LocalizerOnlyNoGS,
+    /// 1
     ILSMLSGLSCatI,
+    /// 2
     ILSMLSGLSCatII,
+    /// 3
     ILSMLSGLSCatIII,
+    /// I
     IGSFacility,
+    /// L
     LDAWithGS,
+    /// A
     LDANoGS,
+    /// S
     SDFWithGS,
+    /// F
     SDFNoGS,
 }
 
@@ -945,7 +1152,9 @@ impl ParseableField for IlsMlsGlsCategory {
 /// Note: This is confusing as written in the spec, but I have encoded it such that it is more properly understood.
 #[derive(Debug, PartialEq, Eq)]
 pub enum AtcIndicator {
+    /// A
     ATCAssignmentOptional,
+    /// S
     ATCAssignmentRequired,
 }
 
@@ -967,18 +1176,31 @@ impl ParseableField for AtcIndicator {
 /// 5.91 Continuation Record Application Type (APPL)
 #[derive(Debug, PartialEq, Eq)]
 pub enum ContinuationRecordApplicationType {
+    /// A
     StandardContinuation,
+    /// B
     CombinedControllingAgencyFormattedTimeOfOperationsContinuation,
+    /// C
     ControllingAgencyContinuation,
+    /// E
     PrimaryRecordExtension,
+    /// L
     VHFNavaidLimitationContinuation,
+    /// N
     SectorNarrativeContinuation,
+    /// T
     FormattedTimeOfOperationsContinuation,
+    /// U
     NarrativeTimeOfOperationsContinuation,
+    /// V
     StartEndDateTimeOfOperationsContinuation,
+    /// P
     FlightPlanningContinuation,
+    /// Q
     FlightPlanningPrimaryDataContinuation,
+    /// S
     SimulationContinuation,
+    /// W
     AirportHeliportProcedureDataContinuation,
 }
 
@@ -1015,7 +1237,9 @@ impl ParseableField for ContinuationRecordApplicationType {
 /// 5.95 Government Source
 #[derive(Debug, PartialEq, Eq)]
 pub enum GovernmentSource {
+    /// Y
     OfficialGovernment,
+    /// N
     OtherSource,
 }
 
@@ -1039,8 +1263,11 @@ impl ParseableField for GovernmentSource {
 /// 5.98 Elevation Type
 #[derive(Debug, PartialEq, Eq)]
 pub enum ElevationType {
+    /// A
     AirportHeliportElevation,
+    /// L
     LandingThresholdElevation,
+    /// G
     GovernmentSourced,
 }
 
@@ -1065,47 +1292,89 @@ impl ParseableField for ElevationType {
 ///     for now we skip this
 #[derive(Debug, PartialEq, Eq)]
 pub enum CommunicationsType {
+    /// ACC
     AreaControlCenter,
+    /// ACP
     AirliftCommandPost,
+    /// AIR
     AirToAir,
+    /// APP
     ApproachControl,
+    /// ARR
     ArrivalControl,
+    /// ASO
     ASOS,
+    /// ATI
     ATIS,
+    /// AWI
     AWIB,
+    /// AWO
     AWOS,
+    /// AWS
     AWIS,
+    /// CLD
     ClearanceDelivery,
+    /// CPT
     ClearancePreTaxi,
+    /// CTA
     TerminalControlArea,
+    /// CTL
     Control,
+    /// DEP
     DepartureControl,
+    /// DIR
     ApproachControlRadarDirector,
+    /// EFS
     EFAS,
+    /// EMR
     Emergency,
+    /// FSS
     FSS,
+    /// GCO
     GroundCommOutlet,
+    /// GND
     GroundControl,
+    /// GTE
     GateControl,
+    /// HEL
     HelicopterFrequency,
+    /// INF
     Information,
+    /// MIL
     MilitaryFrequency,
+    /// MUL
     Multicom,
+    /// OPS
     Operations,
+    /// PAL
     PilotActivatedLighting,
+    /// RDO
     Radio,
+    /// RDR
     Radar,
+    /// RFS
     RFSS,
+    /// RMP
     RampControl,
+    /// RSA
     ARSA,
+    /// TCA
     TCA,
+    /// TMA
     TMA,
+    /// TML
     Terminal,
+    /// TRS
     TRSA,
+    /// TWE
     TWEB,
+    /// TWR
     TowerControl,
+    /// UAC
     UpperAreaControl,
+    /// UNI
     Unicom,
+    /// VOL
     Volmet,
 }
 
@@ -1169,7 +1438,9 @@ impl ParseableField for CommunicationsType {
 /// 5.102 Radar
 #[derive(Debug, PartialEq, Eq)]
 pub enum Radar {
+    /// R
     Radar,
+    /// N
     NonRadar,
 }
 
@@ -1191,9 +1462,13 @@ impl ParseableField for Radar {
 /// 5.104 Frequency Units
 #[derive(Debug, PartialEq, Eq)]
 pub enum FrequencyUnits {
+    /// H
     HF,
+    /// V
     VHF,
+    /// U
     UHF,
+    /// C
     VHF8_33KHzSpacing,
 }
 
@@ -1217,7 +1492,9 @@ impl ParseableField for FrequencyUnits {
 /// 5.108 IFR Capability
 #[derive(Debug, PartialEq, Eq)]
 pub enum IfrCapability {
+    /// Y
     HasApproach,
+    /// N
     NoApproach,
 }
 
@@ -1242,7 +1519,9 @@ impl ParseableField for IfrCapability {
 /// 5.112 Marker Radiation Shape
 #[derive(Debug, PartialEq, Eq)]
 pub enum MarkerRadiationShape {
+    /// B
     Bone,
+    /// E
     EllipseOrUnknown,
 }
 
@@ -1266,7 +1545,9 @@ impl ParseableField for MarkerRadiationShape {
 /// 5.113 High/Low (Enroute Marker)
 #[derive(Debug, PartialEq, Eq)]
 pub enum EnrouteMarkerPower {
+    /// H
     High,
+    /// L
     Low,
 }
 
@@ -1290,8 +1571,11 @@ impl ParseableField for EnrouteMarkerPower {
 /// 5.115(A) Enroute Directional Restriction
 #[derive(Debug, PartialEq, Eq)]
 pub enum EnrouteDirectionalRestriction {
+    /// F
     ForwardOnly,
+    /// B
     BackwardOnly,
+    /// (blank)
     NoRestriction,
 }
 
@@ -1313,7 +1597,9 @@ impl ParseableField for EnrouteDirectionalRestriction {
 /// 5.115(B) Preferred Route Directional Restriction
 #[derive(Debug, PartialEq, Eq)]
 pub enum PreferredRouteDirectionalRestriction {
+    /// F
     ForwardOnly,
+    /// B
     Bidirectional,
 }
 
@@ -1337,8 +1623,11 @@ impl ParseableField for PreferredRouteDirectionalRestriction {
 /// 5.117 FIR/UIR Indicator
 #[derive(Debug, PartialEq, Eq)]
 pub enum FirUirIndicator {
+    /// F
     FIR,
+    /// U
     UIR,
+    /// B
     Combined,
 }
 
@@ -1363,9 +1652,13 @@ impl ParseableField for FirUirIndicator {
 /// 5.122 FIR/UIR Reporting Units Speed
 #[derive(Debug, PartialEq, Eq)]
 pub enum FirUirReportingUnitsSpeed {
+    /// 0
     NotSpecified,
+    /// 1
     Knots,
+    /// 2
     Mach,
+    /// 3
     KPH,
 }
 
@@ -1391,9 +1684,13 @@ impl ParseableField for FirUirReportingUnitsSpeed {
 /// 5.123 FIR/UIR Reporting Units Altitude
 #[derive(Debug, PartialEq, Eq)]
 pub enum FirUirReportingUnitsAltitude {
+    /// 0
     NotSpecified,
+    /// 1
     FlightLevel,
+    /// 2
     Meters,
+    /// 3
     Feet,
 }
 
@@ -1419,7 +1716,9 @@ impl ParseableField for FirUirReportingUnitsAltitude {
 /// 5.124 FIR/UIR Entry Report
 #[derive(Debug, PartialEq, Eq)]
 pub enum FirUirEntryReport {
+    /// Y
     Required,
+    /// N
     NotRequired,
 }
 
@@ -1443,15 +1742,25 @@ impl ParseableField for FirUirEntryReport {
 /// 5.128 Restrictive Airspace Type
 #[derive(Debug, PartialEq, Eq)]
 pub enum RestrictiveAirspaceType {
+    /// A
     Alert,
+    /// C
     Caution,
+    /// D
     Danger,
+    /// M
     MilitaryOperationsArea,
+    /// N
     NationalSecurityArea,
+    /// P
     Prohibited,
+    /// R
     Restricted,
+    /// T
     Training,
+    /// W
     Warning,
+    /// U
     SFRAOrNSAOrUnspecified,
 }
 
@@ -1480,9 +1789,13 @@ impl ParseableField for RestrictiveAirspaceType {
 /// 5.131(A).1 Standard Primary Record Time Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum StandardPrimaryRecordTimeCode {
+    /// C
     ActiveContinuouslyIncludingHolidays,
+    /// H
     ActiveContinuouslyExcludingHolidays,
+    /// N
     ActiveNonContinuously,
+    /// (blank)
     ActiveDuringNOTAM,
 }
 
@@ -1508,8 +1821,11 @@ impl ParseableField for StandardPrimaryRecordTimeCode {
 /// 5.131(A).2 Standard Continuation Record Time Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum StandardContinuationRecordTimeCode {
+    /// H
     ExcludingHolidays,
+    /// T
     IncludingHolidays,
+    /// N
     NoteForm,
 }
 
@@ -1534,9 +1850,13 @@ impl ParseableField for StandardContinuationRecordTimeCode {
 /// 5.131(B) Enroute Airway Restriction Record Time Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum EnrouteAirwayRestrictionTimeCode {
+    /// C
     ActiveContinuouslyIncludingHolidays,
+    /// H
     ActiveContinuouslyExcludingHolidays,
+    /// S
     ActiveNonContinuouslyExcludingHolidays,
+    /// T
     ActiveNonContinuouslyIncludingHolidays,
 }
 
@@ -1562,7 +1882,9 @@ impl ParseableField for EnrouteAirwayRestrictionTimeCode {
 /// 5.132 NOTAM Flag
 #[derive(Debug, PartialEq, Eq)]
 pub enum NotamFlag {
+    /// N
     ActiveByNotam,
+    /// (blank)
     NotActiveByNotam,
 }
 
@@ -1581,7 +1903,9 @@ impl ParseableField for NotamFlag {
 /// 5.133 Unit Indicator
 #[derive(Debug, PartialEq, Eq)]
 pub enum AirspaceLimitUnitIndicator {
+    /// A
     AboveGroundLevel,
+    /// M
     MeanSeaLevel,
 }
 
@@ -1605,9 +1929,13 @@ impl ParseableField for AirspaceLimitUnitIndicator {
 /// 5.134 Cruise Table Identifier
 #[derive(Debug, PartialEq, Eq)]
 pub enum CruiseTableIdentifier {
+    /// AA
     ICAOCruiseTable,
+    /// AO
     ExceptionToICAOCruiseTable,
+    /// BB-ZZ (same letter pair, B-Z)
     ModifiedCruiseTable(Box<str>),
+    /// BO-ZO (letter + O, B-Z)
     ExceptionToModifiedCruiseTable(Box<str>),
 }
 
@@ -1646,8 +1974,11 @@ impl ParseableField for CruiseTableIdentifier {
 /// 5.138 Time Indicator
 #[derive(Debug, PartialEq, Eq)]
 pub enum TimeIndicator {
+    /// S
     LocalTimeWithDST,
+    /// T
     LocalTimeWithoutDST,
+    /// (blank)
     UTC,
 }
 
@@ -1667,11 +1998,17 @@ impl ParseableField for TimeIndicator {
 /// 5.149 Figure of Merit
 #[derive(Debug, PartialEq, Eq)]
 pub enum FigureOfMerit {
+    /// 0
     Terminal,
+    /// 1
     LowAltitude,
+    /// 2
     HighAltitude,
+    /// 3
     ExtendedHighAltitude,
+    /// 7
     NavaidNotCivil,
+    /// 9
     NavaidOutOfService,
 }
 
@@ -1697,8 +2034,11 @@ impl ParseableField for FigureOfMerit {
 /// 5.152 Start End Indicator
 #[derive(Debug, PartialEq, Eq)]
 pub enum StartEndIndicator {
+    /// C
     ChangeDate,
+    /// E
     EndDate,
+    /// S
     StartDate,
 }
 
@@ -1723,9 +2063,13 @@ impl ParseableField for StartEndIndicator {
 /// 5.160 Units of Altitude for airway restriction
 #[derive(Debug, PartialEq, Eq)]
 pub enum AirwayRestrictionAltitudeUnit {
+    /// F
     HundredsOfFeet,
+    /// K
     MetricFlightLevels,
+    /// L
     FeetFlightLevels,
+    /// M
     TensOfMeters,
 }
 
@@ -1751,9 +2095,13 @@ impl ParseableField for AirwayRestrictionAltitudeUnit {
 /// 5.162 Step Climb Indicator
 #[derive(Debug, PartialEq, Eq)]
 pub enum StepClimbIndicator {
+    /// B
     StepClimbUpDown,
+    /// D
     StepClimbDown,
+    /// N
     NoStepClimbPermitted,
+    /// U
     StepClimbUp,
 }
 
@@ -1779,7 +2127,9 @@ impl ParseableField for StepClimbIndicator {
 /// 5.164 Enroute Airway Restriction Flag
 #[derive(Debug, PartialEq, Eq)]
 pub enum EnrouteAirwayRestrictionFlag {
+    /// Y
     Yes,
+    /// (blank)
     No,
 }
 
@@ -1800,8 +2150,11 @@ impl ParseableField for EnrouteAirwayRestrictionFlag {
 /// 5.165 Magnetic/True Indicator
 #[derive(Debug, PartialEq, Eq)]
 pub enum MagneticTrueIndicator {
+    /// M
     Magnetic,
+    /// T
     True,
+    /// (blank)
     Both,
 }
 
@@ -1824,7 +2177,9 @@ impl ParseableField for MagneticTrueIndicator {
 /// 5.174 Restrictive Airspace Link Continuation
 #[derive(Debug, PartialEq, Eq)]
 pub enum RestrictiveAirspaceLinkContinuation {
+    /// Y
     Yes,
+    /// (blank)
     No,
 }
 
@@ -1845,8 +2200,11 @@ impl ParseableField for RestrictiveAirspaceLinkContinuation {
 /// 5.177 Public/Military Indicator
 #[derive(Debug, PartialEq, Eq)]
 pub enum PublicMilitaryIndicator {
+    /// C
     Public,
+    /// M
     Military,
+    /// P
     Private,
 }
 
@@ -1871,7 +2229,9 @@ impl ParseableField for PublicMilitaryIndicator {
 /// 5.179 Daylight Time Observed Indicator
 #[derive(Debug, PartialEq, Eq)]
 pub enum DaylightTimeObservedIndicator {
+    /// Y
     Yes,
+    /// N
     NoOrUnknown,
 }
 
@@ -1895,7 +2255,9 @@ impl ParseableField for DaylightTimeObservedIndicator {
 /// 5.181 H24 Indicator
 #[derive(Debug, PartialEq, Eq)]
 pub enum H24Indicator {
+    /// Y
     Yes,
+    /// N
     No,
 }
 
@@ -1917,7 +2279,9 @@ impl ParseableField for H24Indicator {
 /// 5.182 Guard/Transmit Indicator
 #[derive(Debug, PartialEq, Eq)]
 pub enum GuardTransmitIndicator {
+    /// G
     Guard,
+    /// T
     Transmit,
 }
 
@@ -1938,8 +2302,11 @@ impl ParseableField for GuardTransmitIndicator {
 /// 5.187 Distance Description
 #[derive(Debug, PartialEq, Eq)]
 pub enum DistanceDescription {
+    /// -
     AppliedUpToDistance,
+    /// +
     AppliedFromDistance,
+    /// (blank)
     NotAppliedOrAtSpecifiedDistance,
 }
 
@@ -1961,7 +2328,9 @@ impl ParseableField for DistanceDescription {
 /// 5.198 Modulation
 #[derive(Debug, PartialEq, Eq)]
 pub enum Modulation {
+    /// A
     AM,
+    /// F
     FM,
 }
 
@@ -1983,12 +2352,19 @@ impl ParseableField for Modulation {
 /// 5.199 Signal Emission
 #[derive(Debug, PartialEq, Eq)]
 pub enum SignalEmission {
+    /// 3
     DoubleSideband,
+    /// A
     SingleSidebandReducedCarrier,
+    /// B
     DualIndependentSidebands,
+    /// H
     SingleSidebandFullCarrier,
+    /// J
     SingleSidebandSuppressedCarrier,
+    /// L
     LowerSidebandUnknownCarrier,
+    /// U
     UpperSidebandUnknownCarrier,
 }
 
@@ -2015,9 +2391,13 @@ impl ParseableField for SignalEmission {
 /// 5.201 Restriction Record Type
 #[derive(Debug, PartialEq, Eq)]
 pub enum RestrictionRecordType {
+    /// AE
     AltitudeExclusion,
+    /// TC
     CruisingTableReplacement,
+    /// SC
     SeasonalRestriction,
+    /// NR
     NoteRestriction,
 }
 
@@ -2043,9 +2423,13 @@ impl ParseableField for RestrictionRecordType {
 /// 5.202 Exclusion Indicator
 #[derive(Debug, PartialEq, Eq)]
 pub enum AltitudeExclusionIndicator {
+    /// A
     AllAltitudesBothDirections,
+    /// B
     AllAltitudesBackwardDirection,
+    /// F
     AllAltitudesForwardDirection,
+    /// (blank)
     NoAltitudeExclusion,
 }
 
@@ -2068,7 +2452,9 @@ impl ParseableField for AltitudeExclusionIndicator {
 /// 5.203 Block Indicator
 #[derive(Debug, PartialEq, Eq)]
 pub enum BlockAltitudeIndicator {
+    /// B
     BlockAltitude,
+    /// I
     IndividualAltitude,
 }
 
@@ -2092,12 +2478,19 @@ impl ParseableField for BlockAltitudeIndicator {
 /// 5.205 Navaid Limitation
 #[derive(Debug, PartialEq, Eq)]
 pub enum NavaidLimitationCode {
+    /// C
     Coverage,
+    /// F
     Fluctuations,
+    /// G
     SignalRoughness,
+    /// N
     UnreliableAtLimitation,
+    /// R
     RestrictedAtLimitation,
+    /// T
     UnusableAtLimitation,
+    /// U
     OutOfToleranceAtLimitation,
 }
 
@@ -2126,12 +2519,19 @@ impl ParseableField for NavaidLimitationCode {
 /// 5.206 Component Affected Indicator
 #[derive(Debug, PartialEq, Eq)]
 pub enum ComponentAffectedIndicator {
+    /// A
     TACANAzimuthOnly,
+    /// B
     VORDMEAzimuthAndDistance,
+    /// D
     VORDMEDistanceOnly,
+    /// M
     TACANAzimuthAndDistance,
+    /// T
     TACANDistanceOnly,
+    /// V
     VORAzimuthOnly,
+    /// Z
     VORDMETACANAZimuthAndDistance,
 }
 
@@ -2160,7 +2560,9 @@ impl ParseableField for ComponentAffectedIndicator {
 /// 5.210 Sequence End Indicator
 #[derive(Debug, PartialEq, Eq)]
 pub enum SequenceEndIndicator {
+    /// E
     EndOfSequence,
+    /// (blank)
     NotEndOfSequence,
 }
 
@@ -2181,11 +2583,16 @@ impl ParseableField for SequenceEndIndicator {
 /// 5.213 Controlled Airspace Type
 #[derive(Debug, PartialEq, Eq)]
 pub enum ControlledAirspaceType {
+    /// A, C
     ClassC,
     ControlArea,
+    /// M
     TerminalControlArea,
+    /// R
     RadarArea,
+    /// T
     ClassB,
+    /// Z
     ClassD,
 }
 
@@ -2213,10 +2620,15 @@ impl ParseableField for ControlledAirspaceType {
 /// 5.217 Controlled Airspace Indicator
 #[derive(Debug, PartialEq, Eq)]
 pub enum ControlledAirspaceIndicator {
+    /// A
     WithinClassC,
+    /// C
     WithinControlArea,
+    /// M
     WithinTerminalControlArea,
+    /// R
     WithinRadarArea,
+    /// T
     WithinClassB,
 }
 
@@ -2240,16 +2652,27 @@ impl ParseableField for ControlledAirspaceIndicator {
 /// 5.222 GNSS/FMS Indicator
 #[derive(Debug, PartialEq, Eq)]
 pub enum GNSSFMSIndicator {
+    /// 0
     NotAuthorizedForGNSSOrFMSOverlay,
+    /// 1
     GNSSOverlayWithNavaidMonitoring,
+    /// 2
     GNSSOverlayWithNavaid,
+    /// 3
     GNSSOverlay,
+    /// 4
     FMSOverlay,
+    /// 5
     FMSAndOrGNSSOverlay,
+    /// A
     RNAVSBASAllowed,
+    /// B
     RNAVNoSBAS,
+    /// C
     RNAVSBASNotSpecified,
+    /// P
     StandaloneGNSS,
+    /// U
     OverlayAuthorizationNotPublished,
 }
 
@@ -2282,7 +2705,9 @@ impl ParseableField for GNSSFMSIndicator {
 /// 5.223(A) Path Point Operation Type
 #[derive(Debug, PartialEq, Eq)]
 pub enum SBASOperationType {
+    /// 0
     StraightIn,
+    /// 1-15
     Reserved,
 }
 
@@ -2314,17 +2739,29 @@ impl ParseableField for SBASOperationType {
 /// 5.230 Procedure Type
 #[derive(Debug, PartialEq, Eq)]
 pub enum ProcedureType {
+    /// A
     ArrivalProcedureInDatabase,
+    /// B
     ArrivalProcedureNotInDatabase,
+    /// C
     DepartureProcedureInDatabase,
+    /// D
     DepartureProcedureNotInDatabase,
+    /// E
     STARInDatabase,
+    /// F
     STARNotInDatabase,
+    /// G
     SIDInDatabase,
+    /// H
     SIDNotInDatabase,
+    /// I
     VectorSIDInDatabase,
+    /// J
     VectorSIDNotInDatabase,
+    /// K
     ApproachProcedureInDatabase,
+    /// L
     ApproachProcedureNotInDatabase,
 }
 
@@ -2356,13 +2793,21 @@ impl ParseableField for ProcedureType {
 /// 5.233 Turboprop/Jet Indicator
 #[derive(Debug, PartialEq, Eq)]
 pub enum TurbopropJetIndicator {
+    /// A
     AllAircraft,
+    /// B
     JetsAndTurboprops,
+    /// C
     AllAircraftLessThan250Kts,
+    /// D
     NonJetAndTurboprop,
+    /// E
     MultiEngineProps,
+    /// J
     Jets,
+    /// N
     NonJetNonTurboprop,
+    /// P
     Turboprops,
 }
 
@@ -2392,7 +2837,9 @@ impl ParseableField for TurbopropJetIndicator {
 /// 5.234 RNAV Flag
 #[derive(Debug, PartialEq, Eq)]
 pub enum RNAVFlag {
+    /// Y
     RNAV,
+    /// N
     NotRNAV,
 }
 
@@ -2414,8 +2861,11 @@ impl ParseableField for RNAVFlag {
 /// 5.235 ATC Weight Category
 #[derive(Debug, PartialEq, Eq)]
 pub enum ATCWeightCategory {
+    /// H
     Heavy,
+    /// M
     Medium,
+    /// L
     Light,
 }
 
@@ -2440,7 +2890,9 @@ impl ParseableField for ATCWeightCategory {
 /// 5.239 Reporting Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum ReportingCode {
+    /// C
     ReportingRequired,
+    /// X
     ReportingNotRequired,
 }
 
@@ -2462,11 +2914,17 @@ impl ParseableField for ReportingCode {
 /// 5.241 Fix Related Transition Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum FixRelatedTransitionCode {
+    /// 1
     SIDRunwayTransition,
+    /// 2
     SIDCommonPortion,
+    /// 3
     SIDEnrouteTransition,
+    /// 4
     STAREnrouteTransition,
+    /// 5
     STARCommonPortion,
+    /// 6
     STARRunwayTransition,
 }
 
@@ -2494,11 +2952,17 @@ impl ParseableField for FixRelatedTransitionCode {
 /// 5.242 Procedure Category
 #[derive(Debug, PartialEq, Eq)]
 pub enum ProcedureCategory {
+    /// LAAS
     LAAS,
+    /// WAAS
     WAAS,
+    /// FMS
     FMS,
+    /// GPS
     GPS,
+    /// VDME
     VORDMEVORTAC,
+    /// CIRC
     CircleToLand,
 }
 
@@ -2526,9 +2990,13 @@ impl ParseableField for ProcedureCategory {
 /// 5.249 Runway Surface Code
 #[derive(Debug, PartialEq, Eq)]
 pub enum RunwaySurfaceCode {
+    /// H
     HardSurface,
+    /// S
     SoftSurface,
+    /// W
     WaterRunway,
+    /// U
     Undefined,
 }
 
@@ -2554,8 +3022,11 @@ impl ParseableField for RunwaySurfaceCode {
 /// 5.250 Alternate Record Type
 #[derive(Debug, PartialEq, Eq)]
 pub enum AlternateRecordType {
+    /// AA
     ArrivalAirport,
+    /// DA
     DepartureAirport,
+    /// EA
     EndFix,
 }
 
@@ -2580,7 +3051,9 @@ impl ParseableField for AlternateRecordType {
 /// 5.252 Alternate Type
 #[derive(Debug, PartialEq, Eq)]
 pub enum AlternateType {
+    /// A
     Airport,
+    /// C
     CompanyRoute,
 }
 
@@ -2603,6 +3076,7 @@ impl ParseableField for AlternateType {
 /// Note: This field as of this version is not developed and thus no enumeration even from future revisions should be assigned
 #[derive(Debug, PartialEq, Eq)]
 pub enum SbasServiceProviderIdentifier {
+    /// 0-15
     InDevelopment,
 }
 
@@ -2636,6 +3110,7 @@ impl ParseableField for SbasServiceProviderIdentifier {
 /// Note: This field as of this version is not developed and thus no enumeration even from future revisions should be assigned
 #[derive(Debug, PartialEq, Eq)]
 pub enum ApproachPerformanceDesignator {
+    /// 0-7
     InDevelopment,
 }
 
@@ -2673,8 +3148,11 @@ impl ParseableField for ApproachPerformanceDesignator {
 /// 5.261 Speed Limit Description
 #[derive(Debug, PartialEq, Eq)]
 pub enum SpeedLimitDescription {
+    /// @
     AtSpeed,
+    /// +
     AtOrAboveSpeed,
+    /// -
     AtOrBelowSpeed,
 }
 
@@ -2699,7 +3177,9 @@ impl ParseableField for SpeedLimitDescription {
 /// 5.266 TCH Units Indicator
 #[derive(Debug, PartialEq, Eq)]
 pub enum TCHUnitsIndicator {
+    /// F
     Feet,
+    /// M
     Meters,
 }
 
@@ -2723,9 +3203,13 @@ impl ParseableField for TCHUnitsIndicator {
 /// 5.270 TCH Value Indicator
 #[derive(Debug, PartialEq, Eq)]
 pub enum TCHValueIndicator {
+    /// I
     ElectronicGlideslope,
+    /// R
     RNAVProcedureToRunway,
+    /// V
     VisualGlideslope,
+    /// D
     DefaultValue,
 }
 
@@ -2753,6 +3237,7 @@ impl ParseableField for TCHValueIndicator {
 #[derive(Debug, PartialEq, Eq)]
 pub enum ProcedureTurn {
     Required,
+    /// NOPT
     NoProcedureTurn,
 }
 
@@ -2773,8 +3258,11 @@ impl ParseableField for ProcedureTurn {
 /// 5.272 TAA Sector Identifier
 #[derive(Debug, PartialEq, Eq)]
 pub enum TaaSectorIdentifier {
+    /// C
     StraightInOrCenterFix,
+    /// L
     LeftBaseArea,
+    /// T
     RightBaseArea,
 }
 
@@ -2799,7 +3287,9 @@ impl ParseableField for TaaSectorIdentifier {
 /// 5.276 Level of Service Authorized
 #[derive(Debug, PartialEq, Eq)]
 pub enum LevelOfServiceAuthorized {
+    /// A
     Authorized,
+    /// N
     NotAuthorized,
 }
 

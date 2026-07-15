@@ -5,6 +5,7 @@
 //!
 
 use crate::parsers::arinc424::rev18::records::*;
+
 use crate::parsers::arinc424::types::fields::BLANK;
 use crate::parsers::arinc424::types::records::RecordParseError;
 

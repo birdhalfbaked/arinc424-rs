@@ -1,7 +1,10 @@
 use crate::parsers::arinc424::rev18_faa::definitions::*;
+
 use crate::parsers::arinc424::rev18_faa::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct GLSRecords;
 impl GLSRecords {
     const CONTINUATION_COLUMN: usize = 22;
@@ -57,8 +60,12 @@ pub struct GLSPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> GLSPrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for GLSPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "GLSPrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                  RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:           RecordField::from_bytes(input, 2, 3)?,
@@ -87,6 +94,10 @@ impl<'a> GLSPrimaryRecord<'a> {
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
+    }
 }
 
 /// 4.1.29.2 GLS Continuation Record
@@ -108,8 +119,12 @@ pub struct GLSContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> GLSContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for GLSContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "GLSContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                  RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:           RecordField::from_bytes(input, 2, 3)?,
@@ -125,5 +140,9 @@ impl<'a> GLSContinuationRecord<'a> {
             file_record_number:           RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

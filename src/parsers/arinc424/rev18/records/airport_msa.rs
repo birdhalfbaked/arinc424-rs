@@ -1,7 +1,10 @@
 use crate::parsers::arinc424::rev18::definitions::*;
+
 use crate::parsers::arinc424::rev18::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct AirportMSARecords;
 impl AirportMSARecords {
     const CONTINUATION_COLUMN: usize = 39;
@@ -22,7 +25,10 @@ impl AirportMSARecords {
                         AirportMSAContinuationRecord::parse(input)?,
                     ))
                 }
-                _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
+                _ => Err(RecordParseError::new(
+                    "Invalid continuation record application type".to_string(),
+                    Some(String::from_utf8_lossy(input).into_owned()),
+                )),
             }
         }
     }
@@ -70,8 +76,12 @@ pub struct AirportMSAPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> AirportMSAPrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for AirportMSAPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "AirportMSAPrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                  RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:           RecordField::from_bytes(input, 2, 3)?,
@@ -111,6 +121,10 @@ impl<'a> AirportMSAPrimaryRecord<'a> {
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
+    }
 }
 
 /// 4.1.20.2 Airport MSA Continuation Record
@@ -135,8 +149,12 @@ pub struct AirportMSAContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> AirportMSAContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for AirportMSAContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "AirportMSAContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                  RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:           RecordField::from_bytes(input, 2, 3)?,
@@ -155,5 +173,9 @@ impl<'a> AirportMSAContinuationRecord<'a> {
             file_record_number:           RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

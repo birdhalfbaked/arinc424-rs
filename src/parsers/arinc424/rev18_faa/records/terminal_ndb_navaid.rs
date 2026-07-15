@@ -1,7 +1,10 @@
 use crate::parsers::arinc424::rev18_faa::definitions::*;
+
 use crate::parsers::arinc424::rev18_faa::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct TerminalNDBNavaidRecords;
 impl TerminalNDBNavaidRecords {
     const CONTINUATION_COLUMN: usize = 22;
@@ -71,8 +74,12 @@ pub struct TerminalNDBNavaidPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> TerminalNDBNavaidPrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for TerminalNDBNavaidPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "TerminalNDBNavaidPrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                    RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:             RecordField::from_bytes(input, 2, 3)?,
@@ -93,6 +100,10 @@ impl<'a> TerminalNDBNavaidPrimaryRecord<'a> {
             file_record_number:             RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                     RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -115,8 +126,12 @@ pub struct TerminalNDBNavaidContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> TerminalNDBNavaidContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for TerminalNDBNavaidContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "TerminalNDBNavaidContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:         RecordField::from_bytes(input, 2, 3)?,
@@ -132,6 +147,10 @@ impl<'a> TerminalNDBNavaidContinuationRecord<'a> {
             file_record_number:         RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                 RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -155,8 +174,12 @@ pub struct TerminalNDBNavaidSimulationContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> TerminalNDBNavaidSimulationContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for TerminalNDBNavaidSimulationContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "TerminalNDBNavaidSimulationContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:         RecordField::from_bytes(input, 2, 3)?,
@@ -173,6 +196,10 @@ impl<'a> TerminalNDBNavaidSimulationContinuationRecord<'a> {
             file_record_number:         RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                 RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -198,8 +225,12 @@ pub struct TerminalNDBNavaidFlightPlanningContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> TerminalNDBNavaidFlightPlanningContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for TerminalNDBNavaidFlightPlanningContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "TerminalNDBNavaidFlightPlanningContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                        RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                 RecordField::from_bytes(input, 2, 3)?,
@@ -218,6 +249,10 @@ impl<'a> TerminalNDBNavaidFlightPlanningContinuationRecord<'a> {
             file_record_number:                 RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                         RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 

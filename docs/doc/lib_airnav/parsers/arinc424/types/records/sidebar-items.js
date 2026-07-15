@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["is_primary_record"],"struct":["RecordField","RecordParseError"]};
+window.SIDEBAR_ITEMS = {"enum":["RecordError"],"fn":["is_primary_record"],"struct":["RecordField","RecordParseError","RecordValidationError","RecordValidationMessage"],"trait":["Arinc424RecordSpec"]};

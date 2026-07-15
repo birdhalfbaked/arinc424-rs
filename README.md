@@ -39,6 +39,52 @@ Note that there are FAA-specific exceptions to how the standard is used, and thu
 
 You can modify the test file location in `tests/test_file_parse.rs` and run the tests to verify the parser works.
 
+### Usage notes
+
+### Memory and lifetimes
+
+The ARINC 424 parser is designed for efficient memory use: parsed records borrow from the caller's input buffer rather than copying field data into owned structures. **The caller is responsible for keeping source data alive for as long as parsed records are used, and for copying record data into owned types when longer retention is needed.**
+
+Example:
+
+```rust
+use lib_airnav::parsers::arinc424::parser::{Arinc424Parser, Arinc424Version};
+
+use std::fs::File;
+use std::io::{BufRead, BufReader};
+use std::path::Path;
+
+fn main() {
+    // open the file
+    let path = Path::new("data/FAACIFP18.txt");
+    let file = File::open(path).expect("Failed to open file");
+    let reader = BufReader::new(file);
+    
+    // create an FAA parser
+    let parser = Arinc424Parser::new(Arinc424Version::Rev18FAA);
+
+    // read the file line by line
+    for line in reader.lines() {
+        let line = match line {
+            Ok(line) => line,
+            Err(e) => {
+                println!("Error: {:?}", e);
+                continue;
+            }
+        };
+        if line.len() == 0 {
+            continue;
+        }
+        if let Ok(record) = parser.parse(line.as_bytes()){
+            // do stuff
+        } else {
+            println!("Error: {:?}", record.err());
+        }
+    }
+}
+
+```
+
 ## AIXM
 
 Next step after ARINC 424 is done, though should be easier as the schema is well defined and fits within XML parsing semantics nicely already

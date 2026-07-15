@@ -1,7 +1,10 @@
 use crate::parsers::arinc424::rev18_faa::definitions::*;
+
 use crate::parsers::arinc424::rev18_faa::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct HoldingPatternRecords;
 impl HoldingPatternRecords {
     const CONTINUATION_COLUMN: usize = 39;
@@ -22,7 +25,10 @@ impl HoldingPatternRecords {
                         HoldingPatternContinuationRecord::parse(input)?,
                     ))
                 }
-                _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
+                _ => Err(RecordParseError::new(
+                    "Invalid continuation record application type".to_string(),
+                    Some(String::from_utf8_lossy(input).into_owned()),
+                )),
             }
         }
     }
@@ -57,9 +63,13 @@ pub struct HoldingPatternPrimaryRecord<'a> {
     pub cycle_date: RecordField<'a, CycleDate>,
 }
 
-#[rustfmt::skip]
-impl<'a> HoldingPatternPrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for HoldingPatternPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "HoldingPatternPrimaryRecord"
+    }
+    
+    #[rustfmt::skip]
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                                RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                         RecordField::from_bytes(input, 2, 3)?,
@@ -87,6 +97,21 @@ impl<'a> HoldingPatternPrimaryRecord<'a> {
             cycle_date:                                 RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.fix_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "fix identifier reference",
+                is_valid_reference(
+                    &self.fix_identifier,
+                    &self.fix_section_code,
+                    &self.fix_subsection_code,
+                ),
+            );
+        }
+        validation_result.as_result()
+    }
 }
 
 /// 4.1.5.2 Holding Pattern Continuation Record
@@ -111,8 +136,12 @@ pub struct HoldingPatternContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> HoldingPatternContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for HoldingPatternContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "HoldingPatternContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                  RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:           RecordField::from_bytes(input, 2, 3)?,
@@ -131,5 +160,20 @@ impl<'a> HoldingPatternContinuationRecord<'a> {
             file_record_number:           RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.fix_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "fix identifier reference",
+                is_valid_reference(
+                    &self.fix_identifier,
+                    &self.fix_section_code,
+                    &self.fix_subsection_code,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }

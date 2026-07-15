@@ -551,15 +551,25 @@ impl ParseableField for AirportHeliportApproachRouteType {
 /// 5.7.2 Route Type Qualifier 1
 #[derive(Debug, PartialEq, Eq)]
 pub enum RouteTypeQualifier1 {
+    // D
     DMERequired,
+    /// J
     GPSRequiredNoDMEDME,
+    /// L
     GBASProcedure,
+    /// N
     DMENotRequired,
+    /// P
     GNSSRequired,
+    /// R
     GPSOrDMEDMERequired,
+    /// T
     DMEDMERequired,
+    /// U
     GeneralRNAV,
+    /// V
     VORDMERNAV,
+    /// W
     RNAVWithFAS,
 }
 
@@ -590,10 +600,15 @@ impl ParseableField for RouteTypeQualifier1 {
 /// 5.7.3 Route Type Qualifier 2
 #[derive(Debug, PartialEq, Eq)]
 pub enum RouteTypeQualifier2 {
+    /// A
     PrimaryMissedApproach,
+    /// B
     SecondaryMissedApproach,
+    /// E
     EngineOutMissedApproach,
+    /// C
     ProcedureWithoutStraightInMinimums,
+    /// S
     ProcedureWithStraightInMinimums,
 }
 

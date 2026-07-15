@@ -1,6 +1,9 @@
 use crate::parsers::arinc424::rev18_faa::definitions::*;
+
 use crate::parsers::arinc424::rev18_faa::records::record::ARINCRecord;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError};
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError,
+};
 
 pub(super) struct CompanyRouteRecords;
 impl CompanyRouteRecords {
@@ -48,8 +51,12 @@ pub struct CompanyRoutePrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> CompanyRoutePrimaryRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for CompanyRoutePrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "CompanyRoutePrimaryRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(CompanyRoutePrimaryRecord {
             record_type:                            RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                     RecordField::from_bytes(input, 2,3)?,
@@ -83,5 +90,40 @@ impl<'a> CompanyRoutePrimaryRecord<'a> {
             file_record_number:                     RecordField::from_bytes(input, 124,5)?,
             cycle_date:                             RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.from_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "from identifier reference",
+                is_valid_reference(
+                    &self.from_identifier,
+                    &self.from_section_code,
+                    &self.from_subsection_code,
+                ),
+            );
+        }
+        if !self.to_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "to identifier reference",
+                is_valid_reference(
+                    &self.to_identifier,
+                    &self.to_section_code,
+                    &self.to_subsection_code,
+                ),
+            );
+        }
+        if !self.to_fix.value.is_none() {
+            validation_result.extend_messages(
+                "to fix reference",
+                is_valid_reference(
+                    &self.to_fix,
+                    &self.to_fix_section,
+                    &self.to_fix_subsection,
+                ),  
+            );
+        }
+        validation_result.as_result()
     }
 }

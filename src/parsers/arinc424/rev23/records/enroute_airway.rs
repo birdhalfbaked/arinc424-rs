@@ -1,7 +1,10 @@
 use crate::parsers::arinc424::rev23::definitions::*;
+
 use crate::parsers::arinc424::rev23::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct EnrouteAirwayRecords;
 impl EnrouteAirwayRecords {
     const CONTINUATION_COLUMN: usize = 39;
@@ -27,7 +30,10 @@ impl EnrouteAirwayRecords {
                         EnrouteAirwayFlightPlanningContinuationRecord::parse(input)?,
                     ))
                 }
-                _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
+                _ => Err(RecordParseError::new(
+                    "Invalid continuation record application type".to_string(),
+                    Some(String::from_utf8_lossy(input).into_owned()),
+                )),
             }
         }
     }
@@ -81,8 +87,12 @@ pub struct EnrouteAirwayPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> EnrouteAirwayPrimaryRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for EnrouteAirwayPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "EnrouteAirwayPrimaryRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                          RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                   RecordField::from_bytes(input, 2, 3)?,
@@ -129,6 +139,10 @@ impl<'a> EnrouteAirwayPrimaryRecord<'a> {
             cycle_date:                           RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
+    }
 }
 
 #[derive(Debug)]
@@ -151,8 +165,12 @@ pub struct EnrouteAirwayContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> EnrouteAirwayContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for EnrouteAirwayContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "EnrouteAirwayContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                          RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                   RecordField::from_bytes(input, 2, 3)?,
@@ -170,6 +188,10 @@ impl<'a> EnrouteAirwayContinuationRecord<'a> {
             file_record_number:                   RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                           RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -213,8 +235,12 @@ pub struct EnrouteAirwayFlightPlanningContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> EnrouteAirwayFlightPlanningContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for EnrouteAirwayFlightPlanningContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "EnrouteAirwayFlightPlanningContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                             RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                      RecordField::from_bytes(input, 2, 3)?,
@@ -248,5 +274,9 @@ impl<'a> EnrouteAirwayFlightPlanningContinuationRecord<'a> {
             file_record_number:                      RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                              RecordField::from_bytes(input, 129, 4)?,
        })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

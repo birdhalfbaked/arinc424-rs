@@ -1,7 +1,10 @@
 use crate::parsers::arinc424::rev18::definitions::*;
+
 use crate::parsers::arinc424::rev18::records::ARINCRecord;
 use crate::parsers::arinc424::types::fields::{BLANK, ParseableField};
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct HeliportApproachRecords;
 impl HeliportApproachRecords {
     const CONTINUATION_COLUMN: usize = 39;
@@ -41,7 +44,10 @@ impl HeliportApproachRecords {
                             HeliportApproachProcedureDataContinuationRecord::parse(input)?,
                         ))
                     }
-                    _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
+                    _ => Err(RecordParseError::new(
+                        "Invalid continuation record application type".to_string(),
+                        Some(String::from_utf8_lossy(input).into_owned()),
+                    )),
                 }
             } else {
                 if input[Self::TAA_CHECK_COLUMN - 1] == BLANK {
@@ -115,8 +121,12 @@ pub struct HeliportApproachMSACenterFixPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl <'a> HeliportApproachMSACenterFixPrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for HeliportApproachMSACenterFixPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "HeliportApproachMSACenterFixPrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                          RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                   RecordField::from_bytes(input, 2, 3)?,
@@ -166,6 +176,10 @@ impl <'a> HeliportApproachMSACenterFixPrimaryRecord<'a> {
             file_record_number:                   RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                           RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -219,8 +233,12 @@ pub struct HeliportApproachTAAPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl <'a> HeliportApproachTAAPrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for HeliportApproachTAAPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "HeliportApproachTAAPrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                          RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                   RecordField::from_bytes(input, 2, 3)?,
@@ -268,6 +286,10 @@ impl <'a> HeliportApproachTAAPrimaryRecord<'a> {
             cycle_date:                           RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
+    }
 }
 
 /// 4.1.9.2(C) Airport Approach Primary Extension Continuation Record
@@ -309,8 +331,12 @@ pub struct HeliportApproachPrimaryExtensionContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl <'a> HeliportApproachPrimaryExtensionContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for HeliportApproachPrimaryExtensionContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "HeliportApproachPrimaryExtensionContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                        RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                 RecordField::from_bytes(input, 2, 3)?,
@@ -347,6 +373,10 @@ impl <'a> HeliportApproachPrimaryExtensionContinuationRecord<'a> {
             cycle_date:                         RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
+    }
 }
 
 /// 4.1.9.3(C) Airport Approach Flight Planning Continuation Record
@@ -378,8 +408,12 @@ pub struct HeliportApproachFlightPlanningContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl <'a> HeliportApproachFlightPlanningContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for HeliportApproachFlightPlanningContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "HeliportApproachFlightPlanningContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                        RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                 RecordField::from_bytes(input, 2, 3)?,
@@ -405,6 +439,10 @@ impl <'a> HeliportApproachFlightPlanningContinuationRecord<'a> {
             file_record_number:                 RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                         RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -448,8 +486,12 @@ pub struct HeliportApproachProcedureDataContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl <'a> HeliportApproachProcedureDataContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for HeliportApproachProcedureDataContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "HeliportApproachProcedureDataContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                        RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                 RecordField::from_bytes(input, 2, 3)?,
@@ -478,5 +520,9 @@ impl <'a> HeliportApproachProcedureDataContinuationRecord<'a> {
             file_record_number:                 RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                         RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

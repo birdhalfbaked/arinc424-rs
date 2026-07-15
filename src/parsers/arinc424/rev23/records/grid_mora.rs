@@ -1,7 +1,9 @@
-
 use crate::parsers::arinc424::rev23::records::record::ARINCRecord;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError};
+
 use crate::parsers::arinc424::rev23::definitions::*;
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError,
+};
 pub(super) struct GridMORARecords;
 impl GridMORARecords {
     pub fn parse(input: &[u8]) -> Result<ARINCRecord<'_>, RecordParseError> {
@@ -54,8 +56,12 @@ pub struct GridMORAPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> GridMORAPrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for GridMORAPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "GridMORAPrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:          RecordField::from_bytes(input, 1, 1)?,
             section:              RecordField::from_bytes(input, 5, 1)?,
@@ -95,5 +101,9 @@ impl<'a> GridMORAPrimaryRecord<'a> {
             file_record_number:   RecordField::from_bytes(input, 124, 5)?,
             cycle_date:           RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

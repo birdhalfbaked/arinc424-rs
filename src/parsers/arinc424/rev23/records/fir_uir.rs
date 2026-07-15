@@ -1,7 +1,10 @@
 use crate::parsers::arinc424::rev23::records::record::ARINCRecord;
-use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+
 use crate::parsers::arinc424::rev23::definitions::*;
+use crate::parsers::arinc424::types::fields::ParseableField;
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct FIRUIRRecords;
 impl FIRUIRRecords {
     const CONTINUATION_COLUMN: usize = 20;
@@ -20,7 +23,10 @@ impl FIRUIRRecords {
                 Some(ContinuationRecordApplicationType::StandardContinuation) => Ok(
                     ARINCRecord::FIRUIRContinuation(FIRUIRContinuationRecord::parse(input)?),
                 ),
-                _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
+                _ => Err(RecordParseError::new(
+                    "Invalid continuation record application type".to_string(),
+                    Some(String::from_utf8_lossy(input).into_owned()),
+                )),
             }
         }
     }
@@ -60,8 +66,12 @@ pub struct FIRUIRPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> FIRUIRPrimaryRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for FIRUIRPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "FIRUIRPrimaryRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                  RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:           RecordField::from_bytes(input, 2, 3)?,
@@ -93,6 +103,10 @@ impl<'a> FIRUIRPrimaryRecord<'a> {
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
+    }
 }
 
 /// 4.1.17.2 FIR/UIR Continuation Record
@@ -114,8 +128,12 @@ pub struct FIRUIRContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> FIRUIRContinuationRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for FIRUIRContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "FIRUIRContinuationRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                  RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:           RecordField::from_bytes(input, 2, 3)?,
@@ -131,5 +149,9 @@ impl<'a> FIRUIRContinuationRecord<'a> {
             file_record_number:           RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

@@ -1,8 +1,10 @@
-
 use crate::parsers::arinc424::rev23::records::record::ARINCRecord;
-use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+
 use crate::parsers::arinc424::rev23::definitions::*;
+use crate::parsers::arinc424::types::fields::ParseableField;
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct EnrouteWaypointRecords;
 impl EnrouteWaypointRecords {
     const CONTINUATION_COLUMN: usize = 22;
@@ -28,7 +30,10 @@ impl EnrouteWaypointRecords {
                         EnrouteWaypointFlightPlanningContinuationRecord::parse(input)?,
                     ))
                 }
-                _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
+                _ => Err(RecordParseError::new(
+                    "Invalid continuation record application type".to_string(),
+                    Some(String::from_utf8_lossy(input).into_owned()),
+                )),
             }
         }
     }
@@ -60,8 +65,12 @@ pub struct EnrouteWaypointPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> EnrouteWaypointPrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for EnrouteWaypointPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "EnrouteWaypointPrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                    RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:             RecordField::from_bytes(input, 2, 3)?,
@@ -85,6 +94,10 @@ impl<'a> EnrouteWaypointPrimaryRecord<'a> {
             cycle_date:                     RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
+    }
 }
 
 /// 4.1.4.2(A) Enroute Waypoint Continuation Record
@@ -106,8 +119,12 @@ pub struct EnrouteWaypointContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> EnrouteWaypointContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for EnrouteWaypointContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "EnrouteWaypointContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                    RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:             RecordField::from_bytes(input, 2, 3)?,
@@ -123,6 +140,10 @@ impl<'a> EnrouteWaypointContinuationRecord<'a> {
             file_record_number:             RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                     RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -152,8 +173,12 @@ pub struct EnrouteWaypointFlightPlanningContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> EnrouteWaypointFlightPlanningContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for EnrouteWaypointFlightPlanningContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "EnrouteWaypointFlightPlanningContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                        RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                 RecordField::from_bytes(input, 2, 3)?,
@@ -176,5 +201,9 @@ impl<'a> EnrouteWaypointFlightPlanningContinuationRecord<'a> {
             file_record_number:                 RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                         RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

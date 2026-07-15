@@ -1,7 +1,10 @@
 use crate::parsers::arinc424::rev18_faa::definitions::*;
+
 use crate::parsers::arinc424::rev18_faa::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct AirportTAARecords;
 impl AirportTAARecords {
     const CONTINUATION_COLUMN: usize = 39;
@@ -22,7 +25,10 @@ impl AirportTAARecords {
                         AirportTAAContinuationRecord::parse(input)?,
                     ))
                 }
-                _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
+                _ => Err(RecordParseError::new(
+                    "Invalid continuation record application type".to_string(),
+                    Some(String::from_utf8_lossy(input).into_owned()),
+                )),
             }
         }
     }
@@ -69,8 +75,12 @@ pub struct AirportTAAPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> AirportTAAPrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for AirportTAAPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "AirportTAAPrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                             RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                      RecordField::from_bytes(input, 2, 3)?,
@@ -109,6 +119,21 @@ impl<'a> AirportTAAPrimaryRecord<'a> {
             cycle_date:                              RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.taa_waypoint.value.is_none() {
+            validation_result.extend_messages(
+                "taa waypoint reference",
+                is_valid_reference(
+                    &self.taa_waypoint,
+                    &self.taa_waypoint_section,
+                    &self.taa_waypoint_subsection,
+                ),
+            );
+        }
+        validation_result.as_result()
+    }
 }
 
 /// 4.1.31.2 Airport TAA Continuation Record
@@ -135,8 +160,12 @@ pub struct AirportTAAContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> AirportTAAContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for AirportTAAContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "AirportTAAContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                             RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                      RecordField::from_bytes(input, 2, 3)?,
@@ -157,5 +186,20 @@ impl<'a> AirportTAAContinuationRecord<'a> {
             file_record_number:                      RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                              RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.taa_waypoint.value.is_none() {
+            validation_result.extend_messages(
+                "taa waypoint reference",
+                is_valid_reference(
+                    &self.taa_waypoint,
+                    &self.taa_waypoint_section,
+                    &self.taa_waypoint_subsection,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }

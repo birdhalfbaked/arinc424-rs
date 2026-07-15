@@ -1,7 +1,10 @@
 use crate::parsers::arinc424::rev18_faa::definitions::*;
+
 use crate::parsers::arinc424::rev18_faa::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct VHFNavaidRecords;
 impl VHFNavaidRecords {
     const CONTINUATION_COLUMN: usize = 22;
@@ -85,8 +88,12 @@ pub struct VHFNavaidPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> VHFNavaidPrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for VHFNavaidPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "VHFNavaidPrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
                 record_type:                    RecordField::from_bytes(input, 1, 1)?,
                 customer_area_code:             RecordField::from_bytes(input, 2, 3)?,
@@ -115,6 +122,10 @@ impl<'a> VHFNavaidPrimaryRecord<'a> {
                 cycle_date:                     RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
+    }
 }
 
 /// 4.1.2.2 VHFNavaid Continuation Record
@@ -136,8 +147,12 @@ pub struct VHFNavaidContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> VHFNavaidContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for VHFNavaidContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "VHFNavaidContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:         RecordField::from_bytes(input, 2, 3)?,
@@ -153,6 +168,10 @@ impl<'a> VHFNavaidContinuationRecord<'a> {
             file_record_number:         RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                 RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -177,8 +196,12 @@ pub struct VHFNavaidSimulationContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> VHFNavaidSimulationContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for VHFNavaidSimulationContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "VHFNavaidSimulationContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:         RecordField::from_bytes(input, 2, 3)?,
@@ -196,6 +219,10 @@ impl<'a> VHFNavaidSimulationContinuationRecord<'a> {
             file_record_number:         RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                 RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -221,8 +248,12 @@ pub struct VHFNavaidFlightPlanningContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> VHFNavaidFlightPlanningContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for VHFNavaidFlightPlanningContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "VHFNavaidFlightPlanningContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                    RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:             RecordField::from_bytes(input, 2, 3)?,
@@ -241,6 +272,10 @@ impl<'a> VHFNavaidFlightPlanningContinuationRecord<'a> {
             file_record_number:             RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                     RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -299,8 +334,12 @@ pub struct VHFNavaidLimitationContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> VHFNavaidLimitationContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for VHFNavaidLimitationContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "VHFNavaidLimitationContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                        RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                 RecordField::from_bytes(input, 2, 3)?,
@@ -344,5 +383,50 @@ impl<'a> VHFNavaidLimitationContinuationRecord<'a> {
             file_record_number:                 RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                         RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        validation_result.extend_messages(
+            "limitation 1 altitude description",
+            is_valid_altitude_description(
+                &self.section,
+                &self.subsection,
+                &self.limitation_1_altitude_description,
+            ),
+        );
+        validation_result.extend_messages(
+            "limitation 2 altitude description",
+            is_valid_altitude_description(
+                &self.section,
+                &self.subsection,
+                &self.limitation_2_altitude_description,
+            ),
+        );
+        validation_result.extend_messages(
+            "limitation 3 altitude description",
+            is_valid_altitude_description(
+                &self.section,
+                &self.subsection,
+                &self.limitation_3_altitude_description,
+            ),
+        );
+        validation_result.extend_messages(
+            "limitation 4 altitude description",
+            is_valid_altitude_description(
+                &self.section,
+                &self.subsection,
+                &self.limitation_4_altitude_description,
+            ),
+        );
+        validation_result.extend_messages(
+            "limitation 5 altitude description",
+            is_valid_altitude_description(
+                &self.section,
+                &self.subsection,
+                &self.limitation_5_altitude_description,
+            ),
+        );
+        validation_result.as_result()
     }
 }

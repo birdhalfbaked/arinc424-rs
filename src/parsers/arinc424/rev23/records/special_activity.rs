@@ -1,8 +1,10 @@
-
 use crate::parsers::arinc424::rev23::records::record::ARINCRecord;
-use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+
 use crate::parsers::arinc424::rev23::definitions::*;
+use crate::parsers::arinc424::types::fields::ParseableField;
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct SpecialActivityRecords;
 impl SpecialActivityRecords {
     const CONTINUATION_COLUMN: usize = 22;
@@ -13,7 +15,10 @@ impl SpecialActivityRecords {
                 SpecialActivityAreaPrimaryRecord::parse(input)?,
             ))
         } else {
-            Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned())))
+            Err(RecordParseError::new(
+                "Invalid continuation record application type".to_string(),
+                Some(String::from_utf8_lossy(input).into_owned()),
+            ))
         }
     }
 }
@@ -23,12 +28,19 @@ impl SpecialActivityRecords {
 fn parse_communications_frequency<'a>(
     input: &'a [u8],
 ) -> Result<RecordField<'a, CommunicationsFrequency>, RecordParseError> {
-    let frequency_unit = FrequencyUnits::from_bytes(&input[45..46])?.ok_or(RecordParseError::new("Invalid frequency units".to_string(), Some(String::from_utf8_lossy(input).into_owned())))?;
+    let frequency_unit =
+        FrequencyUnits::from_bytes(&input[45..46])?.ok_or(RecordParseError::new(
+            "Invalid frequency units".to_string(),
+            Some(String::from_utf8_lossy(input).into_owned()),
+        ))?;
     let frequency_bytes = &input[86..92];
     let frequency = match frequency_unit {
         FrequencyUnits::HF => Some(CommunicationsFrequency::HighFrequency(
             HighFrequencyCommunicationsFrequency::from_bytes(frequency_bytes)?.ok_or(
-                RecordParseError::new("Invalid transmit frequency".to_string(), Some(String::from_utf8_lossy(input).into_owned())),
+                RecordParseError::new(
+                    "Invalid transmit frequency".to_string(),
+                    Some(String::from_utf8_lossy(input).into_owned()),
+                ),
             )?,
         )),
         FrequencyUnits::VHFNonStandardSpacing
@@ -37,22 +49,33 @@ fn parse_communications_frequency<'a>(
         | FrequencyUnits::VHF50KHzSpacing
         | FrequencyUnits::VHF100KHzSpacing => Some(CommunicationsFrequency::VeryHighFrequency(
             VeryHighFrequencyCommunicationsFrequency::from_bytes(frequency_bytes)?.ok_or(
-                RecordParseError::new("Invalid transmit frequency".to_string(), Some(String::from_utf8_lossy(input).into_owned())),
+                RecordParseError::new(
+                    "Invalid transmit frequency".to_string(),
+                    Some(String::from_utf8_lossy(input).into_owned()),
+                ),
             )?,
         )),
         FrequencyUnits::UHF => Some(CommunicationsFrequency::UltraHighFrequency(
             UltraHighFrequencyCommunicationsFrequency::from_bytes(frequency_bytes)?.ok_or(
-                RecordParseError::new("Invalid transmit frequency".to_string(), Some(String::from_utf8_lossy(input).into_owned())),
+                RecordParseError::new(
+                    "Invalid transmit frequency".to_string(),
+                    Some(String::from_utf8_lossy(input).into_owned()),
+                ),
             )?,
         )),
         FrequencyUnits::DigitalService => None,
         _ => {
-            return Err(RecordParseError::new("Invalid frequency units".to_string(), Some(String::from_utf8_lossy(input).into_owned())));
+            return Err(RecordParseError::new(
+                "Invalid frequency units".to_string(),
+                Some(String::from_utf8_lossy(input).into_owned()),
+            ));
         }
     };
     Ok(RecordField {
         raw_bytes: frequency_bytes,
         value: frequency,
+        start_column: 86,
+        end_column: 92,
     })
 }
 
@@ -87,8 +110,12 @@ pub struct SpecialActivityAreaPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> SpecialActivityAreaPrimaryRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for SpecialActivityAreaPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "SpecialActivityAreaPrimaryRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         let communications_frequency = parse_communications_frequency(input)?;
         Ok(Self{
             record_type:                  RecordField::from_bytes(input, 1, 1)?,
@@ -117,5 +144,9 @@ impl<'a> SpecialActivityAreaPrimaryRecord<'a> {
             file_record_number:           RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

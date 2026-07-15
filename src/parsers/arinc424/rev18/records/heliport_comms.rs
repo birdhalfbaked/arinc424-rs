@@ -1,7 +1,10 @@
 use crate::parsers::arinc424::rev18::definitions::*;
+
 use crate::parsers::arinc424::rev18::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct HeliportCommsRecords;
 impl HeliportCommsRecords {
     const CONTINUATION_COLUMN: usize = 26;
@@ -28,7 +31,10 @@ impl HeliportCommsRecords {
                     ))
                 }
                 _ => {
-                    return Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned())));
+                    return Err(RecordParseError::new(
+                        "Invalid continuation record application type".to_string(),
+                        Some(String::from_utf8_lossy(input).into_owned()),
+                    ));
                 }
             }
         }
@@ -47,6 +53,8 @@ fn parse_communications_frequency<'a>(
     Ok(RecordField {
         raw_bytes: communications_frequency_bytes,
         value: communications_frequency,
+        start_column: 16,
+        end_column: 23,
     })
 }
 
@@ -93,8 +101,12 @@ pub struct HeliportCommsPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> HeliportCommsPrimaryRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for HeliportCommsPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "HeliportCommsPrimaryRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
 
         let communications_frequency = parse_communications_frequency(input)?;
 
@@ -138,6 +150,10 @@ impl<'a> HeliportCommsPrimaryRecord<'a> {
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
+    }
 }
 
 // 4.1.14.2 Airport Communications Sector Narrative Continuation Record
@@ -161,8 +177,12 @@ pub struct HeliportCommsSectorNarrativeContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> HeliportCommsSectorNarrativeContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for HeliportCommsSectorNarrativeContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "HeliportCommsSectorNarrativeContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         let communications_frequency = parse_communications_frequency(input)?;
         Ok(Self {
             record_type:                      RecordField::from_bytes(input, 1, 1)?,
@@ -181,6 +201,10 @@ impl<'a> HeliportCommsSectorNarrativeContinuationRecord<'a> {
             file_record_number:               RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                       RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -214,8 +238,12 @@ pub struct HeliportCommsTimeContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> HeliportCommsTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for HeliportCommsTimeContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "HeliportCommsTimeContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         let communications_frequency = parse_communications_frequency(input)?;
         Ok(Self {
             record_type:                            RecordField::from_bytes(input, 1, 1)?,
@@ -243,5 +271,9 @@ impl<'a> HeliportCommsTimeContinuationRecord<'a> {
             file_record_number:                     RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                             RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

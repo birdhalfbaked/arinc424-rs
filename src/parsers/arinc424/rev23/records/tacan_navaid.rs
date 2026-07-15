@@ -1,7 +1,10 @@
 use crate::parsers::arinc424::rev23::definitions::*;
+
 use crate::parsers::arinc424::rev23::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct TACANOnlyNavaidRecords;
 impl TACANOnlyNavaidRecords {
     const CONTINUATION_COLUMN: usize = 22;
@@ -70,8 +73,12 @@ pub struct TACANOnlyNavaidPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> TACANOnlyNavaidPrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for TACANOnlyNavaidPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "TACANOnlyNavaidPrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                  RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:           RecordField::from_bytes(input, 2, 3)?,
@@ -96,6 +103,10 @@ impl<'a> TACANOnlyNavaidPrimaryRecord<'a> {
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
+    }
 }
 
 /// 4.1.32.2 TACAN Only Navaid Continuation Record
@@ -116,8 +127,12 @@ pub struct TACANOnlyNavaidContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> TACANOnlyNavaidContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for TACANOnlyNavaidContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "TACANOnlyNavaidContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                  RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:           RecordField::from_bytes(input, 2, 3)?,
@@ -132,6 +147,10 @@ impl<'a> TACANOnlyNavaidContinuationRecord<'a> {
             file_record_number:           RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -155,8 +174,12 @@ pub struct TACANOnlyNavaidSimulationContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> TACANOnlyNavaidSimulationContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for TACANOnlyNavaidSimulationContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "TACANOnlyNavaidSimulationContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                  RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:           RecordField::from_bytes(input, 2, 3)?,
@@ -173,6 +196,10 @@ impl<'a> TACANOnlyNavaidSimulationContinuationRecord<'a> {
             file_record_number:           RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -195,8 +222,12 @@ pub struct TACANOnlyNavaidFlightPlanningContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> TACANOnlyNavaidFlightPlanningContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for TACANOnlyNavaidFlightPlanningContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "TACANOnlyNavaidFlightPlanningContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                  RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:           RecordField::from_bytes(input, 2, 3)?,
@@ -212,6 +243,10 @@ impl<'a> TACANOnlyNavaidFlightPlanningContinuationRecord<'a> {
             file_record_number:           RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -266,8 +301,12 @@ pub struct TACANOnlyNavaidLimitationContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> TACANOnlyNavaidLimitationContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for TACANOnlyNavaidLimitationContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "TACANOnlyNavaidLimitationContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                          RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                   RecordField::from_bytes(input, 2, 3)?,
@@ -310,5 +349,9 @@ impl<'a> TACANOnlyNavaidLimitationContinuationRecord<'a> {
             file_record_number:                   RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                           RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

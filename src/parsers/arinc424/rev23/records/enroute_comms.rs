@@ -1,8 +1,10 @@
-
 use crate::parsers::arinc424::rev23::records::record::ARINCRecord;
-use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+
 use crate::parsers::arinc424::rev23::definitions::*;
+use crate::parsers::arinc424::types::fields::ParseableField;
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct EnrouteCommsRecords;
 impl EnrouteCommsRecords {
     const CONTINUATION_COLUMN: usize = 22;
@@ -34,7 +36,10 @@ impl EnrouteCommsRecords {
                     ))
                 }
                 _ => {
-                    return Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned())));
+                    return Err(RecordParseError::new(
+                        "Invalid continuation record application type".to_string(),
+                        Some(String::from_utf8_lossy(input).into_owned()),
+                    ));
                 }
             }
         }
@@ -52,13 +57,20 @@ fn parse_communications_frequency<'a>(
     ),
     RecordParseError,
 > {
-    let frequency_unit = FrequencyUnits::from_bytes(&input[39..40])?.ok_or(RecordParseError::new("Invalid frequency units".to_string(), Some(String::from_utf8_lossy(input).into_owned())))?;
+    let frequency_unit =
+        FrequencyUnits::from_bytes(&input[39..40])?.ok_or(RecordParseError::new(
+            "Invalid frequency units".to_string(),
+            Some(String::from_utf8_lossy(input).into_owned()),
+        ))?;
     let transmit_frequency_bytes = &input[25..32];
     let receive_frequency_bytes = &input[32..39];
     let transmit_frequency = match frequency_unit {
         FrequencyUnits::HF => Some(CommunicationsFrequency::HighFrequency(
             HighFrequencyCommunicationsFrequency::from_bytes(transmit_frequency_bytes)?.ok_or(
-                RecordParseError::new("Invalid transmit frequency".to_string(), Some(String::from_utf8_lossy(input).into_owned())),
+                RecordParseError::new(
+                    "Invalid transmit frequency".to_string(),
+                    Some(String::from_utf8_lossy(input).into_owned()),
+                ),
             )?,
         )),
         FrequencyUnits::VHFNonStandardSpacing
@@ -67,23 +79,35 @@ fn parse_communications_frequency<'a>(
         | FrequencyUnits::VHF50KHzSpacing
         | FrequencyUnits::VHF100KHzSpacing => Some(CommunicationsFrequency::VeryHighFrequency(
             VeryHighFrequencyCommunicationsFrequency::from_bytes(transmit_frequency_bytes)?.ok_or(
-                RecordParseError::new("Invalid transmit frequency".to_string(), Some(String::from_utf8_lossy(input).into_owned())),
+                RecordParseError::new(
+                    "Invalid transmit frequency".to_string(),
+                    Some(String::from_utf8_lossy(input).into_owned()),
+                ),
             )?,
         )),
         FrequencyUnits::UHF => Some(CommunicationsFrequency::UltraHighFrequency(
             UltraHighFrequencyCommunicationsFrequency::from_bytes(transmit_frequency_bytes)?
-                .ok_or(RecordParseError::new("Invalid transmit frequency".to_string(), Some(String::from_utf8_lossy(input).into_owned())))?,
+                .ok_or(RecordParseError::new(
+                    "Invalid transmit frequency".to_string(),
+                    Some(String::from_utf8_lossy(input).into_owned()),
+                ))?,
         )),
         FrequencyUnits::DigitalService => None,
         _ => {
-            return Err(RecordParseError::new("Invalid frequency units".to_string(), Some(String::from_utf8_lossy(input).into_owned())));
+            return Err(RecordParseError::new(
+                "Invalid frequency units".to_string(),
+                Some(String::from_utf8_lossy(input).into_owned()),
+            ));
         }
     };
     let receive_frequency =
         match frequency_unit {
             FrequencyUnits::HF => Some(CommunicationsFrequency::HighFrequency(
                 HighFrequencyCommunicationsFrequency::from_bytes(receive_frequency_bytes)?.ok_or(
-                    RecordParseError::new("Invalid receive frequency".to_string(), Some(String::from_utf8_lossy(input).into_owned())),
+                    RecordParseError::new(
+                        "Invalid receive frequency".to_string(),
+                        Some(String::from_utf8_lossy(input).into_owned()),
+                    ),
                 )?,
             )),
             FrequencyUnits::VHFNonStandardSpacing
@@ -92,25 +116,38 @@ fn parse_communications_frequency<'a>(
             | FrequencyUnits::VHF50KHzSpacing
             | FrequencyUnits::VHF100KHzSpacing => Some(CommunicationsFrequency::VeryHighFrequency(
                 VeryHighFrequencyCommunicationsFrequency::from_bytes(receive_frequency_bytes)?
-                    .ok_or(RecordParseError::new("Invalid transmit frequency".to_string(), Some(String::from_utf8_lossy(input).into_owned())))?,
+                    .ok_or(RecordParseError::new(
+                        "Invalid transmit frequency".to_string(),
+                        Some(String::from_utf8_lossy(input).into_owned()),
+                    ))?,
             )),
             FrequencyUnits::UHF => Some(CommunicationsFrequency::UltraHighFrequency(
                 UltraHighFrequencyCommunicationsFrequency::from_bytes(receive_frequency_bytes)?
-                    .ok_or(RecordParseError::new("Invalid transmit frequency".to_string(), Some(String::from_utf8_lossy(input).into_owned())))?,
+                    .ok_or(RecordParseError::new(
+                        "Invalid transmit frequency".to_string(),
+                        Some(String::from_utf8_lossy(input).into_owned()),
+                    ))?,
             )),
             FrequencyUnits::DigitalService => None,
             _ => {
-                return Err(RecordParseError::new("Invalid frequency units".to_string(), Some(String::from_utf8_lossy(input).into_owned())));
+                return Err(RecordParseError::new(
+                    "Invalid frequency units".to_string(),
+                    Some(String::from_utf8_lossy(input).into_owned()),
+                ));
             }
         };
     Ok((
         RecordField {
             raw_bytes: transmit_frequency_bytes,
             value: transmit_frequency,
+            start_column: 25,
+            end_column: 32,
         },
         RecordField {
             raw_bytes: receive_frequency_bytes,
             value: receive_frequency,
+            start_column: 32,
+            end_column: 39,
         },
     ))
 }
@@ -149,8 +186,12 @@ pub struct EnrouteCommsPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> EnrouteCommsPrimaryRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for EnrouteCommsPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "EnrouteCommsPrimaryRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         let (transmit_frequency, receive_frequency) = parse_communications_frequency(input)?;
         Ok(Self {
             record_type:                  RecordField::from_bytes(input, 1, 1)?,
@@ -183,6 +224,10 @@ impl<'a> EnrouteCommsPrimaryRecord<'a> {
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
+    }
 }
 
 // 4.1.23.2 Enroute Communications Primary Extension Continuation Record
@@ -214,8 +259,12 @@ pub struct EnrouteCommsPrimaryExtensionContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> EnrouteCommsPrimaryExtensionContinuationRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for EnrouteCommsPrimaryExtensionContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "EnrouteCommsPrimaryExtensionContinuationRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                        RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                 RecordField::from_bytes(input, 2, 3)?,
@@ -241,6 +290,10 @@ impl<'a> EnrouteCommsPrimaryExtensionContinuationRecord<'a> {
             file_record_number:                 RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                         RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -274,8 +327,12 @@ pub struct EnrouteCommsFormattedTimeContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> EnrouteCommsFormattedTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for EnrouteCommsFormattedTimeContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "EnrouteCommsFormattedTimeContinuationRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                  RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:           RecordField::from_bytes(input, 2, 3)?,
@@ -303,6 +360,10 @@ impl<'a> EnrouteCommsFormattedTimeContinuationRecord<'a> {
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
+    }
 }
 
 // 4.1.23.4 Enroute Communications Narrative Time Continuation Record
@@ -325,8 +386,12 @@ pub struct EnrouteCommsNarrativeTimeContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> EnrouteCommsNarrativeTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for EnrouteCommsNarrativeTimeContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "EnrouteCommsNarrativeTimeContinuationRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                  RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:           RecordField::from_bytes(input, 2, 3)?,
@@ -343,5 +408,9 @@ impl<'a> EnrouteCommsNarrativeTimeContinuationRecord<'a> {
             file_record_number:           RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

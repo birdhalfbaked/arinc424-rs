@@ -1,7 +1,10 @@
 use crate::parsers::arinc424::rev18_faa::definitions::*;
+
 use crate::parsers::arinc424::rev18_faa::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct PreferredRouteRecords;
 impl PreferredRouteRecords {
     const CONTINUATION_COLUMN: usize = 39;
@@ -64,16 +67,20 @@ pub struct PreferredRoutePrimaryRecord<'a> {
     pub time_code: RecordField<'a, StandardPrimaryRecordTimeCode>,
     pub aircraft_use_group: RecordField<'a, AircraftUseGroupIndicator>,
     pub direction_restriction: RecordField<'a, PreferredRouteDirectionalRestriction>,
-    pub alitude_description: RecordField<'a, CrossingAltitudeDescription>,
+    pub altitude_description: RecordField<'a, CrossingAltitudeDescription>,
     pub altitude_1: RecordField<'a, MinimumAltitude>,
     pub altitude_2: RecordField<'a, MinimumAltitude>,
     pub file_record_number: RecordField<'a, FileRecordNumber>,
     pub cycle_date: RecordField<'a, CycleDate>,
 }
 
-#[rustfmt::skip]
-impl<'a> PreferredRoutePrimaryRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for PreferredRoutePrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "PreferredRoutePrimaryRecord"
+    }
+    
+    #[rustfmt::skip]
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(PreferredRoutePrimaryRecord {
             record_type:                      RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:               RecordField::from_bytes(input, 2, 3)?,
@@ -105,12 +112,55 @@ impl<'a> PreferredRoutePrimaryRecord<'a> {
             time_code:                        RecordField::from_bytes(input, 91, 1)?,
             aircraft_use_group:               RecordField::from_bytes(input, 92, 2)?,
             direction_restriction:            RecordField::from_bytes(input, 94, 1)?,
-            alitude_description:              RecordField::from_bytes(input, 95, 1)?,
+            altitude_description:             RecordField::from_bytes(input, 95, 1)?,
             altitude_1:                       RecordField::from_bytes(input, 96, 5)?,
             altitude_2:                       RecordField::from_bytes(input, 101, 5)?,
             file_record_number:               RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                       RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.to_fix_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "to fix identifier reference",
+                is_valid_reference(
+                    &self.to_fix_identifier,
+                    &self.to_fix_section_code,
+                    &self.to_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.initial_point.value.is_none() {
+            validation_result.extend_messages(
+                "initial point reference",
+                is_valid_reference(
+                    &self.initial_point,
+                    &self.initial_point_section_code,
+                    &self.initial_point_subsection_code,
+                ),
+            );
+        }
+        if !self.terminus_point.value.is_none() {
+            validation_result.extend_messages(
+                "terminus point reference",
+                is_valid_reference(
+                    &self.terminus_point,
+                    &self.terminus_point_section_code,
+                    &self.terminus_point_subsection_code,
+                ),
+            );
+        }
+        validation_result.extend_messages(
+            "altitude description",
+            is_valid_altitude_description(
+                &self.section,
+                &self.subsection,
+                &self.altitude_description,
+            ),
+        );
+        validation_result.as_result()
     }
 }
 
@@ -140,8 +190,12 @@ pub struct PreferredRouteTimeContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> PreferredRouteTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for PreferredRouteTimeContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "PreferredRouteTimeContinuationRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(PreferredRouteTimeContinuationRecord {
             record_type:                  RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:           RecordField::from_bytes(input, 2, 3)?,
@@ -165,6 +219,10 @@ impl<'a> PreferredRouteTimeContinuationRecord<'a> {
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
+    }
 }
 
 /// 4.1.24.3 Preferred Route Continuation Record
@@ -185,8 +243,12 @@ pub struct PreferredRouteContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> PreferredRouteContinuationRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for PreferredRouteContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "PreferredRouteContinuationRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(PreferredRouteContinuationRecord {
             record_type:                  RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:           RecordField::from_bytes(input, 2, 3)?,
@@ -201,5 +263,9 @@ impl<'a> PreferredRouteContinuationRecord<'a> {
             file_record_number:           RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

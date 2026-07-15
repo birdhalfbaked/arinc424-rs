@@ -1,7 +1,10 @@
 use crate::parsers::arinc424::rev23::records::record::ARINCRecord;
-use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError};
+
 use crate::parsers::arinc424::rev23::definitions::*;
+use crate::parsers::arinc424::types::fields::ParseableField;
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError,
+};
 pub(super) struct CompanyRouteRecords;
 impl CompanyRouteRecords {
     const VIA_COLUMN: usize = 40;
@@ -35,7 +38,10 @@ impl CompanyRouteRecords {
                 ),
             })
         } else {
-            Err(RecordParseError::new("Invalid company route VIA code".to_string(), Some(String::from_utf8_lossy(input).into_owned())))
+            Err(RecordParseError::new(
+                "Invalid company route VIA code".to_string(),
+                Some(String::from_utf8_lossy(input).into_owned()),
+            ))
         }
     }
 }
@@ -80,8 +86,12 @@ pub struct CompanySIDRoutePrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> CompanySIDRoutePrimaryRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for CompanySIDRoutePrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "CompanySIDRoutePrimaryRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(CompanySIDRoutePrimaryRecord {
             record_type:                            RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                     RecordField::from_bytes(input, 2,3)?,
@@ -118,6 +128,10 @@ impl<'a> CompanySIDRoutePrimaryRecord<'a> {
             file_record_number:                     RecordField::from_bytes(input, 124,5)?,
             cycle_date:                             RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -161,8 +175,12 @@ pub struct CompanySTARRoutePrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> CompanySTARRoutePrimaryRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for CompanySTARRoutePrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "CompanySTARRoutePrimaryRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(CompanySTARRoutePrimaryRecord {
             record_type:                            RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                     RecordField::from_bytes(input, 2,3)?,
@@ -199,6 +217,10 @@ impl<'a> CompanySTARRoutePrimaryRecord<'a> {
             file_record_number:                     RecordField::from_bytes(input, 124,5)?,
             cycle_date:                             RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -244,8 +266,12 @@ pub struct CompanyApproachRoutePrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> CompanyApproachRoutePrimaryRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for CompanyApproachRoutePrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "CompanyApproachRoutePrimaryRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(CompanyApproachRoutePrimaryRecord {
             record_type:                            RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                     RecordField::from_bytes(input, 2,3)?,
@@ -282,6 +308,10 @@ impl<'a> CompanyApproachRoutePrimaryRecord<'a> {
             file_record_number:                     RecordField::from_bytes(input, 124,5)?,
             cycle_date:                             RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -323,8 +353,12 @@ pub struct CompanyAirwayRoutePrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> CompanyAirwayRoutePrimaryRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for CompanyAirwayRoutePrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "CompanyAirwayRoutePrimaryRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(CompanyAirwayRoutePrimaryRecord {
             record_type:                            RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                     RecordField::from_bytes(input, 2,3)?,
@@ -359,6 +393,10 @@ impl<'a> CompanyAirwayRoutePrimaryRecord<'a> {
             file_record_number:                     RecordField::from_bytes(input, 124,5)?,
             cycle_date:                             RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -400,8 +438,12 @@ pub struct CompanyGeneralRoutePrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> CompanyGeneralRoutePrimaryRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for CompanyGeneralRoutePrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "CompanyGeneralRoutePrimaryRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(CompanyGeneralRoutePrimaryRecord {
             record_type:                            RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                     RecordField::from_bytes(input, 2,3)?,
@@ -434,5 +476,9 @@ impl<'a> CompanyGeneralRoutePrimaryRecord<'a> {
             file_record_number:                     RecordField::from_bytes(input, 124,5)?,
             cycle_date:                             RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

@@ -1,7 +1,10 @@
 use crate::parsers::arinc424::rev23::records::record::ARINCRecord;
-use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+
 use crate::parsers::arinc424::rev23::definitions::*;
+use crate::parsers::arinc424::types::fields::ParseableField;
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct AirportGBASRecords;
 impl AirportGBASRecords {
     const CONTINUATION_COLUMN: usize = 27;
@@ -34,7 +37,10 @@ impl AirportGBASRecords {
                             AirportRunwayGBASPathPointContinuationRecord::parse(input)?,
                         ))
                     }
-                    _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
+                    _ => Err(RecordParseError::new(
+                        "Invalid continuation record application type".to_string(),
+                        Some(String::from_utf8_lossy(input).into_owned()),
+                    )),
                 }
             } else {
                 match ContinuationRecordApplicationType::from_bytes(
@@ -75,10 +81,15 @@ fn parse_path_point_tch<'a>(
                 }
             }
             None => {
-                return Err(RecordParseError::new("Invalid TCH units indicator".to_string(), Some(String::from_utf8_lossy(input).into_owned())))?;
+                return Err(RecordParseError::new(
+                    "Invalid TCH units indicator".to_string(),
+                    Some(String::from_utf8_lossy(input).into_owned()),
+                ))?;
             }
         },
         raw_bytes: tch_value_bytes,
+        start_column: 102,
+        end_column: 108,
     };
     Ok(tch_value)
 }
@@ -119,8 +130,12 @@ pub struct AirportRunwayGBASPathPointPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> AirportRunwayGBASPathPointPrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for AirportRunwayGBASPathPointPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "AirportRunwayGBASPathPointPrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         let tch_value = parse_path_point_tch(input)?;
         Ok(Self {
             record_type:                                RecordField::from_bytes(input, 1, 1)?,
@@ -154,6 +169,10 @@ impl<'a> AirportRunwayGBASPathPointPrimaryRecord<'a> {
             file_record_number:                         RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                                 RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -193,8 +212,12 @@ pub struct AirportFinalApproachCourseAsRunwayGBASPathPointPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> AirportFinalApproachCourseAsRunwayGBASPathPointPrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for AirportFinalApproachCourseAsRunwayGBASPathPointPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "AirportFinalApproachCourseAsRunwayGBASPathPointPrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         let tch_value = parse_path_point_tch(input)?;
         Ok(Self {
             record_type:                                RecordField::from_bytes(input, 1, 1)?,
@@ -229,6 +252,10 @@ impl<'a> AirportFinalApproachCourseAsRunwayGBASPathPointPrimaryRecord<'a> {
             cycle_date:                                 RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
+    }
 }
 
 /// 4.1.35.2(A) Airport Runway GBAS Path Point Continuation Record
@@ -256,8 +283,12 @@ pub struct AirportRunwayGBASPathPointContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> AirportRunwayGBASPathPointContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for AirportRunwayGBASPathPointContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "AirportRunwayGBASPathPointContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                                RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                         RecordField::from_bytes(input, 2, 3)?,
@@ -279,6 +310,10 @@ impl<'a> AirportRunwayGBASPathPointContinuationRecord<'a> {
             file_record_number:                         RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                                 RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -307,8 +342,12 @@ pub struct AirportFinalApproachCourseAsRunwayGBASPathPointContinuationRecord<'a>
 }
 
 #[rustfmt::skip]
-impl<'a> AirportFinalApproachCourseAsRunwayGBASPathPointContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for AirportFinalApproachCourseAsRunwayGBASPathPointContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "AirportFinalApproachCourseAsRunwayGBASPathPointContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                                RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                         RecordField::from_bytes(input, 2, 3)?,
@@ -330,5 +369,9 @@ impl<'a> AirportFinalApproachCourseAsRunwayGBASPathPointContinuationRecord<'a> {
             file_record_number:                         RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                                 RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

@@ -1,7 +1,10 @@
 use crate::parsers::arinc424::rev18_faa::definitions::*;
+
 use crate::parsers::arinc424::rev18_faa::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct FlightPlanningDataRecords;
 impl FlightPlanningDataRecords {
     const CONTINUATION_COLUMN: usize = 70;
@@ -129,8 +132,12 @@ pub struct FlightPlanningSIDSTARPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> FlightPlanningSIDSTARPrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for FlightPlanningSIDSTARPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "FlightPlanningSIDSTARPrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                                          RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                                   RecordField::from_bytes(input, 2, 3)?,
@@ -178,6 +185,49 @@ impl<'a> FlightPlanningSIDSTARPrimaryRecord<'a> {
             file_record_number:                                   RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                                           RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.runway_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "runway transition fix reference",
+                is_valid_reference(
+                    &self.runway_transition_fix,
+                    &self.runway_transition_fix_section_code,
+                    &self.runway_transition_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.common_segment_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "common segment transition fix reference",
+                is_valid_reference(
+                    &self.common_segment_transition_fix,
+                    &self.common_segment_transition_fix_section_code,
+                    &self.common_segment_transition_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.enroute_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "enroute transition fix reference",
+                is_valid_reference(
+                    &self.enroute_transition_fix,
+                    &self.enroute_transition_fix_section_code,
+                    &self.enroute_transition_fix_subsection_code,
+                ),
+            );
+        }
+        validation_result.extend_messages(
+            "altitude description",
+            is_valid_altitude_description(
+                &self.section,
+                &self.subsection,
+                &self.altitude_description,
+            ),
+        );
+        validation_result.as_result()
     }
 }
 
@@ -232,8 +282,12 @@ pub struct FlightPlanningApproachPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> FlightPlanningApproachPrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for FlightPlanningApproachPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "FlightPlanningApproachPrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                                          RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                                   RecordField::from_bytes(input, 2, 3)?,
@@ -281,6 +335,49 @@ impl<'a> FlightPlanningApproachPrimaryRecord<'a> {
             file_record_number:                                   RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                                           RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.runway_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "runway transition fix reference",
+                is_valid_reference(
+                    &self.runway_transition_fix,
+                    &self.runway_transition_fix_section_code,
+                    &self.runway_transition_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.common_segment_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "common segment transition fix reference",
+                is_valid_reference(
+                    &self.common_segment_transition_fix,
+                    &self.common_segment_transition_fix_section_code,
+                    &self.common_segment_transition_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.enroute_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "enroute transition fix reference",
+                is_valid_reference(
+                    &self.enroute_transition_fix,
+                    &self.enroute_transition_fix_section_code,
+                    &self.enroute_transition_fix_subsection_code,
+                ),
+            );
+        }
+        validation_result.extend_messages(
+            "altitude description",
+            is_valid_altitude_description(
+                &self.section,
+                &self.subsection,
+                &self.altitude_description,
+            ),
+        );
+        validation_result.as_result()
     }
 }
 
@@ -344,8 +441,12 @@ pub struct FlightPlanningSIDSTARContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> FlightPlanningSIDSTARContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for FlightPlanningSIDSTARContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "FlightPlanningSIDSTARContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                                          RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                                   RecordField::from_bytes(input, 2, 3)?,
@@ -402,6 +503,83 @@ impl<'a> FlightPlanningSIDSTARContinuationRecord<'a> {
             file_record_number:                                   RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                                           RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.runway_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "runway transition fix reference",
+                is_valid_reference(
+                    &self.runway_transition_fix,
+                    &self.runway_transition_fix_section_code,
+                    &self.runway_transition_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.common_segment_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "common segment transition fix reference",
+                is_valid_reference(
+                    &self.common_segment_transition_fix,
+                    &self.common_segment_transition_fix_section_code,
+                    &self.common_segment_transition_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.enroute_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "enroute transition fix reference",
+                is_valid_reference(
+                    &self.enroute_transition_fix,
+                    &self.enroute_transition_fix_section_code,
+                    &self.enroute_transition_fix_subsection_code,
+                ),
+            );
+        }
+
+        if !self.intermediate_fix_1_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "intermediate fix 1 reference",
+                is_valid_reference(
+                    &self.intermediate_fix_1_identifier,
+                    &self.intermediate_fix_1_section_code,
+                    &self.intermediate_fix_1_subsection_code,
+                ),
+            );
+        }
+        if !self.intermediate_fix_2_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "intermediate fix 2 reference",
+                is_valid_reference(
+                    &self.intermediate_fix_2_identifier,
+                    &self.intermediate_fix_2_section_code,
+                    &self.intermediate_fix_2_subsection_code,
+                ),
+            );
+        }
+        if !self.intermediate_fix_3_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "intermediate fix 3 reference",
+                is_valid_reference(
+                    &self.intermediate_fix_3_identifier,
+                    &self.intermediate_fix_3_section_code,
+                    &self.intermediate_fix_3_subsection_code,
+                ),
+            );
+        }
+        if !self.intermediate_fix_4_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "intermediate fix 4 reference",
+                is_valid_reference(
+                    &self.intermediate_fix_4_identifier,
+                    &self.intermediate_fix_4_section_code,
+                    &self.intermediate_fix_4_subsection_code,
+                ),
+            );
+        }
+
+        validation_result.as_result()
     }
 }
 
@@ -465,8 +643,12 @@ pub struct FlightPlanningApproachContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> FlightPlanningApproachContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for FlightPlanningApproachContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "FlightPlanningApproachContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                                          RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                                   RecordField::from_bytes(input, 2, 3)?,
@@ -524,6 +706,83 @@ impl<'a> FlightPlanningApproachContinuationRecord<'a> {
             cycle_date:                                           RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.runway_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "runway transition fix reference",
+                is_valid_reference(
+                    &self.runway_transition_fix,
+                    &self.runway_transition_fix_section_code,
+                    &self.runway_transition_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.common_segment_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "common segment transition fix reference",
+                is_valid_reference(
+                    &self.common_segment_transition_fix,
+                    &self.common_segment_transition_fix_section_code,
+                    &self.common_segment_transition_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.enroute_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "enroute transition fix reference",
+                is_valid_reference(
+                    &self.enroute_transition_fix,
+                    &self.enroute_transition_fix_section_code,
+                    &self.enroute_transition_fix_subsection_code,
+                ),
+            );
+        }
+
+        if !self.intermediate_fix_1_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "intermediate fix 1 reference",
+                is_valid_reference(
+                    &self.intermediate_fix_1_identifier,
+                    &self.intermediate_fix_1_section_code,
+                    &self.intermediate_fix_1_subsection_code,
+                ),
+            );
+        }
+        if !self.intermediate_fix_2_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "intermediate fix 2 reference",
+                is_valid_reference(
+                    &self.intermediate_fix_2_identifier,
+                    &self.intermediate_fix_2_section_code,
+                    &self.intermediate_fix_2_subsection_code,
+                ),
+            );
+        }
+        if !self.intermediate_fix_3_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "intermediate fix 3 reference",
+                is_valid_reference(
+                    &self.intermediate_fix_3_identifier,
+                    &self.intermediate_fix_3_section_code,
+                    &self.intermediate_fix_3_subsection_code,
+                ),
+            );
+        }
+        if !self.intermediate_fix_4_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "intermediate fix 4 reference",
+                is_valid_reference(
+                    &self.intermediate_fix_4_identifier,
+                    &self.intermediate_fix_4_section_code,
+                    &self.intermediate_fix_4_subsection_code,
+                ),
+            );
+        }
+
+        validation_result.as_result()
+    }
 }
 
 /// 4.1.27.3(A) Flight Planning SID/STAR Time Continuation Record
@@ -569,8 +828,12 @@ pub struct FlightPlanningSIDSTARTimeContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> FlightPlanningSIDSTARTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for FlightPlanningSIDSTARTimeContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "FlightPlanningSIDSTARTimeContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                                          RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                                   RecordField::from_bytes(input, 2, 3)?,
@@ -610,6 +873,41 @@ impl<'a> FlightPlanningSIDSTARTimeContinuationRecord<'a> {
             file_record_number:                                   RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                                           RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.runway_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "runway transition fix reference",
+                is_valid_reference(
+                    &self.runway_transition_fix,
+                    &self.runway_transition_fix_section_code,
+                    &self.runway_transition_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.common_segment_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "common segment transition fix reference",
+                is_valid_reference(
+                    &self.common_segment_transition_fix,
+                    &self.common_segment_transition_fix_section_code,
+                    &self.common_segment_transition_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.enroute_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "enroute transition fix reference",
+                is_valid_reference(
+                    &self.enroute_transition_fix,
+                    &self.enroute_transition_fix_section_code,
+                    &self.enroute_transition_fix_subsection_code,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }
 
@@ -656,8 +954,12 @@ pub struct FlightPlanningApproachTimeContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> FlightPlanningApproachTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for FlightPlanningApproachTimeContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "FlightPlanningApproachTimeContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                                          RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                                   RecordField::from_bytes(input, 2, 3)?,
@@ -697,5 +999,40 @@ impl<'a> FlightPlanningApproachTimeContinuationRecord<'a> {
             file_record_number:                                   RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                                           RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.runway_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "runway transition fix reference",
+                is_valid_reference(
+                    &self.runway_transition_fix,
+                    &self.runway_transition_fix_section_code,
+                    &self.runway_transition_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.common_segment_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "common segment transition fix reference",
+                is_valid_reference(
+                    &self.common_segment_transition_fix,
+                    &self.common_segment_transition_fix_section_code,
+                    &self.common_segment_transition_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.enroute_transition_fix.value.is_none() {
+            validation_result.extend_messages(
+                "enroute transition fix reference",
+                is_valid_reference(
+                    &self.enroute_transition_fix,
+                    &self.enroute_transition_fix_section_code,
+                    &self.enroute_transition_fix_subsection_code,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }

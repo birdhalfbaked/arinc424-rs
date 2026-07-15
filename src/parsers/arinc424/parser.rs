@@ -8,12 +8,7 @@ use crate::parsers::arinc424::rev18::records::record::ARINCRecord as Rev18ArincR
 use crate::parsers::arinc424::rev18_faa::records::record::ARINCRecord as Rev18FAAArincRecord;
 use crate::parsers::arinc424::rev23::records::record::ARINCRecord as Rev23ArincRecord;
 
-use crate::parsers::arinc424::types::records::RecordParseError;
-
-use std::fs::File;
-use std::io::BufRead;
-use std::io::BufReader;
-use std::path::Path;
+use crate::parsers::arinc424::types::records::{RecordError, RecordValidationError};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Arinc424Version {
@@ -27,6 +22,16 @@ pub enum Arinc424VersionedRecord<'a> {
     Rev18(Rev18ArincRecord<'a>),
     Rev18FAA(Rev18FAAArincRecord<'a>),
     Rev23(Rev23ArincRecord<'a>),
+}
+
+impl<'a> Arinc424VersionedRecord<'a> {
+    pub fn validate(&self) -> Result<(), RecordValidationError> {
+        match self {
+            Self::Rev18(_) => Ok(()),
+            Self::Rev18FAA(record) => record.validate(),
+            Self::Rev23(_) => Ok(()),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -45,11 +50,8 @@ impl Arinc424Parser {
         }
     }
 
-    pub fn parse<'a>(
-        &self,
-        input: &'a [u8],
-    ) -> Result<Arinc424VersionedRecord<'a>, RecordParseError> {
-        match self {
+    pub fn parse<'a>(&self, input: &'a [u8]) -> Result<Arinc424VersionedRecord<'a>, RecordError> {
+        let record = match self {
             Self::Rev18 => Ok(Arinc424VersionedRecord::Rev18(Rev18ArincRecord::parse(
                 input,
             )?)),
@@ -59,22 +61,16 @@ impl Arinc424Parser {
             Self::Rev23 => Ok(Arinc424VersionedRecord::Rev23(Rev23ArincRecord::parse(
                 input,
             )?)),
+        };
+        match record {
+            Ok(record) => match record.validate() {
+                Ok(()) => Ok(record),
+                Err(e) => Err(RecordError::from(
+                    e.with_raw_line(String::from_utf8_lossy(input).to_string()),
+                )),
+            },
+            Err(e) => Err(e),
         }
-    }
-    pub fn parse_file(&self, path: &Path) -> Result<(), RecordParseError> {
-        let file = File::open(path).map_err(|e| RecordParseError::new(e.to_string(), None))?;
-        let reader = BufReader::new(file);
-        for line in reader.lines() {
-            let line = line.map_err(|e| RecordParseError::new(e.to_string(), None))?;
-            let result = self
-                .parse(line.as_bytes())
-                .map_err(|e| RecordParseError::new(e.message, Some(line.clone())));
-            if let Err(e) = result {
-                println!("Error parsing line: {}", e.message);
-                println!("Raw line: {}", line);
-            }
-        }
-        Ok(())
     }
 }
 
@@ -87,5 +83,4 @@ fn test_parse_rev23_vhf_navaid_primary_record() {
         record,
         Arinc424VersionedRecord::Rev23(Rev23ArincRecord::VHFNavaidPrimary(_))
     ));
-    println!("{:?}", record);
 }

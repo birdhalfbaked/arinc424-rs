@@ -1,6 +1,9 @@
 use crate::parsers::arinc424::rev18::definitions::*;
+
 use crate::parsers::arinc424::rev18::records::record::ARINCRecord;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError};
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError,
+};
 pub(super) struct CruisingTableRecords;
 impl CruisingTableRecords {
     pub fn parse(input: &[u8]) -> Result<ARINCRecord<'_>, RecordParseError> {
@@ -38,8 +41,12 @@ pub struct CruisingTablePrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> CruisingTablePrimaryRecord<'a> {
-    pub fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for CruisingTablePrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "CruisingTablePrimaryRecord"
+    }
+
+    fn parse(input: &'a[u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                   RecordField::from_bytes(input, 1, 1)?,
             section:                       RecordField::from_bytes(input, 5, 1)?,
@@ -64,5 +71,9 @@ impl<'a> CruisingTablePrimaryRecord<'a> {
             file_record_number:            RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                    RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

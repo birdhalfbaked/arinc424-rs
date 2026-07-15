@@ -1,6 +1,9 @@
 use crate::parsers::arinc424::rev18_faa::definitions::*;
+
 use crate::parsers::arinc424::rev18_faa::records::record::ARINCRecord;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError};
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError,
+};
 pub(super) struct AlternateRecords;
 impl AlternateRecords {
     pub fn parse(input: &[u8]) -> Result<ARINCRecord<'_>, RecordParseError> {
@@ -45,8 +48,12 @@ pub struct AlternatePrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> AlternatePrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for AlternatePrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "AlternatePrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                         RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                  RecordField::from_bytes(input, 2, 3)?,
@@ -78,5 +85,20 @@ impl<'a> AlternatePrimaryRecord<'a> {
             file_record_number:                  RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                          RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.relation_airport_or_fix.value.is_none() {
+            validation_result.extend_messages(
+                "relation airport or fix reference",
+                is_valid_reference(
+                    &self.relation_airport_or_fix,
+                    &self.relation_section,
+                    &self.relation_subsection,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }

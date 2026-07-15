@@ -1,7 +1,10 @@
 use crate::parsers::arinc424::rev18_faa::definitions::*;
+
 use crate::parsers::arinc424::rev18_faa::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct EnrouteAirwayRestrictionRecords;
 impl EnrouteAirwayRestrictionRecords {
     const CONTINUATION_COLUMN: usize = 18;
@@ -50,7 +53,10 @@ impl EnrouteAirwayRestrictionRecords {
                                 )?,
                             ),
                         ),
-                        _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
+                        _ => Err(RecordParseError::new(
+                            "Invalid continuation record application type".to_string(),
+                            Some(String::from_utf8_lossy(input).into_owned()),
+                        )),
                     }
                 }
             }
@@ -60,7 +66,10 @@ impl EnrouteAirwayRestrictionRecords {
                         EnrouteAirwayRestrictionSeasonalClosurePrimaryRecord::parse(input)?,
                     ))
                 } else {
-                    Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned())))
+                    Err(RecordParseError::new(
+                        "Invalid continuation record application type".to_string(),
+                        Some(String::from_utf8_lossy(input).into_owned()),
+                    ))
                 }
             }
             Some(RestrictionRecordType::CruisingTableReplacement) => {
@@ -86,7 +95,10 @@ impl EnrouteAirwayRestrictionRecords {
                     }
                 }
             }
-            _ => Err(RecordParseError::new("Invalid restriction record type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
+            _ => Err(RecordParseError::new(
+                "Invalid restriction record type".to_string(),
+                Some(String::from_utf8_lossy(input).into_owned()),
+            )),
         }
     }
 }
@@ -139,8 +151,12 @@ pub struct EnrouteAirwayRestrictionAltitudeExclusionPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> EnrouteAirwayRestrictionAltitudeExclusionPrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for EnrouteAirwayRestrictionAltitudeExclusionPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "EnrouteAirwayRestrictionAltitudeExclusionPrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                              RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                       RecordField::from_bytes(input, 2, 3)?,
@@ -185,6 +201,31 @@ impl<'a> EnrouteAirwayRestrictionAltitudeExclusionPrimaryRecord<'a> {
             file_record_number:                       RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                               RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.start_fix_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "start fix identifier reference",
+                is_valid_reference(
+                    &self.start_fix_identifier,
+                    &self.start_fix_section_code,
+                    &self.start_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.end_fix_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "end fix identifier reference",
+                is_valid_reference(
+                    &self.end_fix_identifier,
+                    &self.end_fix_section_code,
+                    &self.end_fix_subsection_code,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }
 
@@ -227,8 +268,12 @@ pub struct EnrouteAirwayRestrictionAltitudeExclusionContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> EnrouteAirwayRestrictionAltitudeExclusionContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for EnrouteAirwayRestrictionAltitudeExclusionContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "EnrouteAirwayRestrictionAltitudeExclusionContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                              RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                       RecordField::from_bytes(input, 2, 3)?,
@@ -265,6 +310,10 @@ impl<'a> EnrouteAirwayRestrictionAltitudeExclusionContinuationRecord<'a> {
             cycle_date:                               RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
+    }
 }
 
 /// 4.1.21.A.1 Enroute Airway Restriction Note Restriction Primary Record
@@ -294,8 +343,12 @@ pub struct EnrouteAirwayRestrictionNoteRestrictionPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> EnrouteAirwayRestrictionNoteRestrictionPrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for EnrouteAirwayRestrictionNoteRestrictionPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "EnrouteAirwayRestrictionNoteRestrictionPrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                              RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                       RecordField::from_bytes(input, 2, 3)?,
@@ -320,6 +373,31 @@ impl<'a> EnrouteAirwayRestrictionNoteRestrictionPrimaryRecord<'a> {
             cycle_date:                               RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.start_fix_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "start fix identifier reference",
+                is_valid_reference(
+                    &self.start_fix_identifier,
+                    &self.start_fix_section_code,
+                    &self.start_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.end_fix_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "end fix identifier reference",
+                is_valid_reference(
+                    &self.end_fix_identifier,
+                    &self.end_fix_section_code,
+                    &self.end_fix_subsection_code,
+                ),
+            );
+        }
+        validation_result.as_result()
+    }
 }
 
 /// 4.1.21.A.2 Enroute Airway Restriction Note Restriction Continuation Record
@@ -339,8 +417,12 @@ pub struct EnrouteAirwayRestrictionNoteRestrictionContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> EnrouteAirwayRestrictionNoteRestrictionContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for EnrouteAirwayRestrictionNoteRestrictionContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "EnrouteAirwayRestrictionNoteRestrictionContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                              RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                       RecordField::from_bytes(input, 2, 3)?,
@@ -354,6 +436,10 @@ impl<'a> EnrouteAirwayRestrictionNoteRestrictionContinuationRecord<'a> {
             file_record_number:                       RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                               RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -390,8 +476,12 @@ pub struct EnrouteAirwayRestrictionSeasonalClosurePrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> EnrouteAirwayRestrictionSeasonalClosurePrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for EnrouteAirwayRestrictionSeasonalClosurePrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "EnrouteAirwayRestrictionSeasonalClosurePrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                              RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                       RecordField::from_bytes(input, 2, 3)?,
@@ -421,6 +511,31 @@ impl<'a> EnrouteAirwayRestrictionSeasonalClosurePrimaryRecord<'a> {
             file_record_number:                       RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                               RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.start_fix_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "start fix identifier reference",
+                is_valid_reference(
+                    &self.start_fix_identifier,
+                    &self.start_fix_section_code,
+                    &self.start_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.end_fix_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "end fix identifier reference",
+                is_valid_reference(
+                    &self.end_fix_identifier,
+                    &self.end_fix_section_code,
+                    &self.end_fix_subsection_code,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }
 
@@ -457,8 +572,12 @@ pub struct EnrouteAirwayRestrictionCruisingTableReplacementPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> EnrouteAirwayRestrictionCruisingTableReplacementPrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for EnrouteAirwayRestrictionCruisingTableReplacementPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "EnrouteAirwayRestrictionCruisingTableReplacementPrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                              RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                       RecordField::from_bytes(input, 2, 3)?,
@@ -489,6 +608,31 @@ impl<'a> EnrouteAirwayRestrictionCruisingTableReplacementPrimaryRecord<'a> {
             cycle_date:                               RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.start_fix_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "start fix identifier reference",
+                is_valid_reference(
+                    &self.start_fix_identifier,
+                    &self.start_fix_section_code,
+                    &self.start_fix_subsection_code,
+                ),
+            );
+        }
+        if !self.end_fix_identifier.value.is_none() {
+            validation_result.extend_messages(
+                "end fix identifier reference",
+                is_valid_reference(
+                    &self.end_fix_identifier,
+                    &self.end_fix_section_code,
+                    &self.end_fix_subsection_code,
+                ),
+            );
+        }
+        validation_result.as_result()
+    }
 }
 
 /// 4.1.21.C.2 Enroute Airway Restriction Cruising Table Replacement Formatted Time Continuation Record
@@ -515,8 +659,12 @@ pub struct EnrouteAirwayRestrictionCruisingTableReplacementFormattedTimeContinua
 }
 
 #[rustfmt::skip]
-impl<'a> EnrouteAirwayRestrictionCruisingTableReplacementFormattedTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for EnrouteAirwayRestrictionCruisingTableReplacementFormattedTimeContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "EnrouteAirwayRestrictionCruisingTableReplacementFormattedTimeContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                  RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:           RecordField::from_bytes(input, 2, 3)?,
@@ -537,5 +685,9 @@ impl<'a> EnrouteAirwayRestrictionCruisingTableReplacementFormattedTimeContinuati
             file_record_number:           RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                   RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

@@ -1,7 +1,10 @@
 use crate::parsers::arinc424::rev23::definitions::*;
+
 use crate::parsers::arinc424::rev23::records::record::ARINCRecord;
 use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct FlightPlanningDataRecords;
 impl FlightPlanningDataRecords {
     const CONTINUATION_COLUMN: usize = 70;
@@ -86,7 +89,10 @@ impl FlightPlanningDataRecords {
                     }
                 }
             }
-            _ => Err(RecordParseError::new("Invalid procedure type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
+            _ => Err(RecordParseError::new(
+                "Invalid procedure type".to_string(),
+                Some(String::from_utf8_lossy(input).into_owned()),
+            )),
         }
     }
 }
@@ -142,8 +148,12 @@ pub struct FlightPlanningSIDSTARDataPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> FlightPlanningSIDSTARDataPrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for FlightPlanningSIDSTARDataPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "FlightPlanningSIDSTARDataPrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                                          RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                                   RecordField::from_bytes(input, 2, 3)?,
@@ -191,6 +201,10 @@ impl<'a> FlightPlanningSIDSTARDataPrimaryRecord<'a> {
             file_record_number:                                   RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                                           RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -245,8 +259,12 @@ pub struct FlightPlanningApproachDataPrimaryRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> FlightPlanningApproachDataPrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for FlightPlanningApproachDataPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "FlightPlanningApproachDataPrimaryRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                                          RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                                   RecordField::from_bytes(input, 2, 3)?,
@@ -294,6 +312,10 @@ impl<'a> FlightPlanningApproachDataPrimaryRecord<'a> {
             file_record_number:                                   RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                                           RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -357,8 +379,12 @@ pub struct FlightPlanningSIDSTARPrimaryExtensionContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> FlightPlanningSIDSTARPrimaryExtensionContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for FlightPlanningSIDSTARPrimaryExtensionContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "FlightPlanningSIDSTARPrimaryExtensionContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                                          RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                                   RecordField::from_bytes(input, 2, 3)?,
@@ -415,6 +441,10 @@ impl<'a> FlightPlanningSIDSTARPrimaryExtensionContinuationRecord<'a> {
             file_record_number:                                   RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                                           RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -478,8 +508,12 @@ pub struct FlightPlanningApproachPrimaryExtensionContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> FlightPlanningApproachPrimaryExtensionContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for FlightPlanningApproachPrimaryExtensionContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "FlightPlanningApproachPrimaryExtensionContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                                          RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                                   RecordField::from_bytes(input, 2, 3)?,
@@ -537,6 +571,10 @@ impl<'a> FlightPlanningApproachPrimaryExtensionContinuationRecord<'a> {
             cycle_date:                                           RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
+    }
 }
 
 /// 4.1.27.3(A) Flight Planning SID/STAR Formatted Time Continuation Record
@@ -582,8 +620,12 @@ pub struct FlightPlanningSIDSTARFormattedTimeContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> FlightPlanningSIDSTARFormattedTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for FlightPlanningSIDSTARFormattedTimeContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "FlightPlanningSIDSTARFormattedTimeContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                                          RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                                   RecordField::from_bytes(input, 2, 3)?,
@@ -623,6 +665,10 @@ impl<'a> FlightPlanningSIDSTARFormattedTimeContinuationRecord<'a> {
             file_record_number:                                   RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                                           RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -669,8 +715,12 @@ pub struct FlightPlanningApproachFormattedTimeContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> FlightPlanningApproachFormattedTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for FlightPlanningApproachFormattedTimeContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "FlightPlanningApproachFormattedTimeContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                                          RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                                   RecordField::from_bytes(input, 2, 3)?,
@@ -711,6 +761,10 @@ impl<'a> FlightPlanningApproachFormattedTimeContinuationRecord<'a> {
             cycle_date:                                           RecordField::from_bytes(input, 129, 4)?,
         })
     }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
+    }
 }
 
 /// 4.1.27.4(A) Flight Planning SID/STAR Narrative Time Continuation Record
@@ -750,8 +804,12 @@ pub struct FlightPlanningSIDSTARNarrativeTimeContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> FlightPlanningSIDSTARNarrativeTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for FlightPlanningSIDSTARNarrativeTimeContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "FlightPlanningSIDSTARNarrativeTimeContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                                          RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                                   RecordField::from_bytes(input, 2, 3)?,
@@ -785,6 +843,10 @@ impl<'a> FlightPlanningSIDSTARNarrativeTimeContinuationRecord<'a> {
             file_record_number:                                   RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                                           RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
 
@@ -825,8 +887,12 @@ pub struct FlightPlanningApproachNarrativeTimeContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> FlightPlanningApproachNarrativeTimeContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for FlightPlanningApproachNarrativeTimeContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "FlightPlanningApproachNarrativeTimeContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self{
             record_type:                                          RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                                   RecordField::from_bytes(input, 2, 3)?,
@@ -860,5 +926,9 @@ impl<'a> FlightPlanningApproachNarrativeTimeContinuationRecord<'a> {
             file_record_number:                                   RecordField::from_bytes(input, 124, 5)?,
             cycle_date:                                           RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }

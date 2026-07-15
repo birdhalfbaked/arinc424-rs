@@ -1,8 +1,10 @@
-
 use crate::parsers::arinc424::rev18_faa::records::record::ARINCRecord;
-use crate::parsers::arinc424::types::fields::ParseableField;
-use crate::parsers::arinc424::types::records::{RecordField, RecordParseError, is_primary_record};
+
 use crate::parsers::arinc424::rev18_faa::definitions::*;
+use crate::parsers::arinc424::types::fields::ParseableField;
+use crate::parsers::arinc424::types::records::{
+    Arinc424RecordSpec, RecordField, RecordParseError, RecordValidationError, is_primary_record,
+};
 pub(super) struct MLSRecords;
 impl MLSRecords {
     const CONTINUATION_COLUMN: usize = 22;
@@ -19,7 +21,10 @@ impl MLSRecords {
                 Some(ContinuationRecordApplicationType::StandardContinuation) => Ok(
                     ARINCRecord::MLSContinuation(MLSContinuationRecord::parse(input)?),
                 ),
-                _ => Err(RecordParseError::new("Invalid continuation record application type".to_string(), Some(String::from_utf8_lossy(input).into_owned()))),
+                _ => Err(RecordParseError::new(
+                    "Invalid continuation record application type".to_string(),
+                    Some(String::from_utf8_lossy(input).into_owned()),
+                )),
             }
         }
     }
@@ -64,9 +69,13 @@ pub struct MLSPrimaryRecord<'a> {
     pub cycle_data: RecordField<'a, CycleDate>,
 }
 
-#[rustfmt::skip]
-impl<'a> MLSPrimaryRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for MLSPrimaryRecord<'a> {
+    fn record_name() -> &'static str {
+        "MLSPrimaryRecord"
+    }
+    
+    #[rustfmt::skip]
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                        RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                 RecordField::from_bytes(input, 2, 3)?,
@@ -103,6 +112,21 @@ impl<'a> MLSPrimaryRecord<'a> {
             file_record_number:                 RecordField::from_bytes(input, 124, 5)?,
             cycle_data:                         RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        if !self.supporting_facility_id.value.is_none() {
+            validation_result.extend_messages(
+                "supporting facility reference",
+                is_valid_reference(
+                    &self.supporting_facility_id,
+                    &self.supporting_facility_section,
+                    &self.supporting_facility_subsection,
+                ),
+            );
+        }
+        validation_result.as_result()
     }
 }
 
@@ -141,8 +165,12 @@ pub struct MLSContinuationRecord<'a> {
 }
 
 #[rustfmt::skip]
-impl<'a> MLSContinuationRecord<'a> {
-    pub fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
+impl<'a> Arinc424RecordSpec<'a> for MLSContinuationRecord<'a> {
+    fn record_name() -> &'static str {
+        "MLSContinuationRecord"
+    }
+
+    fn parse(input: &'a [u8]) -> Result<Self, RecordParseError> {
         Ok(Self {
             record_type:                              RecordField::from_bytes(input, 1, 1)?,
             customer_area_code:                       RecordField::from_bytes(input, 2, 3)?,
@@ -174,5 +202,9 @@ impl<'a> MLSContinuationRecord<'a> {
             file_record_number:                       RecordField::from_bytes(input, 124, 5)?,
             cycle_data:                               RecordField::from_bytes(input, 129, 4)?,
         })
+    }
+
+    fn validate(&self) -> Result<(), RecordValidationError> {
+        Ok(())
     }
 }
