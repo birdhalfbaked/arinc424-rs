@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["TerminalNDBNavaidContinuationRecord","TerminalNDBNavaidFlightPlanningContinuationRecord","TerminalNDBNavaidPrimaryRecord","TerminalNDBNavaidSimulationContinuationRecord"],"type":["TerminalNDBNavaidChangedDataContinuationRecord"]};

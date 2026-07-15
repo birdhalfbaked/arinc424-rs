@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":["parser","rev18","rev18_faa","rev23","types"]};

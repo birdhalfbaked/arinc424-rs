@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["HeliportCommsAdditionalSectorizationContinuationRecord","HeliportCommsFormattedTimeContinuationRecord","HeliportCommsNarrativeTimeContinuationRecord","HeliportCommsPrimaryExtensionContinuationRecord","HeliportCommsPrimaryRecord","HeliportCommsSectorNarrativeContinuationRecord"]};

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["HeliportTerminalWaypointContinuationRecord","HeliportTerminalWaypointFlightPlanningContinuationRecord","HeliportTerminalWaypointPrimaryRecord"],"type":["HeliportTerminalWaypointChangedDataContinuationRecord"]};

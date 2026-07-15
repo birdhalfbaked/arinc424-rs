@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["AirportContinuationRecord","AirportFlightPlanningContinuationRecord","AirportPrimaryRecord"],"type":["AirportChangedDataContinuationRecord"]};

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["CompanyAirwayRoutePrimaryRecord","CompanyApproachRoutePrimaryRecord","CompanyGeneralRoutePrimaryRecord","CompanySIDRoutePrimaryRecord","CompanySTARRoutePrimaryRecord"]};

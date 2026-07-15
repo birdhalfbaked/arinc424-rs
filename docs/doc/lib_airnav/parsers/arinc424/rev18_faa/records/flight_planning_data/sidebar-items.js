@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["FlightPlanningApproachContinuationRecord","FlightPlanningApproachPrimaryRecord","FlightPlanningApproachTimeContinuationRecord","FlightPlanningSIDSTARContinuationRecord","FlightPlanningSIDSTARPrimaryRecord","FlightPlanningSIDSTARTimeContinuationRecord"]};

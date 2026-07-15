@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["is_valid_altitude_description","is_valid_boundary_code","is_valid_reference","is_valid_route_type_and_qualifier_combination"]};
