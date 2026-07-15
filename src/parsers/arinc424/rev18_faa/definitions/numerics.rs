@@ -10,7 +10,7 @@
 //!
 //! To handle this, there are specific fields that capture the union of the two types appropriately.
 
-use crate::parsers::arinc424::rev18::definitions::enums::FrequencyUnits;
+use crate::parsers::arinc424::rev18_faa::definitions::enums::FrequencyUnits;
 
 use crate::parsers::arinc424::types::fields::*;
 
