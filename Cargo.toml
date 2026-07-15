@@ -14,5 +14,8 @@ rev18 = []
 rev18_faa = []
 rev23 = []
 
+[package.metadata.docs.rs]
+all-features = true
+
 [badges]
 maintenance = { status = "actively-developed" }
