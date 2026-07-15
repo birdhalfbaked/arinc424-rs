@@ -1,4 +1,4 @@
-use arinc424::parser::{Arinc424Parser, Arinc424Version};
+use arinc424_rs::parser::{Arinc424Parser, Arinc424Version};
 use std::fs::File;
 use std::io::BufRead;
 use std::io::BufReader;

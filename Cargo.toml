@@ -1,5 +1,5 @@
 [package]
-name = "arinc424"
+name = "arinc424-rs"
 description = "A library for reading and validating ARINC 424 data. Various revisions supported"
 authors = ["Clifford Richardson"]
 license = "MIT"
