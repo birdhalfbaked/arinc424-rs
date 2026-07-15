@@ -1,19 +1,19 @@
-# Lib-airnav [![Read the Docs](https://img.shields.io/badge/read%20the%20docs-d2991d)](https://birdhalfbaked.github.io/airnav-rs/doc/lib_airnav/index.html)
+# ARINC 424 [![Read the Docs](https://img.shields.io/badge/read%20the%20docs-d2991d)](https://birdhalfbaked.github.io/arinc424-rs/doc/arinc424/index.html)
 
-This project helps process air navigation data in a structured way. It targets **ARINC 424** today and is intended to grow toward **AIXM** sources as well.
+This project targets proper reading of **ARINC 424** data. 
 
 After reviewing both data, a format that will make sense across both will emerge and offer a standard representation that can be used with both
 sources.
 
-## Goals
+## Motivation
 
-- Bridge parsing/verification/export of the two standards present for FMS data:
-    - AIXM
-    - ARINC + extra XML
-- Enable a standardized representation that allows users to quickly translate data to their needs within Rust applications
-- Fix some of the issues with representation of data using a higher-level layer that can feed data from multiple sources
+There are as of writing this 4 different ARINC 424 libraries. Normally I would reach out to try and work together, however it is clear many are abandoned partial-implementations with no path forward to full spec support. In most cases, they only implement records with a happy path of field validation and likely do not have access to the full specification.
 
-## ARINC 424
+What this offers is a hope for a fully-compliant set of ARINC 424 readers and perhaps later writers/multi-format (de)serializers.
+
+Contributions to this are based on actual specification documentation available from ARINC IA (and supported by AEEC, AMC, and FSEMC) via SAE International. 
+
+## ARINC 424 Support
 
 ### Revisions supported
 
@@ -84,7 +84,3 @@ fn main() {
 }
 
 ```
-
-## AIXM
-
-Next step after ARINC 424 is done, though should be easier as the schema is well defined and fits within XML parsing semantics nicely already
