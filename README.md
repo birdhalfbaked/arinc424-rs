@@ -1,9 +1,21 @@
-# ARINC 424 [![Read the Docs](https://img.shields.io/badge/read%20the%20docs-d2991d)](https://birdhalfbaked.github.io/arinc424-rs/doc/arinc424/index.html)
+# ARINC 424 [![Read the Docs](https://img.shields.io/badge/docs.rs-d2991d)](https://docs.rs/arinc424-rs/latest/arinc424_rs/)
 
 This project targets proper reading of **ARINC 424** data. 
 
 After reviewing both data, a format that will make sense across both will emerge and offer a standard representation that can be used with both
 sources.
+
+## Installation
+
+Run the following Cargo command in your project directory:
+
+
+`cargo add arinc424-rs@=0.9.1`
+
+Or add the following line to your Cargo.toml:
+
+`arinc424-rs = "=0.9.1"`
+
 
 ## Motivation
 
