@@ -49,7 +49,7 @@ pub fn is_valid_reference(
 }
 
 #[test]
-fn test_is_valid_section_subsection_combination() {
+fn test_is_valid_reference() {
     let reference = RecordField::<LengthLimitedIdentifier<3, true>> {
         value: LengthLimitedIdentifier::<3, true>::from_bytes(b"ABC").unwrap(),
         raw_bytes: b"",
@@ -65,7 +65,7 @@ fn test_is_valid_section_subsection_combination() {
     };
     let subsection = RecordField::<GenericSubsection> {
         value: GenericSubsection::from_bytes(b"A").unwrap(),
-        raw_bytes: b"",
+        raw_bytes: b"A",
         start_column: 0,
         end_column: 0,
     };
@@ -347,7 +347,7 @@ fn test_is_valid_boundary_code() {
         end_column: 0,
     };
     let boundary_code = RecordField::<BoundaryCode> {
-        value: Some(BoundaryCode::USA),
+        value: Some(BoundaryCode::LatinAmerica),
         raw_bytes: b"",
         start_column: 0,
         end_column: 0,
@@ -367,7 +367,7 @@ fn test_is_valid_boundary_code() {
         end_column: 0,
     };
     let boundary_code = RecordField::<BoundaryCode> {
-        value: Some(BoundaryCode::Pacific),
+        value: Some(BoundaryCode::SouthPacific),
         raw_bytes: b"",
         start_column: 0,
         end_column: 0,

@@ -4,31 +4,43 @@
 //! making us dynamically allocate a bunch more heap objects to handle dynamicity within a trait-based approach,
 //! so while it might be a bit more verbose, it is more efficient.
 
+#[cfg(feature = "rev18")]
 use crate::parsers::arinc424::rev18::records::record::ARINCRecord as Rev18ArincRecord;
+#[cfg(feature = "rev18_faa")]
 use crate::parsers::arinc424::rev18_faa::records::record::ARINCRecord as Rev18FAAArincRecord;
+#[cfg(feature = "rev23")]
 use crate::parsers::arinc424::rev23::records::record::ARINCRecord as Rev23ArincRecord;
 
 use crate::parsers::arinc424::types::records::{RecordError, RecordValidationError};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Arinc424Version {
+    #[cfg(feature = "rev18")]
     Rev18,
+    #[cfg(feature = "rev18_faa")]
     Rev18FAA,
+    #[cfg(feature = "rev23")]
     Rev23,
 }
 
 #[derive(Debug)]
 pub enum Arinc424VersionedRecord<'a> {
+    #[cfg(feature = "rev18")]
     Rev18(Rev18ArincRecord<'a>),
+    #[cfg(feature = "rev18_faa")]
     Rev18FAA(Rev18FAAArincRecord<'a>),
+    #[cfg(feature = "rev23")]
     Rev23(Rev23ArincRecord<'a>),
 }
 
 impl<'a> Arinc424VersionedRecord<'a> {
     pub fn validate(&self) -> Result<(), RecordValidationError> {
         match self {
+            #[cfg(feature = "rev18")]
             Self::Rev18(_) => Ok(()),
+            #[cfg(feature = "rev18_faa")]
             Self::Rev18FAA(record) => record.validate(),
+            #[cfg(feature = "rev23")]
             Self::Rev23(_) => Ok(()),
         }
     }
@@ -36,28 +48,37 @@ impl<'a> Arinc424VersionedRecord<'a> {
 
 #[derive(Debug)]
 pub enum Arinc424Parser {
+    #[cfg(feature = "rev18")]
     Rev18,
+    #[cfg(feature = "rev18_faa")]
     Rev18FAA,
+    #[cfg(feature = "rev23")]
     Rev23,
 }
 
 impl Arinc424Parser {
     pub fn new(version: Arinc424Version) -> Self {
         match version {
+            #[cfg(feature = "rev18")]
             Arinc424Version::Rev18 => Self::Rev18,
+            #[cfg(feature = "rev18_faa")]
             Arinc424Version::Rev18FAA => Self::Rev18FAA,
+            #[cfg(feature = "rev23")]
             Arinc424Version::Rev23 => Self::Rev23,
         }
     }
 
     pub fn parse<'a>(&self, input: &'a [u8]) -> Result<Arinc424VersionedRecord<'a>, RecordError> {
         let record = match self {
+            #[cfg(feature = "rev18")]
             Self::Rev18 => Ok(Arinc424VersionedRecord::Rev18(Rev18ArincRecord::parse(
                 input,
             )?)),
+            #[cfg(feature = "rev18_faa")]
             Self::Rev18FAA => Ok(Arinc424VersionedRecord::Rev18FAA(
                 Rev18FAAArincRecord::parse(input)?,
             )),
+            #[cfg(feature = "rev23")]
             Self::Rev23 => Ok(Arinc424VersionedRecord::Rev23(Rev23ArincRecord::parse(
                 input,
             )?)),
@@ -72,15 +93,4 @@ impl Arinc424Parser {
             Err(e) => Err(e),
         }
     }
-}
-
-#[test]
-fn test_parse_rev23_vhf_navaid_primary_record() {
-    let input = b"SUSAD KFATK2 IRPW  K2011130 ITWN                   IRPWN36471081W119435663E0130003470     NARFRESNO YOSEMITE INTL          261851713";
-    let parser = Arinc424Parser::new(Arinc424Version::Rev23);
-    let record = parser.parse(input).unwrap();
-    assert!(matches!(
-        record,
-        Arinc424VersionedRecord::Rev23(Rev23ArincRecord::VHFNavaidPrimary(_))
-    ));
 }

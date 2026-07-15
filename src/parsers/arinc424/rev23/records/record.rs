@@ -402,3 +402,10 @@ impl<'a> ARINCRecord<'a> {
         }
     }
 }
+
+#[test]
+fn test_parse_rev23_vhf_navaid_primary_record() {
+    let input = b"SUSAD KFATK2 IRPW  K2011130 ITWN                   IRPWN36471081W119435663E0130003470     NARFRESNO YOSEMITE INTL          261851713";
+    let record = ARINCRecord::parse(input).unwrap();
+    assert!(matches!(record, ARINCRecord::VHFNavaidPrimary(_)));
+}
