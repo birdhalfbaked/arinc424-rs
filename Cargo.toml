@@ -5,7 +5,7 @@ authors = ["Clifford Richardson"]
 license = "MIT"
 keywords = ["aviation", "navigation", "arinc", "424", "flight"]
 repository = "https://github.com/birdhalfbaked/arinc424-rs"
-version = "0.9.0"
+version = "0.9.1"
 edition = "2024"
 
 [features]
