@@ -5,6 +5,8 @@ use crate::parsers::arinc424::types::records::*;
 #[cfg(test)]
 use crate::parsers::arinc424::types::fields::LengthLimitedIdentifier;
 
+/// Validates the reference, section, and subsection combination to ensure they are a
+/// possible combination that is allowed.
 pub fn is_valid_reference(
     reference: &RecordField<impl ParseableField>,
     section: &RecordField<Section>,
@@ -96,6 +98,8 @@ fn test_is_valid_section_subsection_combination() {
     );
 }
 
+/// Validates the route type and qualifier combinations to ensure they are a possible combination
+/// that is allowed for an airport heliport approach route.
 pub fn is_valid_route_type_and_qualifier_combination<'a>(
     route_type: &RecordField<AirportHeliportApproachRouteType>,
     qualifier1: &RecordField<RouteTypeQualifier1>,
@@ -224,6 +228,8 @@ fn test_is_valid_route_type_and_qualifier_combination() {
     assert_eq!(result.len(), 2, "Expected 2 messages, got {}", result.len());
 }
 
+/// Validates the area code and boundary code combination to ensure they are a possible combination
+/// that is allowed. Note that this should only check boundaries, that is, bordering regions that can touch
 pub fn is_valid_boundary_code(
     area_code: &RecordField<CustomerAreaCode>,
     boundary_code: &RecordField<BoundaryCode>,
@@ -370,6 +376,8 @@ fn test_is_valid_boundary_code() {
     assert_eq!(result.len(), 1, "Expected 1 message, got {}", result.len());
 }
 
+/// Validates the altitude description to ensure we don't have values that are invalid based on the
+/// record type
 pub fn is_valid_altitude_description(
     record_section: &RecordField<Section>,
     record_subsection: &RecordField<impl ParseableField>,
