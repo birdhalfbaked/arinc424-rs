@@ -1,6 +1,6 @@
 # Generative AI Usage Guidelines
 
-Adapted from the excellently-written policy from [nasa/spacewasm](https://github.com/nasa/spacewasm/blob/main/AI_POLICY.md) by @Kronos3
+Adapted from the excellently-written policy from [nasa/spacewasm](https://github.com/nasa/spacewasm/blob/main/AI_POLICY.md) by [@Kronos3](https://github.com/Kronos3)
 
 ## Position on Generative AI
 
