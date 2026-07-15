@@ -218,6 +218,14 @@ impl<'a> Arinc424RecordSpec<'a> for HeliportApproachMSACenterFixPrimaryRecord<'a
                 &self.route_qualifier_2,
             ),
         );
+        validation_result.extend_messages(
+            "altitude description",
+            is_valid_altitude_description(
+                &self.section,
+                &self.subsection,
+                &self.altitude_description,
+            ),
+        );
         validation_result.as_result()
     }
 }
@@ -356,6 +364,14 @@ impl<'a> Arinc424RecordSpec<'a> for HeliportApproachTAAPrimaryRecord<'a> {
                 &self.route_qualifier_2,
             ),
         );
+        validation_result.extend_messages(
+            "altitude description",
+            is_valid_altitude_description(
+                &self.section,
+                &self.subsection,
+                &self.altitude_description,
+            ),
+        );
         validation_result.as_result()
     }
 }
@@ -460,6 +476,14 @@ impl<'a> Arinc424RecordSpec<'a> for HeliportApproachPrimaryExtensionContinuation
                 &self.route_type,
                 &self.route_qualifier_1,
                 &self.route_qualifier_2,
+            ),
+        );
+        validation_result.extend_messages(
+            "loc only altitude description",
+            is_valid_altitude_description(
+                &self.section,
+                &self.subsection,
+                &self.loc_only_altitude_description,
             ),
         );
         validation_result.as_result()

@@ -491,14 +491,17 @@ pub enum SIDRouteType {
     CommonRoute,
     /// 3
     EnrouteTransition,
-    /// 5
+    /// 4
     RNAVRunwayTransition,
+    /// 5
     RNAVCommonRoute,
-    /// 4, 6
+    /// 6
     RNAVEnrouteTransition,
+    /// F
     FMSRunwayTransition,
+    /// M
     FMSCommonRoute,
-    /// F, M, S
+    /// S
     FMSEnrouteTransition,
     /// T
     VectorRunwayTransition,
@@ -896,9 +899,9 @@ impl ParseableField for TurnDirectionValid {
 /// 5.29 Crossing Altitude Description
 #[derive(Debug, PartialEq, Eq)]
 pub enum CrossingAltitudeDescription {
-    /// +
+    /// \+
     AtOrAbove,
-    /// -
+    /// \-
     AtOrBelow,
     /// @
     At,

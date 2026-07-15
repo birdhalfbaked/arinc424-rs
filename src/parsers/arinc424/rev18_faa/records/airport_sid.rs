@@ -178,6 +178,14 @@ impl<'a> Arinc424RecordSpec<'a> for AirportSIDPrimaryRecord<'a> {
                 ),
             );
         }
+        validation_result.extend_messages(
+            "altitude description",
+            is_valid_altitude_description(
+                &self.section,
+                &self.subsection,
+                &self.altitude_description,
+            ),
+        );
         validation_result.as_result()
     }
 }

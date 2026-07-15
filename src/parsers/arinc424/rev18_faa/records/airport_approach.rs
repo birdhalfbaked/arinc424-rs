@@ -216,6 +216,14 @@ impl<'a> Arinc424RecordSpec<'a> for AirportApproachMSACenterFixPrimaryRecord<'a>
                 &self.route_qualifier_2,
             ),
         );
+        validation_result.extend_messages(
+            "altitude description",
+            is_valid_altitude_description(
+                &self.section,
+                &self.subsection,
+                &self.altitude_description,
+            ),
+        );
         validation_result.as_result()
     }
 }
@@ -354,6 +362,14 @@ impl<'a> Arinc424RecordSpec<'a> for AirportApproachTAAPrimaryRecord<'a> {
                 &self.route_qualifier_2,
             ),
         );
+        validation_result.extend_messages(
+            "altitude description",
+            is_valid_altitude_description(
+                &self.section,
+                &self.subsection,
+                &self.altitude_description,
+            ),
+        );
         validation_result.as_result()
     }
 }
@@ -458,6 +474,14 @@ impl<'a> Arinc424RecordSpec<'a> for AirportApproachPrimaryExtensionContinuationR
                 &self.route_type,
                 &self.route_qualifier_1,
                 &self.route_qualifier_2,
+            ),
+        );
+        validation_result.extend_messages(
+            "altitude description",
+            is_valid_altitude_description(
+                &self.section,
+                &self.subsection,
+                &self.loc_only_altitude_description,
             ),
         );
         validation_result.as_result()

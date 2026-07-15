@@ -137,6 +137,13 @@ impl<'a> Arinc424RecordSpec<'a> for EnrouteAirwayPrimaryRecord<'a> {
                 ),
             );
         }
+        validation_result.extend_messages(
+            "boundary code",
+            is_valid_boundary_code(
+                &self.customer_area_code,
+                &self.boundary_code,
+            ),
+        );
         validation_result.as_result()
     }
 }

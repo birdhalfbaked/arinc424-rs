@@ -386,6 +386,47 @@ impl<'a> Arinc424RecordSpec<'a> for VHFNavaidLimitationContinuationRecord<'a> {
     }
 
     fn validate(&self) -> Result<(), RecordValidationError> {
-        Ok(())
+        let mut validation_result = RecordValidationError::new(Self::record_name());
+        validation_result.extend_messages(
+            "limitation 1 altitude description",
+            is_valid_altitude_description(
+                &self.section,
+                &self.subsection,
+                &self.limitation_1_altitude_description,
+            ),
+        );
+        validation_result.extend_messages(
+            "limitation 2 altitude description",
+            is_valid_altitude_description(
+                &self.section,
+                &self.subsection,
+                &self.limitation_2_altitude_description,
+            ),
+        );
+        validation_result.extend_messages(
+            "limitation 3 altitude description",
+            is_valid_altitude_description(
+                &self.section,
+                &self.subsection,
+                &self.limitation_3_altitude_description,
+            ),
+        );
+        validation_result.extend_messages(
+            "limitation 4 altitude description",
+            is_valid_altitude_description(
+                &self.section,
+                &self.subsection,
+                &self.limitation_4_altitude_description,
+            ),
+        );
+        validation_result.extend_messages(
+            "limitation 5 altitude description",
+            is_valid_altitude_description(
+                &self.section,
+                &self.subsection,
+                &self.limitation_5_altitude_description,
+            ),
+        );
+        validation_result.as_result()
     }
 }

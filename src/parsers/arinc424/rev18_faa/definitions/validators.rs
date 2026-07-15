@@ -223,3 +223,305 @@ fn test_is_valid_route_type_and_qualifier_combination() {
         is_valid_route_type_and_qualifier_combination(&route_type, &qualifier1, &qualifier2);
     assert_eq!(result.len(), 2, "Expected 2 messages, got {}", result.len());
 }
+
+pub fn is_valid_boundary_code(
+    area_code: &RecordField<CustomerAreaCode>,
+    boundary_code: &RecordField<BoundaryCode>,
+) -> Vec<RecordValidationMessage> {
+    let mut messages = Vec::new();
+    if boundary_code.value.is_none() {
+        return messages;
+    }
+    let field_positions = vec![
+        (area_code.start_column, area_code.end_column),
+        (boundary_code.start_column, boundary_code.end_column),
+    ];
+    if !matches!(
+        (&area_code.value, &boundary_code.value),
+        (
+            Some(CustomerAreaCode::USA),
+            Some(
+                BoundaryCode::CanadaAlaska
+                    | BoundaryCode::LatinAmerica
+                    | BoundaryCode::Pacific
+                    | BoundaryCode::Europe
+                    | BoundaryCode::Africa
+            )
+        ) | (
+            Some(CustomerAreaCode::Canada),
+            Some(
+                BoundaryCode::USA
+                    | BoundaryCode::EasternEurope
+                    | BoundaryCode::Europe
+                    | BoundaryCode::Pacific
+            )
+        ) | (
+            Some(CustomerAreaCode::Pacific),
+            Some(
+                BoundaryCode::CanadaAlaska
+                    | BoundaryCode::USA
+                    | BoundaryCode::EasternEurope
+                    | BoundaryCode::Europe
+                    | BoundaryCode::MiddleEastSouthAsia
+            )
+        ) | (
+            Some(CustomerAreaCode::LatinAmerica),
+            Some(
+                BoundaryCode::Pacific
+                    | BoundaryCode::USA
+                    | BoundaryCode::SouthPacific
+                    | BoundaryCode::SouthAmerica
+                    | BoundaryCode::Africa
+            )
+        ) | (
+            Some(CustomerAreaCode::SouthPacific),
+            Some(
+                BoundaryCode::LatinAmerica
+                    | BoundaryCode::Pacific
+                    | BoundaryCode::SouthAmerica
+                    | BoundaryCode::MiddleEastSouthAsia
+                    | BoundaryCode::Africa
+            )
+        ) | (
+            Some(CustomerAreaCode::SouthAmerica),
+            Some(BoundaryCode::SouthPacific | BoundaryCode::LatinAmerica | BoundaryCode::Africa)
+        ) | (
+            Some(CustomerAreaCode::Europe),
+            Some(
+                BoundaryCode::EasternEurope
+                    | BoundaryCode::CanadaAlaska
+                    | BoundaryCode::USA
+                    | BoundaryCode::Africa
+                    | BoundaryCode::MiddleEastSouthAsia
+            )
+        ) | (
+            Some(CustomerAreaCode::EasternEurope),
+            Some(
+                BoundaryCode::Europe
+                    | BoundaryCode::MiddleEastSouthAsia
+                    | BoundaryCode::Pacific
+                    | BoundaryCode::CanadaAlaska
+            )
+        ) | (
+            Some(CustomerAreaCode::MiddleEast),
+            Some(
+                BoundaryCode::Africa
+                    | BoundaryCode::SouthPacific
+                    | BoundaryCode::EasternEurope
+                    | BoundaryCode::Pacific
+                    | BoundaryCode::Europe
+            )
+        ) | (
+            Some(CustomerAreaCode::Africa),
+            Some(
+                BoundaryCode::SouthAmerica
+                    | BoundaryCode::SouthPacific
+                    | BoundaryCode::LatinAmerica
+                    | BoundaryCode::USA
+                    | BoundaryCode::Europe
+                    | BoundaryCode::MiddleEastSouthAsia
+            )
+        )
+    ) {
+        messages.push(RecordValidationMessage::new(
+            "Invalid boundary code for area code",
+            field_positions.clone(),
+        ));
+    }
+
+    messages
+}
+
+#[test]
+fn test_is_valid_boundary_code() {
+    let area_code = RecordField::<CustomerAreaCode> {
+        value: Some(CustomerAreaCode::USA),
+        raw_bytes: b"",
+        start_column: 0,
+        end_column: 0,
+    };
+    let boundary_code = RecordField::<BoundaryCode> {
+        value: Some(BoundaryCode::USA),
+        raw_bytes: b"",
+        start_column: 0,
+        end_column: 0,
+    };
+    let result = is_valid_boundary_code(&area_code, &boundary_code);
+    assert_eq!(
+        result.len(),
+        0,
+        "Expected no messages, got {}",
+        result.len()
+    );
+
+    let area_code = RecordField::<CustomerAreaCode> {
+        value: Some(CustomerAreaCode::Canada),
+        raw_bytes: b"",
+        start_column: 0,
+        end_column: 0,
+    };
+    let boundary_code = RecordField::<BoundaryCode> {
+        value: Some(BoundaryCode::Pacific),
+        raw_bytes: b"",
+        start_column: 0,
+        end_column: 0,
+    };
+    let result = is_valid_boundary_code(&area_code, &boundary_code);
+    assert_eq!(result.len(), 1, "Expected 1 message, got {}", result.len());
+}
+
+pub fn is_valid_altitude_description(
+    record_section: &RecordField<Section>,
+    record_subsection: &RecordField<impl ParseableField>,
+    altitude_description: &RecordField<CrossingAltitudeDescription>,
+) -> Vec<RecordValidationMessage> {
+    let mut messages = Vec::new();
+    let field_positions = vec![
+        (record_section.start_column, record_section.end_column),
+        (record_subsection.start_column, record_subsection.end_column),
+        (
+            altitude_description.start_column,
+            altitude_description.end_column,
+        ),
+    ];
+
+    match altitude_description.value {
+        Some(CrossingAltitudeDescription::Between) => match record_section.value {
+            Some(Section::Airport) => {
+                if !matches!(
+                    AirportSubsection::from_bytes(record_subsection.raw_bytes).unwrap_or_default(),
+                    Some(
+                        AirportSubsection::ApproachProcedures
+                            | AirportSubsection::SIDS
+                            | AirportSubsection::STARS
+                            | AirportSubsection::Communications
+                    )
+                ) {
+                    messages.push(RecordValidationMessage::new(
+                        "Invalid altitude description for approach",
+                        field_positions.clone(),
+                    ));
+                }
+            }
+            Some(Section::Heliport) => {
+                if !matches!(
+                    HeliportSubsection::from_bytes(record_subsection.raw_bytes).unwrap_or_default(),
+                    Some(
+                        HeliportSubsection::ApproachProcedures
+                            | HeliportSubsection::SIDS
+                            | HeliportSubsection::STARS
+                            | HeliportSubsection::Communications
+                    )
+                ) {
+                    messages.push(RecordValidationMessage::new(
+                        "Invalid altitude description for approach",
+                        field_positions.clone(),
+                    ));
+                }
+            }
+            Some(Section::Navaid) => {
+                if !matches!(
+                    NavaidSubsection::from_bytes(record_subsection.raw_bytes).unwrap_or_default(),
+                    Some(NavaidSubsection::VHFNavaid)
+                ) {
+                    messages.push(RecordValidationMessage::new(
+                        "Invalid altitude description for approach",
+                        field_positions.clone(),
+                    ));
+                }
+            }
+            Some(Section::Enroute) => {
+                if !matches!(
+                    EnrouteSubsection::from_bytes(record_subsection.raw_bytes).unwrap_or_default(),
+                    Some(EnrouteSubsection::PreferredRoutes)
+                ) {
+                    messages.push(RecordValidationMessage::new(
+                        "Invalid altitude description for approach",
+                        field_positions.clone(),
+                    ));
+                }
+            }
+            _ => {}
+        },
+        Some(CrossingAltitudeDescription::AtOrAboveSecondAltitude) => match record_section.value {
+            Some(Section::Airport) => {
+                if !matches!(
+                    AirportSubsection::from_bytes(record_subsection.raw_bytes).unwrap_or_default(),
+                    Some(AirportSubsection::SIDS)
+                ) {
+                    messages.push(RecordValidationMessage::new(
+                        "Invalid altitude description for approach",
+                        field_positions.clone(),
+                    ));
+                }
+            }
+            Some(Section::Heliport) => {
+                if !matches!(
+                    HeliportSubsection::from_bytes(record_subsection.raw_bytes).unwrap_or_default(),
+                    Some(HeliportSubsection::SIDS)
+                ) {
+                    messages.push(RecordValidationMessage::new(
+                        "Invalid altitude description for approach",
+                        field_positions.clone(),
+                    ));
+                }
+            }
+            _ => {}
+        },
+        _ => {}
+    }
+    messages
+}
+
+#[test]
+fn test_is_valid_altitude_description() {
+    let record_section = RecordField::<Section> {
+        value: Some(Section::Airport),
+        raw_bytes: b"",
+        start_column: 0,
+        end_column: 0,
+    };
+    let record_subsection = RecordField::<AirportSubsection> {
+        value: Some(AirportSubsection::SIDS),
+        raw_bytes: b"D",
+        start_column: 0,
+        end_column: 0,
+    };
+    let altitude_description = RecordField::<CrossingAltitudeDescription> {
+        value: Some(CrossingAltitudeDescription::Between),
+        raw_bytes: b"",
+        start_column: 0,
+        end_column: 0,
+    };
+    let result =
+        is_valid_altitude_description(&record_section, &record_subsection, &altitude_description);
+    assert_eq!(
+        result.len(),
+        0,
+        "Expected no messages, got {}",
+        result.len()
+    );
+
+    let record_section = RecordField::<Section> {
+        value: Some(Section::Airport),
+        raw_bytes: b"",
+        start_column: 0,
+        end_column: 0,
+    };
+    let record_subsection = RecordField::<CompanyRoutesSubsection> {
+        value: Some(CompanyRoutesSubsection::CompanyRoutes),
+        raw_bytes: b" ",
+        start_column: 0,
+        end_column: 0,
+    };
+
+    let altitude_description = RecordField::<CrossingAltitudeDescription> {
+        value: Some(CrossingAltitudeDescription::AtOrAboveSecondAltitude),
+        raw_bytes: b"",
+        start_column: 0,
+        end_column: 0,
+    };
+    let result =
+        is_valid_altitude_description(&record_section, &record_subsection, &altitude_description);
+    assert_eq!(result.len(), 1, "Expected 1 messages, got {}", result.len());
+}

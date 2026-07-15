@@ -67,7 +67,7 @@ pub struct PreferredRoutePrimaryRecord<'a> {
     pub time_code: RecordField<'a, StandardPrimaryRecordTimeCode>,
     pub aircraft_use_group: RecordField<'a, AircraftUseGroupIndicator>,
     pub direction_restriction: RecordField<'a, PreferredRouteDirectionalRestriction>,
-    pub alitude_description: RecordField<'a, CrossingAltitudeDescription>,
+    pub altitude_description: RecordField<'a, CrossingAltitudeDescription>,
     pub altitude_1: RecordField<'a, MinimumAltitude>,
     pub altitude_2: RecordField<'a, MinimumAltitude>,
     pub file_record_number: RecordField<'a, FileRecordNumber>,
@@ -112,7 +112,7 @@ impl<'a> Arinc424RecordSpec<'a> for PreferredRoutePrimaryRecord<'a> {
             time_code:                        RecordField::from_bytes(input, 91, 1)?,
             aircraft_use_group:               RecordField::from_bytes(input, 92, 2)?,
             direction_restriction:            RecordField::from_bytes(input, 94, 1)?,
-            alitude_description:              RecordField::from_bytes(input, 95, 1)?,
+            altitude_description:             RecordField::from_bytes(input, 95, 1)?,
             altitude_1:                       RecordField::from_bytes(input, 96, 5)?,
             altitude_2:                       RecordField::from_bytes(input, 101, 5)?,
             file_record_number:               RecordField::from_bytes(input, 124, 5)?,
@@ -152,6 +152,14 @@ impl<'a> Arinc424RecordSpec<'a> for PreferredRoutePrimaryRecord<'a> {
                 ),
             );
         }
+        validation_result.extend_messages(
+            "altitude description",
+            is_valid_altitude_description(
+                &self.section,
+                &self.subsection,
+                &self.altitude_description,
+            ),
+        );
         validation_result.as_result()
     }
 }

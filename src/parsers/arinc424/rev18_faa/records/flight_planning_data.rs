@@ -219,6 +219,14 @@ impl<'a> Arinc424RecordSpec<'a> for FlightPlanningSIDSTARPrimaryRecord<'a> {
                 ),
             );
         }
+        validation_result.extend_messages(
+            "altitude description",
+            is_valid_altitude_description(
+                &self.section,
+                &self.subsection,
+                &self.altitude_description,
+            ),
+        );
         validation_result.as_result()
     }
 }
@@ -361,6 +369,14 @@ impl<'a> Arinc424RecordSpec<'a> for FlightPlanningApproachPrimaryRecord<'a> {
                 ),
             );
         }
+        validation_result.extend_messages(
+            "altitude description",
+            is_valid_altitude_description(
+                &self.section,
+                &self.subsection,
+                &self.altitude_description,
+            ),
+        );
         validation_result.as_result()
     }
 }
