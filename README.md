@@ -60,7 +60,7 @@ The ARINC 424 parser is designed for efficient memory use: parsed records borrow
 Example:
 
 ```rust
-use lib_airnav::parsers::arinc424::parser::{Arinc424Parser, Arinc424Version};
+use arinc424_rs::parser::{Arinc424Parser, Arinc424Version};
 
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -87,10 +87,14 @@ fn main() {
         if line.len() == 0 {
             continue;
         }
-        if let Ok(record) = parser.parse(line.as_bytes()){
+        match parser.parse(line.as_bytes()){
+            Ok(_) => {
+                // do stuff
+            }
+            Err(e) => {
+                println!("Error: {:?}", e);
+            }
             // do stuff
-        } else {
-            println!("Error: {:?}", record.err());
         }
     }
 }
