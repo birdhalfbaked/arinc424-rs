@@ -17,5 +17,16 @@ rev23 = []
 [package.metadata.docs.rs]
 all-features = true
 
+[dev-dependencies]
+criterion = "0.8"
+memory-stats = "1.2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[[bench]]
+name = "parse_file"
+harness = false
+required-features = ["rev18_faa"]
+
 [badges]
 maintenance = { status = "actively-developed" }
