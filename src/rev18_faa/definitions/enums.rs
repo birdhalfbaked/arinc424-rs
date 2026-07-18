@@ -2517,7 +2517,7 @@ impl ParseableField for NavaidLimitationCode {
 }
 
 /// 5.206 Component Affected Indicator
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub enum ComponentAffectedIndicator {
     /// A
     TACANAzimuthOnly,
