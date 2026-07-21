@@ -1,7 +1,6 @@
 use arinc424_rs::parser::Arinc424VersionedEntity;
 use arinc424_rs::parser::{Arinc424Reader, Arinc424Version};
 use arinc424_rs::rev18_faa::entities::entity::Entity;
-use arinc424_rs::rev18_faa::entities::navaid::NavaidKind;
 use std::path::Path;
 #[test]
 fn test_parse_file() {
